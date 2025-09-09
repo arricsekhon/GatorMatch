@@ -17,10 +17,10 @@
 |    :---:          |     :---:            |     :---:       |
 | Derek Ye          | dye3@sfsu.edu        | derekyeeyee     |
 | Arric Sekhon      | asekhon@sfsu.edu     | arricsekhon     |
-| Rishika Bharodiya |                      |                 |
+| Rishika Bharodiya | rbharodiya@sfsu.edu  |   RishikaBB     |
 | Alonzo Manosca    | amanosca1@sfsu.edu   | AJSFSU          |
 | Amer Music        | amusic@mail.sfsu.edu | Amusic514       |
-| Daniel Castillo   |                      |                 |
+| Daniel Castillo   | dcastillo8@sfsu.edu  | dacastillo516   |
 | Stanley Wang      | hwang26@sfsu.edu     | stanleywang419  |
 
 ## NO code needs to be stored in the root of your repository. You may rename the application folder if you like to your team's application name. But all source code related to your team's application should be stored inside the application folder.
