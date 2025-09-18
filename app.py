@@ -2,12 +2,14 @@ from flask import Flask, render_template, request, jsonify, abort
 import json
 import os
 
-BASE_DIR     = os.path.abspath(os.path.dirname(__file__))
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 TEMPLATE_DIR = os.path.join(BASE_DIR, "application", "templates")
-STATIC_DIR   = os.path.join(BASE_DIR, "application", "static")
-DATA_FILE    = os.path.join(BASE_DIR, "application", "data", "team1_section4.json")
+STATIC_DIR = os.path.join(BASE_DIR, "application", "static")
+DATA_FILE = os.path.join(BASE_DIR, "application",
+                         "data", "team1_section4.json")
 
 app = Flask(__name__, template_folder=TEMPLATE_DIR, static_folder=STATIC_DIR)
+
 
 def load_team_data():
     try:
@@ -16,15 +18,18 @@ def load_team_data():
     except (OSError, json.JSONDecodeError):
         abort(500)
 
+
 def find_member(slug: str):
     members = load_team_data()
     return next((m for m in members if m.get("slug") == slug), None)
+
 
 @app.route("/")
 @app.route("/about")
 def team_page():
     members = load_team_data()
     return render_template("team.html", members=members)
+
 
 @app.route("/search")
 def search():
@@ -37,6 +42,7 @@ def search():
         if q in m.get("name", "").lower() or q in m.get("role", "").lower()
     ]
     return jsonify(results)
+
 
 @app.route("/about/<slug>")
 def member_page(slug: str):
@@ -53,6 +59,7 @@ def member_page(slug: str):
     person.setdefault("email", "")
 
     return render_template("member.html", person=person)
+
 
 if __name__ == "__main__":
     app.run(debug=True, port=5001)

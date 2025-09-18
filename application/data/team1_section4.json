@@ -5,17 +5,32 @@
     "role": "Project Lead & Frontend Developer",
     "subtitle": "M.S. Student, Data Science & AI at San Francisco State University",
     "bio": "I am a Master's student in Data Science and Artificial Intelligence at San Francisco State University. My focus is on frontend development, ensuring smooth and intuitive UI/UX design for web applications. Beyond this project, I am sharpening my software engineering skills and advancing my expertise in Python with the goal of working as a data scientist at NASA.",
-    "skills": ["Python","Data Visualization","Human-Computer Interaction","UI/UX Design","Figma"],
+    "skills": [
+      "Python",
+      "Data Visualization",
+      "Human-Computer Interaction",
+      "UI/UX Design",
+      "Figma"
+    ],
     "contributions": [
-      {"title": "Frontend Development","desc": "Implemented user-friendly and responsive interfaces, focusing on smooth UI/UX design."},
-      {"title": "Project Lead","desc": "Coordinated tasks across the team, set direction, and ensured timely progress."},
-      {"title": "AWS Setup","desc": "Assisted in setting up deployment environments on AWS for the project."}
+      {
+        "title": "Frontend Development",
+        "desc": "Implemented user-friendly and responsive interfaces, focusing on smooth UI/UX design."
+      },
+      {
+        "title": "Project Lead",
+        "desc": "Coordinated tasks across the team, set direction, and ensured timely progress."
+      },
+      {
+        "title": "AWS Setup",
+        "desc": "Assisted in setting up deployment environments on AWS for the project."
+      }
     ],
     "github": "https://github.com/Amusic514",
     "linkedin": "https://www.linkedin.com/in/amer-music-mba-2761a3174/",
     "email": "anermusic514@gmail.com"
   },
-    {
+  {
     "name": "Arric Sekhon",
     "slug": "arric-sekhon",
     "role": "Frontend Lead",
@@ -26,8 +41,8 @@
     "github": "",
     "linkedin": "",
     "email": ""
-    },
-    {
+  },
+  {
     "name": "Stanley Wang",
     "slug": "stanley-wang",
     "role": "Backend Support",
@@ -38,8 +53,8 @@
     "github": "",
     "linkedin": "",
     "email": ""
-    },
-    {
+  },
+  {
     "name": "Alonzo Manosca",
     "slug": "alonzo-manosca",
     "role": "GitHub Support",
@@ -50,8 +65,8 @@
     "github": "",
     "linkedin": "",
     "email": ""
-    },
-    {
+  },
+  {
     "name": "Rishika Bharodiya",
     "slug": "rishika-bharodiya",
     "role": "GitHub Master",
@@ -62,20 +77,36 @@
     "github": "",
     "linkedin": "",
     "email": ""
-    },
-    {
+  },
+  {
+    "avatar": "images/snake_cat_2.png",
     "name": "Derek Ye",
     "slug": "derek-ye",
     "role": "Backend Lead",
-    "subtitle": "",
-    "bio": "",
-    "skills": [],
-    "contributions": [],
-    "github": "",
-    "linkedin": "",
-    "email": ""
-    },
-    {
+    "subtitle": "4th year CS student at SFSU!",
+    "bio": "Hello! My name is Derek and I am currently pursuing a Bachelor's degree in Computer Science. I am interested in a career in Cybersecurity and am currently studying for the CompTIA A+ certification!",
+    "skills": [
+      "Python",
+      "Flask",
+      "C++",
+      "Backend Development",
+      "SQL"
+    ],
+    "contributions": [
+      {
+        "title": "Backend Development",
+        "desc": "Working on connecting frontend to server-side database code."
+      },
+      {
+        "title": "SQL Database",
+        "desc": "Created a SQL Database to store crucial information for website visitors."
+      }
+    ],
+    "github": "https://github.com/derekyeeyee",
+    "linkedin": "https://www.linkedin.com/in/derek-ye-42bb80298/",
+    "email": "d3r3ky3@gmail.com"
+  },
+  {
     "name": "Daniel Castillo",
     "slug": "daniel-castillo",
     "role": "Frontend Support",
@@ -86,6 +117,5 @@
     "github": "",
     "linkedin": "",
     "email": ""
-    }
+  }
 ]
-

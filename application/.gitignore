@@ -1,0 +1,10 @@
+__pycache__/
+*.py[cod]
+
+# Virtual environment folders inside application
+.venv/
+venv/
+env/
+
+.DS_Store
+
