@@ -1,10 +1,91 @@
 [
-    { "slug": "amer-music", "name": "Amer Music", "role": "Project Lead & UI/UX Designer" },
-    { "slug": "arric-sekhon", "name": "Arric Sekhon", "role": "Frontend Lead" },
-    { "slug": "stanley-wang", "name": "Stanley Wang", "role": "Backend Support" },
-    { "slug": "alonzo-manosca", "name": "Alonzo Manosca", "role": "GitHub Support" },
-    { "slug": "rishika-bharodiya", "name": "Rishika Bharodiya", "role": "GitHub Master" },
-    { "slug": "derek-ye", "name": "Derek Ye", "role": "Backend Lead" },
-    { "slug": "daniel-castillo", "name": "Daniel Castillo", "role": "Frontend Support" }
-
+  {
+    "name": "Amer Music",
+    "slug": "amer-music",
+    "role": "Project Lead & Frontend Developer",
+    "subtitle": "M.S. Student, Data Science & AI at San Francisco State University",
+    "bio": "I am a Master's student in Data Science and Artificial Intelligence at San Francisco State University. My focus is on frontend development, ensuring smooth and intuitive UI/UX design for web applications. Beyond this project, I am sharpening my software engineering skills and advancing my expertise in Python with the goal of working as a data scientist at NASA.",
+    "skills": ["Python","Data Visualization","Human-Computer Interaction","UI/UX Design","Figma"],
+    "contributions": [
+      {"title": "Frontend Development","desc": "Implemented user-friendly and responsive interfaces, focusing on smooth UI/UX design."},
+      {"title": "Project Lead","desc": "Coordinated tasks across the team, set direction, and ensured timely progress."},
+      {"title": "AWS Setup","desc": "Assisted in setting up deployment environments on AWS for the project."}
+    ],
+    "github": "https://github.com/Amusic514",
+    "linkedin": "https://www.linkedin.com/in/amer-music-mba-2761a3174/",
+    "email": "anermusic514@gmail.com"
+  },
+    {
+    "name": "Arric Sekhon",
+    "slug": "arric-sekhon",
+    "role": "Frontend Lead",
+    "subtitle": "",
+    "bio": "",
+    "skills": [],
+    "contributions": [],
+    "github": "",
+    "linkedin": "",
+    "email": ""
+    },
+    {
+    "name": "Stanley Wang",
+    "slug": "stanley-wang",
+    "role": "Backend Support",
+    "subtitle": "",
+    "bio": "",
+    "skills": [],
+    "contributions": [],
+    "github": "",
+    "linkedin": "",
+    "email": ""
+    },
+    {
+    "name": "Alonzo Manosca",
+    "slug": "alonzo-manosca",
+    "role": "GitHub Support",
+    "subtitle": "",
+    "bio": "",
+    "skills": [],
+    "contributions": [],
+    "github": "",
+    "linkedin": "",
+    "email": ""
+    },
+    {
+    "name": "Rishika Bharodiya",
+    "slug": "rishika-bharodiya",
+    "role": "GitHub Master",
+    "subtitle": "",
+    "bio": "",
+    "skills": [],
+    "contributions": [],
+    "github": "",
+    "linkedin": "",
+    "email": ""
+    },
+    {
+    "name": "Derek Ye",
+    "slug": "derek-ye",
+    "role": "Backend Lead",
+    "subtitle": "",
+    "bio": "",
+    "skills": [],
+    "contributions": [],
+    "github": "",
+    "linkedin": "",
+    "email": ""
+    },
+    {
+    "name": "Daniel Castillo",
+    "slug": "daniel-castillo",
+    "role": "Frontend Support",
+    "subtitle": "",
+    "bio": "",
+    "skills": [],
+    "contributions": [],
+    "github": "",
+    "linkedin": "",
+    "email": ""
+    }
 ]
+

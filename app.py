@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, abort
 import json
 import os
 
@@ -9,32 +9,28 @@ DATA_FILE    = os.path.join(BASE_DIR, "application", "data", "team1_section4.jso
 
 app = Flask(__name__, template_folder=TEMPLATE_DIR, static_folder=STATIC_DIR)
 
-if os.environ.get("EXPLAIN_TEMPLATES") == "1":
-    app.config["EXPLAIN_TEMPLATE_LOADING"] = True
-    # print the search path once so you can verify it points to application/templates
-    print("JINJA SEARCH PATH:", app.jinja_loader.searchpath)
-
 def load_team_data():
-    with open(DATA_FILE, "r", encoding="utf-8") as f:
-        return json.load(f)
-
+    try:
+        with open(DATA_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except (OSError, json.JSONDecodeError):
+        abort(500)
 
 def find_member(slug: str):
     members = load_team_data()
     return next((m for m in members if m.get("slug") == slug), None)
 
-
-# ---- routes ----
 @app.route("/")
 @app.route("/about")
 def team_page():
     members = load_team_data()
     return render_template("team.html", members=members)
 
-
 @app.route("/search")
 def search():
-    q = (request.args.get("q") or "").lower()
+    q = (request.args.get("q") or "").strip().lower()
+    if not q:
+        return jsonify([])
     members = load_team_data()
     results = [
         m for m in members
@@ -42,6 +38,21 @@ def search():
     ]
     return jsonify(results)
 
+@app.route("/about/<slug>")
+def member_page(slug: str):
+    person = find_member(slug)
+    if not person:
+        abort(404)
+
+    person.setdefault("subtitle", "")
+    person.setdefault("bio", "")
+    person.setdefault("skills", [])
+    person.setdefault("contributions", [])
+    person.setdefault("github", "")
+    person.setdefault("linkedin", "")
+    person.setdefault("email", "")
+
+    return render_template("member.html", person=person)
 
 if __name__ == "__main__":
     app.run(debug=True, port=5001)

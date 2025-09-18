@@ -2,45 +2,95 @@
 {% block title %}{{ person.name }}{% endblock %}
 {% block content %}
 
+<!-- Hero -->
 <section class="profile-hero">
   <div class="profile-hero-inner">
-    <div class="avatar lg">
-      <svg width="75" height="75" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 
-                 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 
-                 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+    <div class="avatar lg" aria-hidden="true">
+      <svg width="90" height="90" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 12c2.21 0 4-1.79 4-4S14.21 4 12 4 8 5.79 8 8s1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
       </svg>
     </div>
+
     <h1 class="profile-name">{{ person.name }}</h1>
     <p class="profile-role">{{ person.role }}</p>
+    {% if person.subtitle %}
+      <p class="profile-subtitle">{{ person.subtitle }}</p>
+    {% endif %}
   </div>
 </section>
 
+<!-- Body: Bio + Skills -->
 <section class="member-body">
   <div class="col-left">
     <h2>About Me</h2>
-    <p>{{ person.bio }}</p>
+    <p class="body-text">{{ person.bio }}</p>
   </div>
+
   <div class="col-right">
-    <h2>Contributions</h2>
-    <ul class="bullets">
-      {% for item in person.contributions %}
-      <li>{{ item }}</li>
-      {% endfor %}
-    </ul>
+    {% if person.skills and person.skills|length %}
+      <h2>Skills</h2>
+      <ul class="chips" aria-label="Skills">
+        {% for skill in person.skills %}
+          <li class="chip">{{ skill }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
   </div>
 </section>
 
+<!-- Contributions as cards -->
+{% if person.contributions and person.contributions|length %}
+<section class="contrib">
+  <h2 class="contrib-title">My Contributions</h2>
+
+  <div class="contrib-grid">
+    {% for c in person.contributions %}
+    <article class="contrib-card">
+      <div class="contrib-icon" aria-hidden="true">
+        <!-- generic list/icon so we avoid extra deps -->
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M3 5h18v2H3V5zm0 6h18v2H3v-2zm0 6h12v2H3v-2z"/>
+        </svg>
+      </div>
+      <h3 class="contrib-head">{{ c.title }}</h3>
+      {% if c.desc %}<p class="contrib-desc">{{ c.desc }}</p>{% endif %}
+    </article>
+    {% endfor %}
+  </div>
+
+  {% if person.github %}
+  <div class="center" style="margin-top:28px">
+    <a class="btn ghost" href="{{ person.github }}" target="_blank" rel="noopener">View GitHub Profile</a>
+  </div>
+  {% endif %}
+</section>
+{% endif %}
+
+<!-- Contact -->
+{% if person.github or person.linkedin or person.email %}
 <section class="contact-links">
   <div class="contact-row">
-    {% if person.github %}<a class="pill" href="{{ person.github }}" target="_blank">GitHub</a>{% endif %}
-    {% if person.linkedin %}<a class="pill" href="{{ person.linkedin }}" target="_blank">LinkedIn</a>{% endif %}
-    {% if person.email %}<a class="pill" href="mailto:{{ person.email }}">Email</a>{% endif %}
+    {% if person.github %}
+      <a class="icon-btn" href="{{ person.github }}" target="_blank" rel="noopener" aria-label="GitHub">
+        <span>GH</span>
+      </a>
+    {% endif %}
+    {% if person.linkedin %}
+      <a class="icon-btn" href="{{ person.linkedin }}" target="_blank" rel="noopener" aria-label="LinkedIn">
+        <span>in</span>
+      </a>
+    {% endif %}
+    {% if person.email %}
+      <a class="icon-btn" href="mailto:{{ person.email }}" aria-label="Email">
+        <span>@</span>
+      </a>
+    {% endif %}
   </div>
 </section>
+{% endif %}
 
 <section class="back">
-  <a href="{{ url_for('team_page') }}">← Back to Team Page</a>
+  <a href="{{ url_for('team_page') }}">← Back to Team About</a>
 </section>
 
 {% endblock %}

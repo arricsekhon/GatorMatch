@@ -20,7 +20,7 @@
     </div>
     <h3 class="name">{{ m.name }}</h3>
     <p class="role">{{ m.role }}</p>
-    <a class="btn" href="#">View Profile</a>
+    <a class="btn" href="{{ url_for('member_page', slug=m.slug) }}">View Profile</a>
   </article>
   {% endfor %}
 </section>
@@ -30,3 +30,4 @@
 </div>
 
 {% endblock %}
+
