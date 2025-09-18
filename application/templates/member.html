@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}{{ person.name }}{% endblock %}
+{% block content %}
+
+<section class="profile-hero">
+  <div class="profile-hero-inner">
+    <div class="avatar lg">
+      <svg width="75" height="75" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 
+                 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 
+                 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+      </svg>
+    </div>
+    <h1 class="profile-name">{{ person.name }}</h1>
+    <p class="profile-role">{{ person.role }}</p>
+  </div>
+</section>
+
+<section class="member-body">
+  <div class="col-left">
+    <h2>About Me</h2>
+    <p>{{ person.bio }}</p>
+  </div>
+  <div class="col-right">
+    <h2>Contributions</h2>
+    <ul class="bullets">
+      {% for item in person.contributions %}
+      <li>{{ item }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+</section>
+
+<section class="contact-links">
+  <div class="contact-row">
+    {% if person.github %}<a class="pill" href="{{ person.github }}" target="_blank">GitHub</a>{% endif %}
+    {% if person.linkedin %}<a class="pill" href="{{ person.linkedin }}" target="_blank">LinkedIn</a>{% endif %}
+    {% if person.email %}<a class="pill" href="mailto:{{ person.email }}">Email</a>{% endif %}
+  </div>
+</section>
+
+<section class="back">
+  <a href="{{ url_for('team_page') }}">← Back to Team Page</a>
+</section>
+
+{% endblock %}

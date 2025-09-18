@@ -1,0 +1,10 @@
+[
+    { "slug": "amer-music", "name": "Amer Music", "role": "Project Lead & UI/UX Designer" },
+    { "slug": "arric-sekhon", "name": "Arric Sekhon", "role": "Frontend Lead" },
+    { "slug": "stanley-wang", "name": "Stanley Wang", "role": "Backend Support" },
+    { "slug": "alonzo-manosca", "name": "Alonzo Manosca", "role": "GitHub Support" },
+    { "slug": "rishika-bharodiya", "name": "Rishika Bharodiya", "role": "GitHub Master" },
+    { "slug": "derek-ye", "name": "Derek Ye", "role": "Backend Lead" },
+    { "slug": "daniel-castillo", "name": "Daniel Castillo", "role": "Frontend Support" }
+
+]
