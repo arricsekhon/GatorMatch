@@ -46,13 +46,28 @@
     "name": "Stanley Wang",
     "slug": "stanley-wang",
     "role": "Backend Support",
-    "subtitle": "",
-    "bio": "",
-    "skills": [],
-    "contributions": [],
-    "github": "",
-    "linkedin": "",
-    "email": ""
+    "subtitle": "Senior year CS student at SFSU",
+    "bio": "Hi, I'm Stanley Wang.Interested in machine learning and image processing",
+    "skills": [
+      "Python",
+      "MATLAB",
+      "C++",
+      "Backend Development",
+      "SQL"
+    ],
+    "contributions": [
+      {
+        "title": "Backend Development",
+        "desc": "Working on connecting frontend to server-side database code."
+      },
+      {
+        "title": "SQL Database",
+        "desc": "Created a SQL Database to store crucial information for website visitors."
+      }
+    ],
+    "github": "https://github.com/stanleywang419",
+    "linkedin": "N/A",
+    "email": "ra2013111111@gmail.com"
   },
   {
     "name": "Alonzo Manosca",
