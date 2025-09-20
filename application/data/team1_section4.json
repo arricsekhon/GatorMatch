@@ -128,15 +128,31 @@
     "email": "d3r3ky3@gmail.com"
   },
   {
+    "avatar": "images/cropped_Yosemite_089.jpg",
     "name": "Daniel Castillo",
     "slug": "daniel-castillo",
     "role": "Frontend Support",
-    "subtitle": "",
-    "bio": "",
-    "skills": [],
-    "contributions": [],
-    "github": "",
-    "linkedin": "",
-    "email": ""
+    "subtitle": "CS Student at SFSU",
+    "bio": "I am a CS student who enjoys UI/UX design. Photography has taught me the importance of detail and creating experiences that make people feel seen or valued, so I enjoy bringing that same energy into web design. I look forward to putting that into practice in this project to leave users with a positive impression.",
+    "skills": [
+      "UI/UX Design",
+      "JavaScript",
+      "SQL",
+      "Figma/Bootstrap",
+      "C++"
+    ],
+    "contributions": [
+      {
+      "title": "Frontend Support",
+      "desc": "Assisting the frontend lead and group with design implementation and ensuring layouts remained consistent across browsers and devices."
+      },
+      {
+      "title": "Testing & Feedback",
+      "desc": "Helping test and refine site features to confirm smooth user experience across different platforms."
+      }
+    ],
+    "github": "https://github.com/dacastillo516",
+    "linkedin": "https://www.linkedin.com/in/ldaniz-226/",
+    "email": "dacastillo516@gmail.com"
   }
 ]
