@@ -85,13 +85,19 @@
     "name": "Rishika Bharodiya",
     "slug": "rishika-bharodiya",
     "role": "GitHub Master",
-    "subtitle": "",
-    "bio": "",
-    "skills": [],
+    "subtitle": "Senior SFSU student",
+    "bio": "Hi! I'm an aspiring Data Analyst | AI & ML Enthusiast Research Interests: Artificial Intelligence, Machine Learning, Healthcare AI (Mental Health), Data Analytics.",
+    "skills": [
+      "Pyton",
+      "SQL",
+      "Data Visualization tools",
+      "Github",
+      "Deep Learning"
+    ],
     "contributions": [],
-    "github": "",
-    "linkedin": "",
-    "email": ""
+    "github": "https://github.com/RishikaBB",
+    "linkedin": "https://www.linkedin.com/in/rishikabharodiya/",
+    "email": "rishika.bharodiya@icloud.com"
   },
   {
     "avatar": "images/snake_cat_2.png",
