@@ -31,16 +31,32 @@
     "email": "anermusic514@gmail.com"
   },
   {
+    "avatar": "images/arric_image.jpg",
     "name": "Arric Sekhon",
     "slug": "arric-sekhon",
     "role": "Frontend Lead",
-    "subtitle": "",
-    "bio": "",
-    "skills": [],
-    "contributions": [],
-    "github": "",
-    "linkedin": "",
-    "email": ""
+    "subtitle": "B.S. Computer Science Student at SFSU",
+    "bio": "I am a Frontend Lead with a passion for creating intuitive user interfaces. My goal is to enhance user experience through effective design and development.",
+    "skills": [
+      "JavaScript",
+      "React",
+      "HTML/CSS",
+      "Python",
+      "MySQL"
+    ],
+    "contributions": [
+      {
+        "title": "Frontend Development",
+        "desc": "Led the frontend development efforts, ensuring a seamless and engaging user experience."
+      },
+      {
+        "title": "AWS Setup",
+        "desc": "Assisted in setting up deployment environments on AWS for the project."
+      }
+    ],
+    "github": "https://github.com/arricsekhon",
+    "linkedin": "https://www.linkedin.com/in/arricsekhon/",
+    "email": "asekhon@sfsu.edu"
   },
   {
     "name": "Stanley Wang",
