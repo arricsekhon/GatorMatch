@@ -11,7 +11,7 @@
 2. SSH username: ubuntu
 3. SSH password or key: sfsu-team1-key.pem
     <br> If a ssh key is used please upload the key to the credentials folder.
-4. Database URL or IP and port used: 127.0.0.1
+4. Database URL or IP and port used: 127.0.0.1, port 3306
     <br><strong> NOTE THIS DOES NOT MEAN YOUR DATABASE NEEDS A PUBLIC FACING PORT.</strong> But knowing the IP and port number will help with SSH tunneling into the database. The default port is more than sufficient for this class.
 5. Database username: ubuntu
 6. Database password: 922452112
@@ -22,4 +22,5 @@
 ## These values need to kept update to date throughout the semester. <br>
 ## <strong>Failure to do so will result it points be deducted from milestone submissions.</strong><br>
 ## You may store the most of the above in this README.md file. DO NOT Store the SSH key or any keys in this README.md file.
+
 
