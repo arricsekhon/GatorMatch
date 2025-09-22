@@ -6,22 +6,25 @@
 <section class="profile-hero">
   <div class="profile-hero-inner">
     {% if person.avatar %}
-    <div class="avatar lg" aria-hidden="true">
-      <img src="{{ url_for('static', filename=person.avatar) }}" alt="{{ person.name }} avatar" +
-        style="width:100%;height:100%;border-radius:999px;object-fit:cover;display:block;margin:0 auto" />
-    </div>
+      <div class="avatar lg" aria-hidden="true">
+        <img
+          src="{{ url_for('static', filename=person.avatar) }}"
+          alt="{{ person.name }} avatar"
+          loading="lazy"
+        />
+      </div>
     {% else %}
-    <div class="avatar lg" aria-hidden="true">
-      <svg width="90" height="90" viewBox="0 0 24 24" fill="currentColor">
-        <path
-          d="M12 12c2.21 0 4-1.79 4-4S14.21 4 12 4 8 5.79 8 8s1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-      </svg>
-    </div>
+      <div class="avatar lg" aria-hidden="true">
+        <svg width="90" height="90" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M12 12c2.21 0 4-1.79 4-4S14.21 4 12 4 8 5.79 8 8s1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+        </svg>
+      </div>
     {% endif %}
+
     <h1 class="profile-name">{{ person.name }}</h1>
     <p class="profile-role">{{ person.role }}</p>
     {% if person.subtitle %}
-    <p class="profile-subtitle">{{ person.subtitle }}</p>
+      <p class="profile-subtitle">{{ person.subtitle }}</p>
     {% endif %}
   </div>
 </section>
@@ -35,12 +38,12 @@
 
   <div class="col-right">
     {% if person.skills and person.skills|length %}
-    <h2>Skills</h2>
-    <ul class="chips" aria-label="Skills">
-      {% for skill in person.skills %}
-      <li class="chip">{{ skill }}</li>
-      {% endfor %}
-    </ul>
+      <h2>Skills</h2>
+      <ul class="chips" aria-label="Skills">
+        {% for skill in person.skills %}
+          <li class="chip">{{ skill }}</li>
+        {% endfor %}
+      </ul>
     {% endif %}
   </div>
 </section>
@@ -52,23 +55,22 @@
 
   <div class="contrib-grid">
     {% for c in person.contributions %}
-    <article class="contrib-card">
-      <div class="contrib-icon" aria-hidden="true">
-        <!-- generic list/icon so we avoid extra deps -->
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M3 5h18v2H3V5zm0 6h18v2H3v-2zm0 6h12v2H3v-2z" />
-        </svg>
-      </div>
-      <h3 class="contrib-head">{{ c.title }}</h3>
-      {% if c.desc %}<p class="contrib-desc">{{ c.desc }}</p>{% endif %}
-    </article>
+      <article class="contrib-card">
+        <div class="contrib-icon" aria-hidden="true">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M3 5h18v2H3V5zm0 6h18v2H3v-2zm0 6h12v2H3v-2z"/>
+          </svg>
+        </div>
+        <h3 class="contrib-head">{{ c.title }}</h3>
+        {% if c.desc %}<p class="contrib-desc">{{ c.desc }}</p>{% endif %}
+      </article>
     {% endfor %}
   </div>
 
   {% if person.github %}
-  <div class="center" style="margin-top:28px">
-    <a class="btn ghost" href="{{ person.github }}" target="_blank" rel="noopener">View GitHub Profile</a>
-  </div>
+    <div class="center" style="margin-top:28px">
+      <a class="btn ghost" href="{{ person.github }}" target="_blank" rel="noopener">View GitHub Profile</a>
+    </div>
   {% endif %}
 </section>
 {% endif %}
@@ -78,19 +80,19 @@
 <section class="contact-links">
   <div class="contact-row">
     {% if person.github %}
-    <a class="icon-btn" href="{{ person.github }}" target="_blank" rel="noopener" aria-label="GitHub">
-      <span>GH</span>
-    </a>
+      <a class="icon-btn" href="{{ person.github }}" target="_blank" rel="noopener" aria-label="GitHub">
+        <span>GH</span>
+      </a>
     {% endif %}
     {% if person.linkedin %}
-    <a class="icon-btn" href="{{ person.linkedin }}" target="_blank" rel="noopener" aria-label="LinkedIn">
-      <span>in</span>
-    </a>
+      <a class="icon-btn" href="{{ person.linkedin }}" target="_blank" rel="noopener" aria-label="LinkedIn">
+        <span>in</span>
+      </a>
     {% endif %}
     {% if person.email %}
-    <a class="icon-btn" href="mailto:{{ person.email }}" aria-label="Email">
-      <span>@</span>
-    </a>
+      <a class="icon-btn" href="mailto:{{ person.email }}" aria-label="Email">
+        <span>@</span>
+      </a>
     {% endif %}
   </div>
 </section>
