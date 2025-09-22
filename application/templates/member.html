@@ -6,6 +6,7 @@
 <section class="profile-hero">
   <div class="profile-hero-inner">
     {% if person.avatar %}
+<<<<<<< HEAD
       <div class="avatar lg" aria-hidden="true">
         <img
           src="{{ url_for('static', filename=person.avatar) }}"
@@ -13,6 +14,11 @@
           loading="lazy"
         />
       </div>
+=======
+    <div class="avatar lg" aria-hidden="true">
+      <img class="profile-avatar" src="{{ url_for('static', filename=person.avatar) }}" alt="{{ person.name }} avatar" />
+    </div>
+>>>>>>> ebfa26e760d8150c086cc124440b867911b1f393
     {% else %}
       <div class="avatar lg" aria-hidden="true">
         <svg width="90" height="90" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -80,6 +86,7 @@
 <section class="contact-links">
   <div class="contact-row">
     {% if person.github %}
+<<<<<<< HEAD
       <a class="icon-btn" href="{{ person.github }}" target="_blank" rel="noopener" aria-label="GitHub">
         <span>GH</span>
       </a>
@@ -93,6 +100,21 @@
       <a class="icon-btn" href="mailto:{{ person.email }}" aria-label="Email">
         <span>@</span>
       </a>
+=======
+    <a class="icon-btn" href="{{ person.github }}" target="_blank" rel="noopener" aria-label="GitHub">
+      <i class="fa-brands fa-github"></i>
+    </a>
+    {% endif %}
+    {% if person.linkedin %}
+    <a class="icon-btn" href="{{ person.linkedin }}" target="_blank" rel="noopener" aria-label="LinkedIn">
+      <i class="fa-brands fa-linkedin"></i>
+    </a>
+    {% endif %}
+    {% if person.email %}
+    <a class="icon-btn" href="mailto:{{ person.email }}" aria-label="Email">
+      <i class="fa-solid fa-envelope"></i>
+    </a>
+>>>>>>> ebfa26e760d8150c086cc124440b867911b1f393
     {% endif %}
   </div>
 </section>
