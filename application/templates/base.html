@@ -3,23 +3,46 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>{% block title %}Team About{% endblock %}</title>
+  <title>{% block title %}SFSU Tutors{% endblock %}</title>
 
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
+  <!-- Top banner -->
   <div class="banner">
     <p>SFSU CSC 648/848 · Fall 2025 · Section 4 · Team 1</p>
   </div>
 
+  <!-- Main navigation -->
   <nav class="nav">
     <div class="nav-inner">
-      <a class="logo" href="{{ url_for('team_page') }}">SFSU</a>
+      <a class="logo" href="{{ url_for('home_page') }}">SFSU</a>
+
       <ul class="links">
-        <li><a class="active" href="{{ url_for('team_page') }}">About</a></li>
+        <li>
+          <a href="{{ url_for('home_page') }}" class="{% if request.path == url_for('home_page') %}active{% endif %}">
+            Home
+          </a>
+        </li>
+        <li>
+          <a href="{{ url_for('team_page') }}" class="{% if request.path.startswith('/about') %}active{% endif %}">
+            About
+          </a>
+        </li>
+        <li>
+          <a href="{{ url_for('search_page') }}" class="{% if request.path == url_for('search_page') %}active{% endif %}">
+            Search
+          </a>
+        </li>
       </ul>
+
+      <!-- Auth actions (right side) -->
+      <div class="auth">
+        <a href="{{ url_for('login') }}" class="login-link">Log in</a>
+        <a href="{{ url_for('signup') }}" class="btn outline gold">Sign Up</a>
+      </div>
     </div>
   </nav>
 
@@ -31,4 +54,4 @@
     <p>© 2025 SFSU · For demonstration only.</p>
   </footer>
 </body>
-</html> 
+</html>

@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+{% block content %}
+
+<!-- Hero -->
+<section class="hero">
+  <h1>Start Strong with the Right Tutor</h1>
+  <h2>Search, connect, and learn from fellow Gators.</h2>
+  <div style="margin-top: 24px;">
+    <a class="btn" href="{{ url_for('become_tutor') }}">Become a Tutor</a>
+    <a class="btn outline" href="{{ url_for('search_page') }}" style="margin-left:12px">Search Tutors</a>
+  </div>
+</section>
+
+<!-- How It Works -->
+<section class="section">
+  <div class="howitworks">
+    <h2 style="text-align:center;margin-bottom: 24px;">How It Works</h2>
+    <div class="howitworks-grid">
+      <!-- Search -->
+      <article>
+        <div class="howitworks-icon" aria-hidden="true">
+          <!-- Simple magnifier icon (brand colors) -->
+          <svg width="48" height="48" viewBox="0 0 64 64" fill="none">
+            <circle cx="28" cy="28" r="18" stroke="#2E0854" stroke-width="4" fill="none"/>
+            <line x1="41" y1="41" x2="58" y2="58" stroke="#FFD700" stroke-width="6" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <h3 class="howitworks-title">Search</h3>
+        <p class="howitworks-desc">Browse tutors by subject or course.</p>
+      </article>
+
+      <!-- Message -->
+      <article>
+        <div class="howitworks-icon" aria-hidden="true">
+          <!-- Chat bubble -->
+          <svg width="48" height="48" viewBox="0 0 64 64" fill="none">
+            <rect x="8" y="12" width="48" height="34" rx="8" fill="#FFD700" stroke="#2E0854" stroke-width="3"/>
+            <path d="M32 46 L24 56 L40 56 Z" fill="#FFD700" stroke="#2E0854" stroke-width="3"/>
+          </svg>
+        </div>
+        <h3 class="howitworks-title">Message</h3>
+        <p class="howitworks-desc">Contact tutors directly through our site.</p>
+      </article>
+
+      <!-- Meet -->
+      <article>
+        <div class="howitworks-icon" aria-hidden="true">
+          <!-- Handshake motif in brand colors -->
+          <svg width="48" height="48" viewBox="0 0 64 64" fill="none">
+            <path d="M12 36 h12 v-6 c0-2 1-4 3-5 l9-4" fill="#2E0854"/>
+            <path d="M52 36 h-12 v-6 c0-2-1-4-3-5 l-9-4" fill="#FFD700"/>
+            <circle cx="32" cy="22" r="3" stroke="#2E0854" stroke-width="2" fill="none"/>
+          </svg>
+        </div>
+        <h3 class="howitworks-title">Meet</h3>
+        <p class="howitworks-desc">Arrange sessions on-campus or online.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- CTA band -->
+<section class="section cta-band" style="text-align:center">
+  <h2 class="howitworks-title" style="margin-bottom:12px">Ready to get started?</h2>
+  <div>
+    <a class="btn outline" href="{{ url_for('search_page') }}">Search Tutors</a>
+    <a class="btn" href="{{ url_for('become_tutor') }}" style="margin-left:12px">Become a Tutor</a>
+  </div>
+</section>
+
+{% endblock %}

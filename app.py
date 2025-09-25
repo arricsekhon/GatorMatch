@@ -31,20 +31,24 @@ def find_member(slug: str):
     members = load_team_data()
     return next((m for m in members if m.get("slug") == slug), None)
 
+@app.route("/")  
+def home_page():  
+    return render_template("home.html")
 
-@app.route("/")
-@app.route("/about")
+@app.route("/about") 
 def team_page():
     members = load_team_data()
     return render_template("team.html", members=members)
 
+@app.route("/search")  
+def search_page():  
+    return render_template("search.html")
 
-@app.route("/search")
-def search():
+@app.get("/api/search") 
+def api_search():  
     q = (request.args.get("q") or "").strip()
     if not q or len(q) > 200:
         return jsonify([])
-
     q = q.casefold()
     log.info("Search query: %s", q)
     members = load_team_data()
@@ -53,7 +57,6 @@ def search():
         if q in f"{m.get('name','')} {m.get('role','')}".casefold()
     ]
     return jsonify(results)
-
 
 @app.route("/about/<slug>")
 def member_page(slug: str):
@@ -71,6 +74,19 @@ def member_page(slug: str):
     person.setdefault("email", "")
 
     return render_template("member.html", person=person)
+
+# Placeholder routes for login, signup, and becoming a tutor
+@app.route("/login")  
+def login():  
+    return render_template("login.html")  
+
+@app.route("/signup")  
+def signup():  
+    return render_template("signup.html")  
+
+@app.route("/tutors/new")  
+def become_tutor():  
+    return render_template("become_tutor.html")
 
 @app.errorhandler(404)
 def not_found(_e):

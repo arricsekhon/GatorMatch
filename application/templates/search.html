@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Search Tutors{% endblock %}
+{% block content %}
+<section class="hero">
+  <h1>Search Tutors</h1>
+  <h2>Find a tutor by subject, course, or keyword</h2>
+</section>
+
+<div class="container" style="padding: 24px 0 64px;">
+  <form id="search-form" class="searchbar" onsubmit="return false;">
+    <input id="q" type="search" placeholder="e.g., CSC 340, Calculus, Writing"
+           style="width:100%;max-width:720px;height:48px;padding:0 16px;border:1px solid var(--divider);border-radius:12px;">
+  </form>
+
+  <div id="results" style="margin-top:24px;"></div>
+</div>
+
+<script>
+  const q = document.getElementById('q');
+  const results = document.getElementById('results');
+  q.addEventListener('input', async () => {
+    const term = q.value.trim();
+    if (!term) { results.innerHTML = ""; return; }
+    const r = await fetch(`/api/search?q=${encodeURIComponent(term)}`);
+    const data = await r.json();
+    results.innerHTML = data.map(m => `
+      <article class="card" style="margin:12px 0;padding:16px;display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <h3 class="name" style="margin-bottom:4px">${m.name}</h3>
+          <p class="role" style="margin:0">${m.role || ""}</p>
+        </div>
+        <a class="btn" href="/about/${m.slug}">View Profile</a>
+      </article>
+    `).join('');
+  });
+</script>
+{% endblock %}
