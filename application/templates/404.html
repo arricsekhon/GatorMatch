@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Page Not Found{% endblock %}
+{% block content %}
+<section class="hero">
+  <h1>Page not found</h1>
+  <h2>The page you’re looking for doesn’t exist.</h2>
+  <hr class="divider">
+</section>
+
+<section class="back">
+  <a href="{{ url_for('team_page') }}">← Back to Team About</a>
+</section>
+{% endblock %}

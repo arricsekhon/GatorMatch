@@ -63,7 +63,7 @@
     "slug": "stanley-wang",
     "role": "Backend Support",
     "subtitle": "Senior year CS student at SFSU",
-    "bio": "Hi, I'm Stanley Wang.Interested in machine learning and image processing",
+    "bio": "Hi, I'm Stanley Wang. Interested in machine learning and image processing",
     "skills": [
       "Python",
       "MATLAB",
@@ -82,7 +82,7 @@
       }
     ],
     "github": "https://github.com/stanleywang419",
-    "linkedin": "N/A",
+    "linkedin": "",
     "email": "ra2013111111@gmail.com"
   },
   {
@@ -95,7 +95,7 @@
       "C++",
       "JavaScript",
       "Java",
-      "Github",
+      "GitHub",
       "MIPS Assembly"
     ],
     "contributions": [
@@ -105,7 +105,7 @@
       }
     ],
     "github": "https://github.com/AJSFSU",
-    "linkedin": "www.linkedin.com/in/alonzo-manosca-8020b9344",
+    "linkedin": "https://www.linkedin.com/in/alonzo-manosca-8020b9344",
     "email": "alonzojacobmanosca@gmail.com"
   },
   {
@@ -115,7 +115,7 @@
     "subtitle": "Senior SFSU student",
     "bio": "Hi! I'm an aspiring Data Analyst | AI & ML Enthusiast Research Interests: Artificial Intelligence, Machine Learning, Healthcare AI (Mental Health), Data Analytics.",
     "skills": [
-      "Pyton",
+      "Python",
       "SQL",
       "Data Visualization tools",
       "Github",

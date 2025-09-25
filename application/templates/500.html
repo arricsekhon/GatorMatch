@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Server Error{% endblock %}
+{% block content %}
+<section class="hero">
+  <h1>Something went wrong</h1>
+  <h2>Please try again in a moment.</h2>
+  <hr class="divider">
+</section>
+
+<section class="back">
+  <a href="{{ url_for('team_page') }}">← Back to Team About</a>
+</section>
+{% endblock %}

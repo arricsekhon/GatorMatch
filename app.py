@@ -1,6 +1,8 @@
 from flask import Flask, render_template, request, jsonify, abort
 import json
 import os
+import logging
+from functools import lru_cache
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 TEMPLATE_DIR = os.path.join(BASE_DIR, "application", "templates")
@@ -9,12 +11,18 @@ DATA_FILE = os.path.join(BASE_DIR, "application",
                          "data", "team1_section4.json")
 
 app = Flask(__name__, template_folder=TEMPLATE_DIR, static_folder=STATIC_DIR)
+app.logger.setLevel(logging.INFO)
+log = app.logger
 
+@lru_cache(maxsize=1)
+def _load_cached(mtime):
+    with open(DATA_FILE, "r", encoding="utf-8") as f:
+        return json.load(f)
 
 def load_team_data():
     try:
-        with open(DATA_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
+        mtime = int(os.path.getmtime(DATA_FILE))
+        return _load_cached(mtime) 
     except (OSError, json.JSONDecodeError):
         abort(500)
 
@@ -33,13 +41,16 @@ def team_page():
 
 @app.route("/search")
 def search():
-    q = (request.args.get("q") or "").strip().lower()
-    if not q:
+    q = (request.args.get("q") or "").strip()
+    if not q or len(q) > 200:
         return jsonify([])
+
+    q = q.casefold()
+    log.info("Search query: %s", q)
     members = load_team_data()
     results = [
         m for m in members
-        if q in m.get("name", "").lower() or q in m.get("role", "").lower()
+        if q in f"{m.get('name','')} {m.get('role','')}".casefold()
     ]
     return jsonify(results)
 
@@ -48,6 +59,7 @@ def search():
 def member_page(slug: str):
     person = find_member(slug)
     if not person:
+        log.warning("Member not found: %s", slug)
         abort(404)
 
     person.setdefault("subtitle", "")
@@ -60,6 +72,13 @@ def member_page(slug: str):
 
     return render_template("member.html", person=person)
 
+@app.errorhandler(404)
+def not_found(_e):
+    return render_template("404.html"), 404
+
+@app.errorhandler(500)
+def server_error(_e):
+    return render_template("500.html"), 500
 
 if __name__ == "__main__":
     app.run(debug=True, port=5001)
