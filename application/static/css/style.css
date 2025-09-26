@@ -126,6 +126,10 @@ body {
   background: var(--gold);
   color: var(--purple);
 }
+.btn:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
 
 /* Outline button (generic) */
 .btn.outline {
