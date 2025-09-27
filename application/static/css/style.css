@@ -20,15 +20,21 @@
 
 * { box-sizing: border-box }
 
+/* Page base + sticky footer layout */
 html, body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
+  height: 100%;
 }
-
 body {
   font-family: "Open Sans", system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
 }
+main.container { flex: 1 0 auto; }
+.footer { margin-top: auto; }
 
 /* -------------------- Banner -------------------- */
 .banner {
@@ -313,7 +319,7 @@ body {
   width:48px; height:48px; border-radius:999px; background:var(--purple); color:#fff;
   display:flex; align-items:center; justify-content:center; text-decoration:none; font-weight:700;
 }
-.icon-btn:hover { background:var(--gold); color:var(--purple); }
+.icon-btn:hover { background: var(--gold); color: var(--purple); }
 
 /* -------------------- Home sections -------------------- */
 .section { padding: 64px 0; }
@@ -373,7 +379,7 @@ body {
 .chip {
   display:inline-flex; align-items:center; gap:6px; height:28px; padding:0 12px;
   border-radius:999px; background: rgba(46,8,84,0.08); border:1px solid rgba(46,8,84,0.20);
-  font-size:14px; font-weight:600; color:var(--purple);
+  font-size:14px; font-weight:700; color:var(--purple);
 }
 .chip-x {
   display:inline-block; width:20px; height:20px; line-height:18px; text-align:center;
@@ -435,3 +441,19 @@ body {
 }
 .page.active { background: var(--purple); color:#fff; border-color: var(--purple); }
 .page.disabled { opacity:.5; pointer-events:none; }
+
+/* -------------------- Search page edits -------------------- */
+.search-center { display:flex; justify-content:center; }
+.search-form { width:100%; max-width:840px; margin:0 auto; }
+.search-wide {
+  width:100%;
+  height:56px;
+  padding:0 16px;
+  border:1px solid var(--divider);
+  border-radius:12px;
+  background:#fff;
+  font-size:16px;
+}
+.search-wide:focus { outline:2px solid var(--gold); outline-offset:2px; }
+.example-chips { margin-top:12px; justify-content:center; }
+.example-chips .chip { cursor:pointer; }

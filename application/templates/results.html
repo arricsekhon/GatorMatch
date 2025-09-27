@@ -209,10 +209,12 @@
         <div class="empty-icon">🔍</div>
         <h3 class="font-heading" style="margin:8px 0">No tutors match these filters</h3>
         <p class="muted">Try adjusting your search criteria or clearing some filters to see more results.</p>
+        {% set has_filters = (chips and chips|length) or q %}
+        {% if has_filters %}
         <div class="empty-actions" style="display:flex;gap:12px;justify-content:center;margin-top:8px">
           <a class="btn ghost" href="{{ url_for('results_page') }}">Clear filters</a>
-          <a class="link" href="/subjects">See related subjects</a>
         </div>
+        {% endif %}
       </article>
     {% endif %}
   </section>

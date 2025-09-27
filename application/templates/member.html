@@ -76,8 +76,8 @@
 </section>
 {% endif %}
 
-<!-- Contact -->
-{% if person.github or person.linkedin or person.email %}
+<!-- Contact Links -->
+{% if person.github or person.linkedin %}
 <section class="contact-links">
   <div class="contact-row">
     {% if person.github %}
@@ -90,14 +90,73 @@
         <span>in</span>
       </a>
     {% endif %}
-    {% if person.email %}
-      <a class="icon-btn" href="mailto:{{ person.email }}" aria-label="Email">
-        <span>@</span>
-      </a>
-    {% endif %}
+    <a class="icon-btn" href="#contact" aria-label="Contact (in-site)">
+      <span>@</span>
+    </a>
   </div>
 </section>
 {% endif %}
+
+<!-- In-site one-way message form (M1 stub; posts to /messages) -->
+<section id="contact" class="sfsu-card" style="max-width: 760px; margin: 0 auto 48px; padding: 20px;">
+  <h2 class="font-heading" style="margin: 0 0 12px;">Contact {{ person.name }}</h2>
+
+  {% if request.args.get('sent') %}
+    <p class="tiny" style="margin:0 0 12px; color: var(--purple);">
+      Message sent. We’ll make this visible to the tutor/admin in the next milestone.
+    </p>
+  {% endif %}
+
+  <p class="tiny muted" style="margin: 0 0 16px;">
+    Messages are sent within the site (one-way). No external email is used.
+  </p>
+
+  <form method="post" action="{{ url_for('messages_create') }}">
+    <input type="hidden" name="to_slug" value="{{ person.slug }}"/>
+
+    <div style="display:grid; gap:12px;">
+      <label class="small" for="from_name">Your name</label>
+      <input
+        id="from_name"
+        name="from_name"
+        type="text"
+        required
+        maxlength="80"
+        placeholder="First Last"
+        style="height:44px;padding:0 12px;border:1px solid var(--divider);border-radius:8px;"
+      />
+
+      <label class="small" for="from_email">Your SFSU email</label>
+      <input
+        id="from_email"
+        name="from_sfsu_email"
+        type="email"
+        required
+        maxlength="120"
+        placeholder="yourname@mail.sfsu.edu"
+        pattern="^[A-Za-z0-9._%+-]+@(?:[A-Za-z0-9-]+\.)*sfsu\.edu$"
+        title="Use your SFSU email address"
+        style="height:44px;padding:0 12px;border:1px solid var(--divider);border-radius:8px;"
+      />
+
+      <label class="small" for="body">Message</label>
+      <textarea
+        id="body"
+        name="body"
+        required
+        rows="6"
+        maxlength="2000"
+        placeholder="Introduce yourself, the course (e.g., CSC 340), and what you need help with."
+        style="padding:12px;border:1px solid var(--divider);border-radius:8px;resize:vertical;"
+      ></textarea>
+
+      <div style="display:flex;gap:12px;align-items:center;justify-content:flex-start;margin-top:4px;">
+        <button class="btn" type="submit">Send Message</button>
+        <span class="tiny muted">A confirmation will appear after sending.</span>
+      </div>
+    </div>
+  </form>
+</section>
 
 <section class="back">
   <a href="{{ url_for('team_page') }}">← Back to Team About</a>

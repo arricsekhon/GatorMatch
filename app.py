@@ -1,21 +1,51 @@
-from flask import Flask, render_template, request, jsonify, abort, url_for
-import json
-import os
-import logging
+from __future__ import annotations
+
+from flask import Flask, render_template, request, jsonify, abort, redirect, url_for
+from flask_login import LoginManager, login_user, logout_user, login_required
+from dotenv import load_dotenv
 from functools import lru_cache
-from math import ceil
 from collections import Counter, OrderedDict
+from math import ceil
+import os
+import json
+import logging
 import re
 
-# -------------------- Paths & Flask setup --------------------
+# -------------------- Env & Flask setup --------------------
+load_dotenv()
+
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 TEMPLATE_DIR = os.path.join(BASE_DIR, "application", "templates")
 STATIC_DIR = os.path.join(BASE_DIR, "application", "static")
 DATA_FILE = os.path.join(BASE_DIR, "application", "data", "team1_section4.json")
 
 app = Flask(__name__, template_folder=TEMPLATE_DIR, static_folder=STATIC_DIR)
+app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "dev-key")
 app.logger.setLevel(logging.INFO)
 log = app.logger
+
+from flask_wtf import CSRFProtect
+csrf = CSRFProtect(app)
+
+# -------------------- DB wiring --------------------
+from application.db import Base, engine, SessionLocal
+from application.models import User
+from application.forms import LoginForm, SignupForm
+
+Base.metadata.create_all(bind=engine)
+
+login_manager = LoginManager(app)
+login_manager.login_view = "login"
+
+
+@login_manager.user_loader
+def load_user(user_id: str) -> User | None:
+    with SessionLocal() as db:
+        try:
+            return db.get(User, int(user_id))
+        except Exception:
+            return None
+
 
 # -------------------- Data loading & caching --------------------
 @lru_cache(maxsize=1)
@@ -23,29 +53,33 @@ def _load_cached(mtime: int):
     with open(DATA_FILE, "r", encoding="utf-8") as f:
         return json.load(f)
 
+
 def load_team_data():
     try:
         mtime = int(os.path.getmtime(DATA_FILE))
         return _load_cached(mtime)
+    except FileNotFoundError:
+        return []
     except (OSError, json.JSONDecodeError):
         abort(500)
+
 
 def find_member(slug: str):
     members = load_team_data()
     return next((m for m in members if m.get("slug") == slug), None)
 
+
 # -------------------- Normalization & helpers --------------------
 COURSE_RE = re.compile(r"\b([A-Z]{2,4})\s?(\d{3})\b")
+
 
 def normalize_tutor(m: dict) -> dict:
     name = (m.get("name") or "").strip()
     first = name.split()[0] if name else "Tutor"
     avatar = m.get("avatar") or ""
-
     rating = float(m.get("rating_avg", 0) or 0.0)
     rating_count = int(m.get("rating_count", 0) or 0)
     hours = int(m.get("hours_total", 0) or 0)
-
     courses = list(m.get("courses", []))
     locations = list(m.get("locations", []))
 
@@ -75,6 +109,7 @@ def normalize_tutor(m: dict) -> dict:
         "courses": courses,
         "locations": locations,
     }
+
 
 def filter_sort_paginate(tutors: list[dict], args) -> dict:
     q = (args.get("q") or "").strip().casefold()
@@ -140,19 +175,47 @@ def filter_sort_paginate(tutors: list[dict], args) -> dict:
         "facets": facets,
     }
 
-# -------------------- Routes --------------------
+
+# -------------------- Context (GA hook) --------------------
+@app.context_processor
+def inject_globals():
+    return {"GA_ID": os.getenv("GA_ID", "").strip()}
+
+
+# -------------------- Routes: public pages --------------------
 @app.route("/")
 def home_page():
     return render_template("home.html")
+
 
 @app.route("/about")
 def team_page():
     members = load_team_data()
     return render_template("team.html", members=members)
 
+
+@app.route("/about/<slug>")
+def member_page(slug: str):
+    person = find_member(slug)
+    if not person:
+        log.warning("Member not found: %s", slug)
+        abort(404)
+
+    person.setdefault("subtitle", "")
+    person.setdefault("bio", "")
+    person.setdefault("skills", [])
+    person.setdefault("contributions", [])
+    person.setdefault("github", "")
+    person.setdefault("linkedin", "")
+    person.setdefault("email", "")
+
+    return render_template("member.html", person=person)
+
+
 @app.route("/search")
 def search_page():
     return render_template("search.html")
+
 
 @app.route("/results")
 def results_page():
@@ -183,6 +246,7 @@ def results_page():
         chips=chips,
     )
 
+
 @app.get("/api/search")
 def api_search():
     q = (request.args.get("q") or "").strip()
@@ -200,44 +264,83 @@ def api_search():
         for m in results
     ])
 
-@app.route("/about/<slug>")
-def member_page(slug: str):
-    person = find_member(slug)
-    if not person:
-        log.warning("Member not found: %s", slug)
+
+# -------------------- In-site messaging (stub) --------------------
+@app.post("/messages")
+@login_required
+def post_message():
+    data = request.get_json(silent=True) or request.form
+    if not data:
+        abort(400)
+    to_slug = (data.get("to") or "").strip()
+    subject = (data.get("subject") or "").strip()
+    body = (data.get("body") or "").strip()
+    if not (to_slug and subject and body):
+        abort(400)
+    if not find_member(to_slug):
         abort(404)
+    return jsonify({"ok": True}), 201
 
-    person.setdefault("subtitle", "")
-    person.setdefault("bio", "")
-    person.setdefault("skills", [])
-    person.setdefault("contributions", [])
-    person.setdefault("github", "")
-    person.setdefault("linkedin", "")
-    person.setdefault("email", "")
 
-    return render_template("member.html", person=person)
-
-# -------------------- Placeholder auth/listing routes --------------------
-@app.route("/login")
-def login():
-    return render_template("login.html")
-
-@app.route("/signup")
+# -------------------- Auth --------------------
+@app.route("/signup", methods=["GET", "POST"])
 def signup():
-    return render_template("signup.html")
+    form = SignupForm()
+    if form.validate_on_submit():
+        email = form.email.data.strip().lower()
+        with SessionLocal() as db:
+            if db.query(User).filter(User.email == email).first():
+                form.email.errors.append("An account with this email already exists.")
+                return render_template("signup.html", form=form)
+            user = User(name=form.name.data.strip())
+            user.email = email
+            user.set_password(form.password.data)
+            db.add(user)
+            db.commit()
+            login_user(user)
+            return redirect(url_for("home_page"))
+    return render_template("signup.html", form=form)
 
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    form = LoginForm()
+    if form.validate_on_submit():
+        email = form.email.data.strip().lower()
+        with SessionLocal() as db:
+            user = db.query(User).filter(User.email == email).first()
+            if not user or not user.check_password(form.password.data):
+                form.password.errors.append("Invalid email or password.")
+                return render_template("login.html", form=form)
+            login_user(user)
+            next_url = request.args.get("next") or url_for("home_page")
+            return redirect(next_url)
+    return render_template("login.html", form=form)
+
+
+@app.post("/logout")
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for("home_page"))
+
+
+# -------------------- Placeholder listing page --------------------
 @app.route("/tutors/new")
 def become_tutor():
     return render_template("become_tutor.html")
 
-# -------------------- Error handlers --------------------
+
+# -------------------- Errors --------------------
 @app.errorhandler(404)
 def not_found(_e):
     return render_template("404.html"), 404
 
+
 @app.errorhandler(500)
 def server_error(_e):
     return render_template("500.html"), 500
+
 
 # -------------------- Entrypoint --------------------
 if __name__ == "__main__":

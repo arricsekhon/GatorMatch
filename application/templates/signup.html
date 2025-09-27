@@ -3,6 +3,49 @@
 {% block content %}
 <section class="hero">
   <h1>Sign Up</h1>
-  <h2>(Coming soon)</h2>
+  <h2>Create your account with an @sfsu.edu email.</h2>
 </section>
+
+<section style="display:flex;justify-content:center;padding-bottom:64px">
+  <article class="sfsu-card" style="width:464px;padding:28px">
+    {% set has_errors = form.errors and form.errors|length %}
+    {% if has_errors %}
+      <div role="alert" style="background:#FEECEC;border:1px solid #F5C2C2;color:#8A1C1C;padding:12px;border-radius:8px;margin-bottom:16px">
+        Please fix the highlighted fields.
+      </div>
+    {% endif %}
+
+    <form method="post" action="{{ url_for('signup') }}" novalidate>
+      {{ form.csrf_token }}
+
+      <label class="label" for="name">Full name</label>
+      {{ form.name(class_="select full", id="name", placeholder="Jane Gator", style="height:56px;border-radius:12px") }}
+      {% for err in form.name.errors %}<div class="tiny" style="color:#8A1C1C">{{ err }}</div>{% endfor %}
+
+      <div style="height:12px"></div>
+
+      <label class="label" for="email">Email</label>
+      {{ form.email(class_="select full", id="email", placeholder="name@sfsu.edu", style="height:56px;border-radius:12px") }}
+      {% for err in form.email.errors %}<div class="tiny" style="color:#8A1C1C">{{ err }}</div>{% endfor %}
+
+      <div style="height:12px"></div>
+
+      <label class="label" for="password">Password</label>
+      {{ form.password(class_="select full", id="password", style="height:56px;border-radius:12px") }}
+      {% for err in form.password.errors %}<div class="tiny" style="color:#8A1C1C">{{ err }}</div>{% endfor %}
+
+      <div style="height:12px"></div>
+
+      <label class="label" for="confirm">Confirm password</label>
+      {{ form.confirm(class_="select full", id="confirm", style="height:56px;border-radius:12px") }}
+      {% for err in form.confirm.errors %}<div class="tiny" style="color:#8A1C1C">{{ err }}</div>{% endfor %}
+
+      {{ form.submit(class_="btn", style="width:100%;height:48px;margin-top:16px") }}
+    </form>
+  </article>
+</section>
+
+<div class="back">
+  <a href="{{ url_for('home_page') }}">← Back to Home</a>
+</div>
 {% endblock %}

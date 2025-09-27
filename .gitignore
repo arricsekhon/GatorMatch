@@ -1,3 +1,16 @@
+# Env & secrets
+.env
+.env.*
+!.env.example
+credentials/*.pem
+
+# Local databases
+dev.db
+*.db
+
+# Logs
+*.log
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

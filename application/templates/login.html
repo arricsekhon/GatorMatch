@@ -1,8 +1,72 @@
 {% extends "base.html" %}
-{% block title %}Log in{% endblock %}
+{% block title %}Log In{% endblock %}
 {% block content %}
 <section class="hero">
-  <h1>Log in</h1>
-  <h2>(Coming soon)</h2>
+  <h1>Log In</h1>
+  <h2>Use your SFSU email to sign in.</h2>
+  <p class="muted">Don't have an account?
+    <a class="link" href="{{ url_for('signup') }}">Sign up</a>
+  </p>
 </section>
+
+<section style="display:flex;justify-content:center;padding-bottom:64px">
+  <article class="sfsu-card" style="width:464px;padding:28px">
+    {% if error %}
+      <div role="alert" style="background:#FEECEC;border:1px solid #F5C2C2;color:#8A1C1C;padding:12px;border-radius:8px;margin-bottom:16px">
+        {{ error }}
+      </div>
+    {% endif %}
+    <form method="post" action="{{ url_for('login') }}" novalidate>
+      {{ form.csrf_token }}
+
+      <label class="label" for="email">Email</label>
+      {{ form.email(class_="select full", id="email", placeholder="name@sfsu.edu", style="height:56px;border-radius:12px") }}
+      {% for err in form.email.errors %}<div class="tiny" style="color:#8A1C1C">{{ err }}</div>{% endfor %}
+
+      <div style="height:12px"></div>
+
+      <label class="label" for="password">Password</label>
+      <div style="position:relative">
+        {{ form.password(class_="select full", id="password", style="height:56px;border-radius:12px;padding-right:44px") }}
+        <button type="button" id="togglePw" aria-label="Show password"
+                style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:transparent;border:0;cursor:pointer">
+          <span id="eye">👁️</span>
+        </button>
+      </div>
+      <div id="capsHint" class="tiny muted" style="display:none;margin-top:6px">Caps Lock is on</div>
+      {% for err in form.password.errors %}<div class="tiny" style="color:#8A1C1C">{{ err }}</div>{% endfor %}
+
+      <div style="margin:10px 0 16px">
+        <a class="link" href="#">Forgot username or password?</a>
+      </div>
+
+      {{ form.submit(class_="btn", style="width:100%;height:48px") }}
+    </form>
+  </article>
+</section>
+
+<div class="back">
+  <a href="{{ url_for('home_page') }}">← Back to Home</a>
+</div>
+
+<script>
+  (function(){
+    const pw = document.getElementById('password');
+    const btn = document.getElementById('togglePw');
+    const eye = document.getElementById('eye');
+    const hint = document.getElementById('capsHint');
+
+    btn.addEventListener('click', () => {
+      const show = pw.type === 'password';
+      pw.type = show ? 'text' : 'password';
+      eye.textContent = show ? '🙈' : '👁️';
+      btn.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+    });
+
+    pw.addEventListener('keyup', (e) => {
+      const caps = e.getModifierState && e.getModifierState('CapsLock');
+      hint.style.display = caps ? 'block' : 'none';
+    });
+  })();
+</script>
 {% endblock %}

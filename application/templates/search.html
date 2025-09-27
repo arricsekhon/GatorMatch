@@ -6,18 +6,45 @@
   <h2>Find a tutor by subject, course, or keyword</h2>
 </section>
 
-<div class="container" style="padding: 24px 0 64px;">
-  <form method="get" action="{{ url_for('results_page') }}">
+<div class="search-center" style="padding: 24px 0 64px;">
+  <form method="get" action="{{ url_for('results_page') }}" class="search-form" id="search-form">
     <input
       name="q"
       type="search"
       placeholder="e.g., CSC 340, Calculus, Python"
-      style="width:100%;max-width:720px;height:48px;padding:0 16px;border:1px solid var(--divider);border-radius:12px;"
+      class="search-wide"
       aria-label="Search tutors"
+      id="search-input"
     />
-    <div style="margin-top:12px">
+
+    <div class="tiny muted" style="text-align:center; margin-top:8px;">
+      Press Enter to search
+    </div>
+
+    <ul class="chips example-chips" aria-label="Examples" style="margin-top:12px; display:flex;">
+      <li class="chip" data-q="Python">Python</li>
+      <li class="chip" data-q="CSC 340">CSC 340</li>
+      <li class="chip" data-q="Calculus">Calculus</li>
+    </ul>
+
+    <div style="margin-top:12px; text-align:center;">
       <button class="btn" type="submit">Search</button>
     </div>
   </form>
 </div>
+
+<script>
+  (function () {
+    var form = document.getElementById('search-form');
+    var input = document.getElementById('search-input');
+    var chips = document.querySelectorAll('.example-chips .chip');
+
+    chips.forEach(function (chip) {
+      chip.addEventListener('click', function () {
+        input.value = this.getAttribute('data-q') || '';
+        form.submit();
+      });
+    });
+  })();
+</script>
 {% endblock %}
