@@ -1,62 +1,204 @@
-from flask import Flask, render_template, request, jsonify, abort
+from flask import Flask, render_template, request, jsonify, abort, url_for
 import json
 import os
 import logging
 from functools import lru_cache
+from math import ceil
+from collections import Counter, OrderedDict
+import re
 
+# -------------------- Paths & Flask setup --------------------
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 TEMPLATE_DIR = os.path.join(BASE_DIR, "application", "templates")
 STATIC_DIR = os.path.join(BASE_DIR, "application", "static")
-DATA_FILE = os.path.join(BASE_DIR, "application",
-                         "data", "team1_section4.json")
+DATA_FILE = os.path.join(BASE_DIR, "application", "data", "team1_section4.json")
 
 app = Flask(__name__, template_folder=TEMPLATE_DIR, static_folder=STATIC_DIR)
 app.logger.setLevel(logging.INFO)
 log = app.logger
 
+# -------------------- Data loading & caching --------------------
 @lru_cache(maxsize=1)
-def _load_cached(mtime):
+def _load_cached(mtime: int):
     with open(DATA_FILE, "r", encoding="utf-8") as f:
         return json.load(f)
 
 def load_team_data():
     try:
         mtime = int(os.path.getmtime(DATA_FILE))
-        return _load_cached(mtime) 
+        return _load_cached(mtime)
     except (OSError, json.JSONDecodeError):
         abort(500)
-
 
 def find_member(slug: str):
     members = load_team_data()
     return next((m for m in members if m.get("slug") == slug), None)
 
-@app.route("/")  
-def home_page():  
+# -------------------- Normalization & helpers --------------------
+COURSE_RE = re.compile(r"\b([A-Z]{2,4})\s?(\d{3})\b")
+
+def normalize_tutor(m: dict) -> dict:
+    name = (m.get("name") or "").strip()
+    first = name.split()[0] if name else "Tutor"
+    avatar = m.get("avatar") or ""
+
+    rating = float(m.get("rating_avg", 0) or 0.0)
+    rating_count = int(m.get("rating_count", 0) or 0)
+    hours = int(m.get("hours_total", 0) or 0)
+
+    courses = list(m.get("courses", []))
+    locations = list(m.get("locations", []))
+
+    probe = " ".join([
+        m.get("bio", ""),
+        m.get("role", ""),
+        m.get("subtitle", ""),
+        " ".join(s for s in m.get("skills", []) if isinstance(s, str)),
+        " ".join(c.get("title", "") for c in m.get("contributions", []) if isinstance(c, dict)),
+    ])
+    for dept, num in COURSE_RE.findall(probe):
+        courses.append(f"{dept} {num}")
+
+    seen = set()
+    courses = [c for c in courses if not (c in seen or seen.add(c))]
+
+    return {
+        "slug": m.get("slug"),
+        "name": name,
+        "first": first,
+        "avatar": avatar,
+        "headline": m.get("role", ""),
+        "desc": m.get("bio", ""),
+        "rating": rating,
+        "rating_count": rating_count,
+        "hours": hours,
+        "courses": courses,
+        "locations": locations,
+    }
+
+def filter_sort_paginate(tutors: list[dict], args) -> dict:
+    q = (args.get("q") or "").strip().casefold()
+    subject = (args.get("subject") or "").strip().casefold()
+    course = (args.get("course") or "").strip()
+    location = (args.get("location") or "").strip().casefold()
+    sort = (args.get("sort") or "best").strip()
+
+    try:
+        page = int(args.get("page", 1) or 1)
+    except ValueError:
+        page = 1
+    page = max(page, 1)
+    per_page = 5
+
+    def matches(t: dict) -> bool:
+        text = f"{t['name']} {t['headline']} {t['desc']}".casefold()
+        if q and q not in text:
+            return False
+        if subject and not any(subject == c.split()[0].casefold() for c in t["courses"]):
+            return False
+        if course and course not in t["courses"]:
+            return False
+        if location and not any(location == loc.casefold() for loc in t["locations"]):
+            return False
+        return True
+
+    filtered = [t for t in tutors if matches(t)]
+
+    if sort == "highest":
+        filtered.sort(key=lambda t: (t["rating"], t["rating_count"]), reverse=True)
+    elif sort == "lowest":
+        filtered.sort(key=lambda t: (t["rating"], -t["rating_count"]))
+    elif sort == "experience":
+        filtered.sort(key=lambda t: t["hours"], reverse=True)
+    else:
+        def score(t: dict):
+            name_hit = 1 if (q and q in t["name"].casefold()) else 0
+            return (name_hit, t["rating"], t["rating_count"], t["hours"])
+        filtered.sort(key=score, reverse=True)
+
+    total = len(filtered)
+    pages = max(ceil(total / per_page), 1)
+    page = min(page, pages)
+    start = (page - 1) * per_page
+    page_items = filtered[start:start + per_page]
+
+    subject_counts = Counter(c.split()[0] for t in filtered for c in t["courses"])
+    course_counts = Counter(c for t in filtered for c in t["courses"])
+    location_counts = Counter(l for t in filtered for l in t["locations"])
+
+    facets = {
+        "subjects": OrderedDict(sorted(subject_counts.items())),
+        "courses": OrderedDict(sorted(course_counts.items())),
+        "locations": OrderedDict(sorted(location_counts.items())),
+    }
+
+    return {
+        "items": page_items,
+        "total": total,
+        "page": page,
+        "pages": pages,
+        "facets": facets,
+    }
+
+# -------------------- Routes --------------------
+@app.route("/")
+def home_page():
     return render_template("home.html")
 
-@app.route("/about") 
+@app.route("/about")
 def team_page():
     members = load_team_data()
     return render_template("team.html", members=members)
 
-@app.route("/search")  
-def search_page():  
+@app.route("/search")
+def search_page():
     return render_template("search.html")
 
-@app.get("/api/search") 
-def api_search():  
+@app.route("/results")
+def results_page():
+    members = load_team_data()
+    tutors = [normalize_tutor(m) for m in members]
+    view = filter_sort_paginate(tutors, request.args)
+
+    chips = []
+    subj = (request.args.get("subject") or "").strip()
+    if subj:
+        chips.append({"key": "subject", "label": subj.upper()})
+    crs = (request.args.get("course") or "").strip()
+    if crs:
+        chips.append({"key": "course", "label": crs})
+    loc = (request.args.get("location") or "").strip()
+    if loc:
+        chips.append({"key": "location", "label": loc.title()})
+
+    return render_template(
+        "results.html",
+        q=request.args.get("q", ""),
+        sort=(request.args.get("sort") or "best"),
+        tutors=view["items"],
+        total=view["total"],
+        page=view["page"],
+        pages=view["pages"],
+        facets=view["facets"],
+        chips=chips,
+    )
+
+@app.get("/api/search")
+def api_search():
     q = (request.args.get("q") or "").strip()
     if not q or len(q) > 200:
         return jsonify([])
-    q = q.casefold()
+    q_lower = q.casefold()
     log.info("Search query: %s", q)
     members = load_team_data()
     results = [
         m for m in members
-        if q in f"{m.get('name','')} {m.get('role','')}".casefold()
+        if q_lower in f"{m.get('name','')} {m.get('role','')}".casefold()
     ]
-    return jsonify(results)
+    return jsonify([
+        {"name": m.get("name", ""), "role": m.get("role", ""), "slug": m.get("slug", "")}
+        for m in results
+    ])
 
 @app.route("/about/<slug>")
 def member_page(slug: str):
@@ -75,19 +217,20 @@ def member_page(slug: str):
 
     return render_template("member.html", person=person)
 
-# Placeholder routes for login, signup, and becoming a tutor
-@app.route("/login")  
-def login():  
-    return render_template("login.html")  
+# -------------------- Placeholder auth/listing routes --------------------
+@app.route("/login")
+def login():
+    return render_template("login.html")
 
-@app.route("/signup")  
-def signup():  
-    return render_template("signup.html")  
+@app.route("/signup")
+def signup():
+    return render_template("signup.html")
 
-@app.route("/tutors/new")  
-def become_tutor():  
+@app.route("/tutors/new")
+def become_tutor():
     return render_template("become_tutor.html")
 
+# -------------------- Error handlers --------------------
 @app.errorhandler(404)
 def not_found(_e):
     return render_template("404.html"), 404
@@ -96,5 +239,6 @@ def not_found(_e):
 def server_error(_e):
     return render_template("500.html"), 500
 
+# -------------------- Entrypoint --------------------
 if __name__ == "__main__":
     app.run(debug=True, port=5001)

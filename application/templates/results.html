@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+{% block title %}Find Tutors{% endblock %}
+{% block content %}
+
+<!-- -------------------- Results: header (search + sort) -------------------- -->
+<section class="results-header">
+  <form method="get" action="{{ url_for('results_page') }}" class="results-header-row">
+    <div class="search-wrap" style="position:relative">
+      <span class="search-icon" aria-hidden="true">🔎</span>
+      <input
+        name="q"
+        value="{{ q }}"
+        type="search"
+        placeholder="software engineering"
+        class="search-input"
+      />
+      <div class="muted small" style="margin-top:8px">{{ total }} tutors fit your choices</div>
+    </div>
+
+    <div class="sort-wrap">
+      <label for="sort" class="small">Sort:</label>
+      <select id="sort" name="sort" class="select" onchange="this.form.submit()">
+        <option value="best" {{ 'selected' if sort=='best' }}>Best Match</option>
+        <option value="highest" {{ 'selected' if sort=='highest' }}>Highest Rated</option>
+        <option value="lowest" {{ 'selected' if sort=='lowest' }}>Lowest Rated</option>
+        <option value="experience" {{ 'selected' if sort=='experience' }}>Most Experience</option>
+      </select>
+    </div>
+  </form>
+</section>
+
+<!-- -------------------- Results: body (filters + list) -------------------- -->
+<section class="results-body">
+  <!-- Filter rail -->
+  <aside class="filters sfsu-card">
+    <header class="filters-head">
+      <h2 class="font-heading" style="margin:0">Filters</h2>
+      <a class="link small" href="{{ url_for('results_page') }}">Clear all</a>
+    </header>
+    <p class="tiny muted" style="margin:8px 0 0">
+      Options auto-populate from active listings. Zero-match options are disabled or hidden.
+    </p>
+
+    <!-- Subject -->
+    <div class="filter-section">
+      <div class="label small">Subject</div>
+      <select name="subject" form="filters-form" class="select full">
+        <option value="">All subjects</option>
+        {% for subj, cnt in facets.subjects.items() %}
+          <option value="{{ subj }}" {{ 'selected' if request.args.get('subject','').upper()==subj }}>
+            {{ subj }} ({{ cnt }})
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Course Number -->
+    <div class="filter-section">
+      <div class="label small">Course Number</div>
+      <select name="course" form="filters-form" class="select full">
+        <option value="">Select course number</option>
+        {% for c, cnt in facets.courses.items() %}
+          <option value="{{ c }}" {{ 'selected' if request.args.get('course')==c }}>
+            {{ c }} ({{ cnt }})
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Location (wraps the form so all filter selects submit together) -->
+    <div class="filter-section">
+      <div class="label small">Location</div>
+
+      <form id="filters-form" method="get" action="{{ url_for('results_page') }}">
+        <!-- Preserve current q/sort -->
+        <input type="hidden" name="q" value="{{ q }}">
+        <input type="hidden" name="sort" value="{{ sort }}">
+
+        <select name="location" class="select full" onchange="this.form.submit()">
+          <option value="">Any</option>
+          {% for loc, cnt in facets.locations.items() %}
+            <option value="{{ loc }}" {{ 'selected' if request.args.get('location','').lower()==loc.lower() }}>
+              {{ loc }} ({{ cnt }})
+            </option>
+          {% endfor %}
+        </select>
+
+        <div style="margin-top:8px">
+          <button class="btn outline" type="submit">Apply Filters</button>
+        </div>
+      </form>
+    </div>
+  </aside>
+
+  <!-- Results column -->
+  <section class="results-col">
+    <div class="summary-row">
+      <div class="muted">{{ total }} tutors found</div>
+
+      <!-- Active filter chips -->
+      <div class="chips">
+        {% set base = request.args.to_dict(flat=True) %}
+        {% set _ = base.pop('page', None) %}
+        {% for chip in chips %}
+          {% set params = base.copy() %}
+          {% set _ = params.pop(chip.key, None) %}
+          {% set qs = params|urlencode %}
+
+          <span class="chip">
+            {{ chip.label }}
+            <a class="chip-x"
+               href="{{ url_for('results_page') }}{% if qs %}?{{ qs }}{% endif %}"
+               aria-label="Remove {{ chip.label }}">×</a>
+          </span>
+        {% endfor %}
+      </div>
+    </div>
+
+    {% if tutors %}
+      {% for t in tutors %}
+      <article class="tutor-card sfsu-card">
+        <div class="tutor-head">
+          <div class="avatar-64">
+            {% if t.avatar %}
+              <img src="{{ url_for('static', filename=t.avatar) }}" alt="{{ t.name }}">
+            {% else %}
+              <div class="avatar-fallback" aria-hidden="true">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="#bdbdbd">
+                  <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 
+                           1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 
+                           4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                </svg>
+              </div>
+            {% endif %}
+          </div>
+
+          <div class="tutor-text">
+            <h3 class="tutor-name">{{ t.name }}</h3>
+            <div class="tutor-headline">{{ t.headline }}</div>
+            <p class="tutor-desc">{{ t.desc }}</p>
+          </div>
+
+          <div class="tutor-metrics">
+            <div class="stars">
+              {% set full = t.rating|round(0, 'floor')|int %}
+              {% for i in range(1,6) %}
+                <svg class="star {{ 'on' if i<=full else 'off' }}" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.786 1.402 8.168L12 18.897 4.664 23.164l1.402-8.168L.132 9.21l8.2-1.192z"/>
+                </svg>
+              {% endfor %}
+              <span class="rating">{{ '%.1f'|format(t.rating) if t.rating else '—' }}</span>
+              <span class="count muted">({{ t.rating_count }})</span>
+            </div>
+            <div class="hours muted">{{ t.hours }} hours tutoring</div>
+          </div>
+        </div>
+
+        <div class="tutor-meta">
+          {% for c in t.courses %}
+            <span class="badge">{{ c }}</span>
+          {% endfor %}
+          {% for loc in t.locations %}
+            <span class="badge outline">{{ loc }}</span>
+          {% endfor %}
+        </div>
+
+        <div class="tutor-cta">
+          <a class="btn" href="{{ url_for('member_page', slug=t.slug) }}">View {{ t.first }}'s Profile</a>
+          <a class="btn outline" href="{{ url_for('member_page', slug=t.slug) }}#contact">Contact Tutor</a>
+        </div>
+      </article>
+      {% endfor %}
+
+      <!-- Pagination -->
+      {% if pages > 1 %}
+        {% set base = request.args.to_dict(flat=True) %}
+        {% set _ = base.pop('page', None) %}
+        {% set qs = base|urlencode %}
+
+        <nav class="pagination" aria-label="pagination">
+          <ul>
+            <li>
+              <a class="page {{ 'disabled' if page==1 }}"
+                 href="{% if page>1 %}{{ url_for('results_page') }}{% if qs %}?{{ qs }}&{% else %}?{% endif %}page={{ page-1 }}{% else %}#{% endif %}">Previous</a>
+            </li>
+
+            {% for p in range(1, pages+1) %}
+              <li>
+                <a class="page {{ 'active' if p==page }}"
+                   href="{{ url_for('results_page') }}{% if qs %}?{{ qs }}&{% else %}?{% endif %}page={{ p }}">{{ p }}</a>
+              </li>
+            {% endfor %}
+
+            <li>
+              <a class="page {{ 'disabled' if page==pages }}"
+                 href="{% if page<pages %}{{ url_for('results_page') }}{% if qs %}?{{ qs }}&{% else %}?{% endif %}page={{ page+1 }}{% else %}#{% endif %}">Next</a>
+            </li>
+          </ul>
+        </nav>
+      {% endif %}
+
+    {% else %}
+      <!-- Empty state (still shows filters and header) -->
+      <article class="empty sfsu-card">
+        <div class="empty-icon">🔍</div>
+        <h3 class="font-heading" style="margin:8px 0">No tutors match these filters</h3>
+        <p class="muted">Try adjusting your search criteria or clearing some filters to see more results.</p>
+        <div class="empty-actions" style="display:flex;gap:12px;justify-content:center;margin-top:8px">
+          <a class="btn ghost" href="{{ url_for('results_page') }}">Clear filters</a>
+          <a class="link" href="/subjects">See related subjects</a>
+        </div>
+      </article>
+    {% endif %}
+  </section>
+</section>
+
+{% endblock %}
