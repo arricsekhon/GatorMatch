@@ -111,7 +111,8 @@
     Messages are sent within the site (one-way). No external email is used.
   </p>
 
-  <form method="post" action="{{ url_for('messages_create') }}">
+  <form method="post" action="{{ url_for('post_message') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <input type="hidden" name="to_slug" value="{{ person.slug }}"/>
 
     <div style="display:grid; gap:12px;">
@@ -129,7 +130,7 @@
       <label class="small" for="from_email">Your SFSU email</label>
       <input
         id="from_email"
-        name="from_sfsu_email"
+        name="from_email"
         type="email"
         required
         maxlength="120"
@@ -149,6 +150,9 @@
         placeholder="Introduce yourself, the course (e.g., CSC 340), and what you need help with."
         style="padding:12px;border:1px solid var(--divider);border-radius:8px;resize:vertical;"
       ></textarea>
+
+      <!-- (anti-bot) -->
+      <input type="text" name="website" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px" aria-hidden="true">
 
       <div style="display:flex;gap:12px;align-items:center;justify-content:flex-start;margin-top:4px;">
         <button class="btn" type="submit">Send Message</button>
