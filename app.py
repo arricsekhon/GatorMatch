@@ -11,7 +11,6 @@ import json
 import logging
 import re
 
-# -------------------- Env & Flask setup --------------------
 load_dotenv()
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -21,6 +20,14 @@ DATA_FILE = os.path.join(BASE_DIR, "application", "data", "team1_section4.json")
 
 app = Flask(__name__, template_folder=TEMPLATE_DIR, static_folder=STATIC_DIR)
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "dev-key")
+
+# secure cookie defaults (no visual change; safe in prod)
+app.config.update(
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE="Lax",
+    SESSION_COOKIE_SECURE=os.getenv("COOKIE_SECURE", "1") == "1",
+)
+
 app.logger.setLevel(logging.INFO)
 log = app.logger
 
@@ -37,7 +44,6 @@ Base.metadata.create_all(bind=engine)
 login_manager = LoginManager(app)
 login_manager.login_view = "login"
 
-
 @login_manager.user_loader
 def load_user(user_id: str) -> User | None:
     with SessionLocal() as db:
@@ -46,13 +52,11 @@ def load_user(user_id: str) -> User | None:
         except Exception:
             return None
 
-
 # -------------------- Data loading & caching --------------------
 @lru_cache(maxsize=1)
 def _load_cached(mtime: int):
     with open(DATA_FILE, "r", encoding="utf-8") as f:
         return json.load(f)
-
 
 def load_team_data():
     try:
@@ -63,15 +67,12 @@ def load_team_data():
     except (OSError, json.JSONDecodeError):
         abort(500)
 
-
 def find_member(slug: str):
     members = load_team_data()
     return next((m for m in members if m.get("slug") == slug), None)
 
-
 # -------------------- Normalization & helpers --------------------
-COURSE_RE = re.compile(r"\b([A-Z]{2,4})\s?(\d{3})\b")
-
+COURSE_RE = re.compile(r"\b([A-Z]{2,4})\s?(\d{3})\b", re.IGNORECASE)
 
 def normalize_tutor(m: dict) -> dict:
     name = (m.get("name") or "").strip()
@@ -91,7 +92,7 @@ def normalize_tutor(m: dict) -> dict:
         " ".join(c.get("title", "") for c in m.get("contributions", []) if isinstance(c, dict)),
     ])
     for dept, num in COURSE_RE.findall(probe):
-        courses.append(f"{dept} {num}")
+        courses.append(f"{dept.upper()} {num}")
 
     seen = set()
     courses = [c for c in courses if not (c in seen or seen.add(c))]
@@ -109,7 +110,6 @@ def normalize_tutor(m: dict) -> dict:
         "courses": courses,
         "locations": locations,
     }
-
 
 def filter_sort_paginate(tutors: list[dict], args) -> dict:
     q = (args.get("q") or "").strip().casefold()
@@ -175,24 +175,20 @@ def filter_sort_paginate(tutors: list[dict], args) -> dict:
         "facets": facets,
     }
 
-
 # -------------------- Context (GA hook) --------------------
 @app.context_processor
 def inject_globals():
     return {"GA_ID": os.getenv("GA_ID", "").strip()}
-
 
 # -------------------- Routes: public pages --------------------
 @app.route("/")
 def home_page():
     return render_template("home.html")
 
-
 @app.route("/about")
 def team_page():
     members = load_team_data()
     return render_template("team.html", members=members)
-
 
 @app.route("/about/<slug>")
 def member_page(slug: str):
@@ -211,11 +207,9 @@ def member_page(slug: str):
 
     return render_template("member.html", person=person)
 
-
 @app.route("/search")
 def search_page():
     return render_template("search.html")
-
 
 @app.route("/results")
 def results_page():
@@ -246,7 +240,6 @@ def results_page():
         chips=chips,
     )
 
-
 @app.get("/api/search")
 def api_search():
     q = (request.args.get("q") or "").strip()
@@ -264,23 +257,35 @@ def api_search():
         for m in results
     ])
 
-
-# -------------------- In-site messaging (stub) --------------------
+# -------------------- In-site messaging (route fixed) --------------------
 @app.post("/messages")
 @login_required
 def post_message():
-    data = request.get_json(silent=True) or request.form
-    if not data:
-        abort(400)
-    to_slug = (data.get("to") or "").strip()
-    subject = (data.get("subject") or "").strip()
+    form = request.form if request.form else None
+    data = form or (request.get_json(silent=True) or {})
+
+    to_slug = (data.get("to") or data.get("to_slug") or "").strip()
+    from_email = (data.get("from_email") or "").strip().lower()
+    from_name = (data.get("from_name") or "").strip()
     body = (data.get("body") or "").strip()
-    if not (to_slug and subject and body):
+
+    # simple honeypot
+    if (data.get("website") or ""):
+        abort(400)
+
+    if not (to_slug and from_name and from_email and body):
+        abort(400)
+    if not from_email.endswith("sfsu.edu"):
         abort(400)
     if not find_member(to_slug):
         abort(404)
-    return jsonify({"ok": True}), 201
+    if len(body) > 2000:
+        abort(400)
 
+    # TODO: persist to DB in the next milestone
+    if form:
+        return redirect(url_for("member_page", slug=to_slug, sent=1, _anchor="contact"))
+    return jsonify({"ok": True}), 201
 
 # -------------------- Auth --------------------
 @app.route("/signup", methods=["GET", "POST"])
@@ -301,7 +306,6 @@ def signup():
             return redirect(url_for("home_page"))
     return render_template("signup.html", form=form)
 
-
 @app.route("/login", methods=["GET", "POST"])
 def login():
     form = LoginForm()
@@ -310,8 +314,9 @@ def login():
         with SessionLocal() as db:
             user = db.query(User).filter(User.email == email).first()
             if not user or not user.check_password(form.password.data):
-                form.password.errors.append("Invalid email or password.")
-                return render_template("login.html", form=form)
+                error_msg = "Invalid email or password."
+                form.password.errors.append(error_msg)  # keep inline cue
+                return render_template("login.html", form=form, error=error_msg)  # show top alert
             login_user(user)
             next_url = request.args.get("next") or url_for("home_page")
             return redirect(next_url)
@@ -324,24 +329,20 @@ def logout():
     logout_user()
     return redirect(url_for("home_page"))
 
-
 # -------------------- Placeholder listing page --------------------
 @app.route("/tutors/new")
 def become_tutor():
     return render_template("become_tutor.html")
-
 
 # -------------------- Errors --------------------
 @app.errorhandler(404)
 def not_found(_e):
     return render_template("404.html"), 404
 
-
 @app.errorhandler(500)
 def server_error(_e):
     return render_template("500.html"), 500
 
-
 # -------------------- Entrypoint --------------------
 if __name__ == "__main__":
-    app.run(debug=True, port=5001)
+    app.run(port=5001, debug=os.getenv("FLASK_DEBUG") == "1")

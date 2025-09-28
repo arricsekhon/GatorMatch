@@ -1,6 +1,10 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField
-from wtforms.validators import DataRequired, Email, Length, EqualTo
+from wtforms.validators import DataRequired, Email, Length, EqualTo, ValidationError
+
+def _sfsu_only(_form, field):
+    if not field.data or not field.data.lower().endswith("sfsu.edu"):
+        raise ValidationError("Use your @sfsu.edu email.")
 
 class LoginForm(FlaskForm):
     email = StringField(
@@ -14,6 +18,8 @@ class LoginForm(FlaskForm):
     )
     submit = SubmitField("Log in")
 
+    def validate_email(self, field):
+        _sfsu_only(self, field)
 
 class SignupForm(FlaskForm):
     name = StringField(
@@ -34,3 +40,6 @@ class SignupForm(FlaskForm):
         validators=[DataRequired(), EqualTo("password", message="Passwords must match.")],
     )
     submit = SubmitField("Create account")
+
+    def validate_email(self, field):
+        _sfsu_only(self, field)
