@@ -345,4 +345,6 @@ def server_error(_e):
 
 # -------------------- Entrypoint --------------------
 if __name__ == "__main__":
-    app.run(port=5001, debug=os.getenv("FLASK_DEBUG") == "1")
+    port = int(os.getenv("PORT", 5001))
+    host = os.getenv("HOST", "127.0.0.1")
+    app.run(host=host, port=port, debug=os.getenv("FLASK_DEBUG") == "1")
