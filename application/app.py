@@ -1,3 +1,4 @@
+# application/app.py
 from __future__ import annotations
 
 from flask import Flask, render_template, request, jsonify, abort, redirect, url_for
@@ -6,6 +7,7 @@ from dotenv import load_dotenv
 from functools import lru_cache
 from collections import Counter, OrderedDict
 from math import ceil
+from pathlib import Path
 import os
 import json
 import logging
@@ -13,12 +15,13 @@ import re
 
 load_dotenv()
 
-BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-TEMPLATE_DIR = os.path.join(BASE_DIR, "application", "templates")
-STATIC_DIR = os.path.join(BASE_DIR, "application", "static")
-DATA_FILE = os.path.join(BASE_DIR, "application", "data", "team1_section4.json")
+# --- Paths (file now lives inside application/) ---
+BASE_DIR = Path(__file__).resolve().parent          # application/
+TEMPLATE_DIR = BASE_DIR / "templates"
+STATIC_DIR   = BASE_DIR / "static"
+DATA_FILE    = BASE_DIR / "data" / "team1_section4.json"
 
-app = Flask(__name__, template_folder=TEMPLATE_DIR, static_folder=STATIC_DIR)
+app = Flask(__name__, template_folder=str(TEMPLATE_DIR), static_folder=str(STATIC_DIR))
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "dev-key")
 
 # secure cookie defaults (no visual change; safe in prod)
@@ -60,7 +63,7 @@ def _load_cached(mtime: int):
 
 def load_team_data():
     try:
-        mtime = int(os.path.getmtime(DATA_FILE))
+        mtime = int(DATA_FILE.stat().st_mtime)
         return _load_cached(mtime)
     except FileNotFoundError:
         return []
@@ -321,7 +324,6 @@ def login():
             next_url = request.args.get("next") or url_for("home_page")
             return redirect(next_url)
     return render_template("login.html", form=form)
-
 
 @app.post("/logout")
 @login_required
