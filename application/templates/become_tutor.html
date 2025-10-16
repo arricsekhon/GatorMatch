@@ -1,8 +1,326 @@
 {% extends "base.html" %}
 {% block title %}Become a Tutor{% endblock %}
+
 {% block content %}
-<section class="hero">
-  <h1>Post a Tutor Listing</h1>
-  <h2>(Coming soon)</h2>
+<section class="hero" id="hero">
+  <h1>Become a Tutor</h1>
+
+  <div style="margin-top:24px;">
+    <a href="#application" class="btn" id="btn-start-app">Start Application</a>
+    <a href="#requirements" class="btn outline gold" style="margin-left:12px">View Requirements</a>
+  </div>
+  <hr class="divider">
 </section>
+
+{% if request.args.get('submitted') %}
+  <div class="sfsu-card" style="margin:16px 0;padding:12px;background:#d4edda;border:none">
+    <p style="color:#155724;margin:0"><strong>Application submitted.</strong> Status: Pending review (24–48 hours). You'll see your listing after approval.</p>
+  </div>
+{% endif %}
+
+<section class="section" id="application" style="padding-top:40px">
+  <div class="member-body" style="grid-template-columns:7fr 5fr;">
+    <!-- Left column: application form -->
+    <div>
+      <form id="tutor-form" class="sfsu-card" method="post" action="{{ url_for('become_tutor') }}"
+            enctype="multipart/form-data" style="padding:24px;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <!-- Account & Identity (read-only snapshot from current_user) -->
+        <h2>Account & Identity</h2>
+        <hr class="divider">
+        <div class="container" style="padding:0;margin:0">
+          <div style="margin:12px 0">
+            <label class="label">Name</label>
+            <input class="search-wide" value="{{ current_user.name if current_user.is_authenticated else '' }}" readonly>
+          </div>
+          <div style="margin:12px 0">
+            <label class="label">Email</label>
+            <input class="search-wide" value="{{ current_user.email if current_user.is_authenticated else '' }}" readonly>
+            <p class="tiny muted">SFSU email required.</p>
+          </div>
+        </div>
+
+        <!-- Tutor Profile -->
+        <h2 style="margin-top:28px">Tutor Profile</h2>
+        <hr class="divider">
+
+        <div style="margin:12px 0">
+          <label class="label" for="headline">Headline</label>
+          <input id="headline" name="headline" class="search-wide" maxlength="80"
+                 placeholder="E.g., 'CSC 340 Tutor — Data Structures & Algorithms'"
+                 value="{{ (request.form.get('headline') or '')|e }}">
+          {% for err in form.headline.errors %}<div class="tiny" style="color:#8A1C1C">{{ err }}</div>{% endfor %}
+          <p class="tiny muted"><span id="headline-count">0</span>/80 characters</p>
+        </div>
+
+        <div style="margin:12px 0">
+          <label class="label" for="bio">Short Bio</label>
+          <textarea id="bio" name="bio" class="search-wide" rows="5"
+                    placeholder="Tell students about your experience and teaching style (3–5 sentences)">{{ (request.form.get('bio') or '')|e }}</textarea>
+          {% for err in form.bio.errors %}<div class="tiny" style="color:#8A1C1C">{{ err }}</div>{% endfor %}
+          <p class="tiny muted"><span id="bio-count">0</span> characters</p>
+        </div>
+
+        <div style="margin:12px 0">
+          <label class="label">Meeting Options</label>
+          <div class="chips" style="gap:12px">
+            <label class="chip">
+              <input type="checkbox" name="meeting_options" value="library"
+                     {% if 'library' in (form.meeting_options.data or []) %}checked{% endif %}> In-person — SFSU Library
+            </label>
+            <label class="chip">
+              <input type="checkbox" name="meeting_options" value="mashouf"
+                     {% if 'mashouf' in (form.meeting_options.data or []) %}checked{% endif %}> In-person — Mashouf
+            </label>
+            <label class="chip">
+              <input type="checkbox" name="meeting_options" value="zoom"
+                     {% if 'zoom' in (form.meeting_options.data or []) %}checked{% endif %}> Zoom (remote)
+            </label>
+          </div>
+          {% for err in form.meeting_options.errors %}<div class="tiny" style="color:#8A1C1C">{{ err }}</div>{% endfor %}
+        </div>
+
+        <!-- Courses -->
+        <h2 style="margin-top:28px">Courses You Can Tutor</h2>
+        <hr class="divider">
+
+        <div class="container" style="padding:0;margin:0">
+          <div style="display:flex;gap:8px;align-items:center;margin:12px 0">
+            <select id="course-select" class="select" style="flex:1">
+              <option value="">Select a course...</option>
+              <option>CSC 210</option><option>CSC 220</option><option>CSC 230</option>
+              <option>CSC 256</option><option>CSC 300</option><option>CSC 340</option>
+              <option>CSC 413</option><option>CSC 648</option><option>CSC 690</option>
+              <option>CSC 848</option><option>MATH 226</option><option>MATH 227</option>
+              <option>PHYS 220</option><option>PHYS 222</option>
+            </select>
+            <button type="button" id="btn-add-course" class="btn">Add</button>
+          </div>
+
+          <div id="course-list" class="chips" style="gap:8px;margin:8px 0"></div>
+          <p class="tiny muted">Add each course you've completed with ≥ 90%.</p>
+          <input type="hidden" name="courses_csv" id="courses-csv" value="{{ (request.form.get('courses_csv') or '')|e }}">
+          {% for err in form.courses_csv.errors %}<div class="tiny" style="color:#8A1C1C">{{ err }}</div>{% endfor %}
+        </div>
+
+        <!-- Availability -->
+        <h2 style="margin-top:28px">Availability</h2>
+        <hr class="divider">
+        <div id="availability" style="display:flex;flex-direction:column;gap:8px"></div>
+        <p class="tiny muted" style="margin-top:8px">Rough availability is enough. You can refine later.</p>
+        <input type="hidden" name="availability_json" id="availability-json" value="{{ (request.form.get('availability_json') or '{}')|e }}">
+        {% for err in form.availability_json.errors %}<div class="tiny" style="color:#8A1C1C">{{ err }}</div>{% endfor %}
+
+        <!-- Verification Documents -->
+        <h2 style="margin-top:28px">Verification Documents</h2>
+        <hr class="divider">
+
+        <div class="dropzone" id="dropzone">
+          <div class="dz-icon">⬆︎</div>
+          <p class="small">Click to choose up to 3 files</p>
+          <p class="tiny muted">PDF, PNG, JPG. Max 10 MB each.</p>
+        </div>
+
+        <div style="display:none">
+          {{ form.doc1(class_="select") }}
+          {{ form.doc2(class_="select") }}
+          {{ form.doc3(class_="select") }}
+        </div>
+
+        <div id="file-list" style="margin-top:10px"></div>
+        {% if form.doc1.errors %}<div class="tiny" style="color:#8A1C1C">{{ form.doc1.errors[0] }}</div>{% endif %}
+
+        <!-- Policies & Submit -->
+        <h2 style="margin-top:28px">Policies & Submit</h2>
+        <hr class="divider">
+
+        <label class="label" style="display:flex;gap:10px;align-items:flex-start">
+          <input id="agree" name="policies" type="checkbox" value="y"
+                 {% if request.form.get('policies') %}checked{% endif %}>
+          <span>I certify that the information provided is accurate and complies with
+            <a href="#" class="link">SFSU academic honesty policies</a>.
+          </span>
+        </label>
+        {% for err in form.policies.errors %}<div class="tiny" style="color:#8A1C1C">{{ err }}</div>{% endfor %}
+
+        <div class="tutor-cta" style="margin-top:12px">
+          <button type="submit" class="btn">Submit for Review</button>
+          <button type="button" class="btn outline" id="btn-draft">Save as Draft</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Right column: requirements/tips -->
+    <aside class="sfsu-card" id="requirements" style="padding:24px;position:sticky;top:24px;height:fit-content;">
+      <h2 class="font-heading" style="margin:0 0 8px;color:var(--text)">What you need</h2>
+      <ul class="small" style="margin:0 0 16px;padding-left:20px">
+        <li>SFSU email required</li>
+        <li>Courses added must match your documents</li>
+        <li>Minimum grade: 90%</li>
+        <li>Meeting options: SFSU campus or Zoom</li>
+      </ul>
+      <hr class="divider">
+
+      <h3 class="font-heading" style="margin:12px 0 8px;color:var(--text);font-size:16px">Tips for a great listing</h3>
+      <ul class="small" style="margin:0 0 16px;padding-left:20px">
+        <li>Clear headline, concise bio, accurate courses</li>
+        <li>Use campus/Zoom tags so students filter to you</li>
+      </ul>
+
+      <div class="sfsu-card" style="padding:12px;background:#f9f9f9;border:none">
+        <p class="tiny muted" style="margin:0">Approval usually takes 24–48 hours.</p>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<!-- Small, local styles to avoid touching global CSS -->
+<style>
+  .pill{border:1px solid var(--divider);background:#fff;border-radius:999px;padding:6px 12px;font-weight:700;font-size:12px;cursor:pointer}
+  .pill.on{background:var(--purple);color:#fff;border-color:var(--purple)}
+  .dropzone{border:2px dashed var(--divider);border-radius:12px;text-align:center;padding:28px 16px;background:#fff;cursor:pointer}
+  .dropzone.drag{border-color:var(--purple);background:#F7F3FB}
+  .dz-icon{font-size:28px;color:var(--muted);margin-bottom:8px}
+
+  /* Page-scoped fix: make outline gold readable on light hero background */
+  .hero .btn.outline.gold { color: var(--purple); }
+  .hero .btn.outline.gold:hover { background: var(--gold); color: var(--purple); }
+</style>
+
+<!-- Minimal JS: counters, courses → CSV, availability → JSON, simple file picker -->
+<script>
+(function () {
+  // Counters
+  const headline = document.getElementById('headline');
+  const bio = document.getElementById('bio');
+  const setCount = (el, id) => { const n = document.getElementById(id); if (el && n) n.textContent = String(el.value.length); };
+  headline && headline.addEventListener('input', () => setCount(headline, 'headline-count'));
+  bio && bio.addEventListener('input', () => setCount(bio, 'bio-count'));
+  setCount(headline, 'headline-count'); setCount(bio, 'bio-count');
+
+  // Courses (CSV of "CSC 340|A; CSC 210|A-")
+  const courseSelect = document.getElementById('course-select');
+  const addBtn = document.getElementById('btn-add-course');
+  const list = document.getElementById('course-list');
+  const csv = document.getElementById('courses-csv');
+  const picked = new Map();
+
+  function syncCSV() {
+    const parts = [];
+    picked.forEach((v) => parts.push(v.code + '|' + (v.grade || 'A')));
+    csv.value = parts.join('; ');
+  }
+  function renderCourses() {
+    list.innerHTML = '';
+    picked.forEach((c) => {
+      const li = document.createElement('span');
+      li.className = 'chip';
+      li.innerHTML = `${c.code}
+        <select class="select tiny" style="height:28px;margin-left:6px">
+          <option value="A+">A+</option><option value="A" selected>A</option><option value="A-">A-</option>
+        </select>
+        <a href="#" class="chip-x" aria-label="Remove">×</a>`;
+      li.querySelector('select').value = c.grade || 'A';
+      li.querySelector('select').addEventListener('change', (e) => {
+        c.grade = e.target.value; syncCSV();
+      });
+      li.querySelector('.chip-x').addEventListener('click', (e) => {
+        e.preventDefault(); picked.delete(c.code); renderCourses();
+      });
+      list.appendChild(li);
+    });
+    syncCSV();
+  }
+  addBtn && addBtn.addEventListener('click', () => {
+    const v = courseSelect.value;
+    if (!v) return;
+    if (!picked.has(v)) { picked.set(v, { code: v, grade: 'A' }); renderCourses(); }
+    courseSelect.value = '';
+  });
+
+  // Availability (JSON map)
+  const DAYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const TIMES = ['Morning','Afternoon','Evening'];
+  const availHost = document.getElementById('availability');
+  const availInput = document.getElementById('availability-json');
+  const avail = {};
+  function updateAvail() { availInput.value = JSON.stringify(avail); }
+  function addRow(day) {
+    const row = document.createElement('div');
+    row.className = 'tutor-meta';
+    const label = document.createElement('div');
+    label.textContent = day; label.style.width='50px'; label.style.fontWeight='700';
+    row.appendChild(label);
+    TIMES.forEach((slot) => {
+      const key = day + '-' + slot;
+      const btn = document.createElement('button');
+      btn.type = 'button'; btn.className = 'pill'; btn.textContent = slot;
+      btn.addEventListener('click', () => { avail[key] = !avail[key]; btn.classList.toggle('on', !!avail[key]); updateAvail(); });
+      row.appendChild(btn);
+    });
+    availHost.appendChild(row);
+  }
+  DAYS.forEach(addRow); updateAvail();
+
+  // File picker (maps to hidden WTForms fields doc1/doc2/doc3)
+  const dz = document.getElementById('dropzone');
+  const listFiles = document.getElementById('file-list');
+  const fileInputs = [
+    document.querySelector('input[name="doc1"]'),
+    document.querySelector('input[name="doc2"]'),
+    document.querySelector('input[name="doc3"]'),
+  ];
+  function showRow(name, sizeText) {
+    const row = document.createElement('div');
+    row.className = 'sfsu-card';
+    row.style.cssText = 'padding:10px;display:flex;align-items:center;gap:10px';
+    row.innerHTML = `<div class="badge">File</div>
+      <div style="flex:1 1 auto;min-width:0">
+        <div class="small" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${name}</div>
+        <div class="tiny muted">${sizeText}</div>
+      </div>`;
+    listFiles.appendChild(row);
+  }
+  function formatSize(b){ return b<1024?`${b} B`:b<1048576?`${(b/1024).toFixed(1)} KB`:`${(b/1048576).toFixed(1)} MB`; }
+  function pickFiles() {
+    const picker = document.createElement('input');
+    picker.type = 'file'; picker.accept = '.pdf,.png,.jpg,.jpeg'; picker.multiple = true;
+    picker.onchange = () => {
+      const files = Array.from(picker.files || []);
+      let slot = 0;
+      for (const f of files) {
+        while (slot < fileInputs.length && fileInputs[slot].files?.length) slot++;
+        if (slot >= fileInputs.length) break;
+        try {
+          // Assign selected file to the hidden file input
+          const dt = new DataTransfer();
+          dt.items.add(f);
+          fileInputs[slot].files = dt.files;
+          showRow(f.name, formatSize(f.size));
+        } catch (_e) { /* ignore */ }
+        slot++;
+      }
+    };
+    picker.click();
+  }
+  dz.addEventListener('click', pickFiles);
+  ['dragenter','dragover'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.add('drag'); }));
+  ['dragleave','drop'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.remove('drag'); }));
+  dz.addEventListener('drop', e => { /* use click-based picker for compatibility */ });
+
+  // Local draft (optional)
+  document.getElementById('btn-draft')?.addEventListener('click', () => {
+    const payload = {
+      headline: headline.value,
+      bio: bio.value,
+      meeting: Array.from(document.querySelectorAll('input[name="meeting_options"]:checked')).map(i => i.value),
+      courses_csv: csv.value,
+      availability_json: availInput.value
+    };
+    localStorage.setItem('tutor_draft', JSON.stringify(payload));
+    alert('Draft saved on this device.');
+  });
+})();
+</script>
 {% endblock %}
