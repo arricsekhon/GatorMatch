@@ -32,11 +32,11 @@
         <div class="container" style="padding:0;margin:0">
           <div style="margin:12px 0">
             <label class="label">Name</label>
-            <input id="name_ro" class="search-wide" value="{{ current_user.name if current_user.is_authenticated else '' }}" readonly>
+            <input class="search-wide" value="{{ current_user.name if current_user.is_authenticated else '' }}" readonly>
           </div>
           <div style="margin:12px 0">
             <label class="label">Email</label>
-            <input id="email_ro" class="search-wide" value="{{ current_user.email if current_user.is_authenticated else '' }}" readonly>
+            <input class="search-wide" value="{{ current_user.email if current_user.is_authenticated else '' }}" readonly>
             <p class="tiny muted">SFSU email required.</p>
           </div>
         </div>
@@ -107,9 +107,8 @@
         <!-- Availability -->
         <h2 style="margin-top:28px">Availability</h2>
         <hr class="divider">
-
-        <div id="availability" class="avail-grid" style="display:flex;flex-direction:column;gap:10px"></div>
-        <p class="tiny muted" style="margin-top:8px">Select 1-hour slots (08:00–22:00).</p>
+        <div id="availability" class="neum-surface"></div>
+        <p class="tiny muted" style="margin-top:8px">Select 1-hour slots. You can refine later.</p>
         <input type="hidden" name="availability_json" id="availability-json" value="{{ (request.form.get('availability_json') or '{}')|e }}">
         {% for err in form.availability_json.errors %}<div class="tiny" style="color:#8A1C1C">{{ err }}</div>{% endfor %}
 
@@ -148,7 +147,7 @@
         <div class="tutor-cta" style="margin-top:12px">
           <button type="submit" class="btn">Submit for Review</button>
           <button type="button" class="btn outline" id="btn-draft">Save as Draft</button>
-          <button type="button" class="btn ghost" id="btn-clear-draft" title="Remove the saved local draft">Clear Draft</button>
+          <button type="button" class="btn outline" id="btn-clear-draft">Clear Draft</button>
         </div>
       </form>
     </div>
@@ -177,67 +176,73 @@
   </div>
 </section>
 
-<!-- Page-scoped styles only for Become a Tutor -->
+<!-- Page-scoped styles -->
 <style>
+  /* Base pills + dropzone */
   .pill{border:1px solid var(--divider);background:#fff;border-radius:999px;padding:6px 12px;font-weight:700;font-size:12px;cursor:pointer}
   .pill.on{background:var(--purple);color:#fff;border-color:var(--purple)}
   .dropzone{border:2px dashed var(--divider);border-radius:12px;text-align:center;padding:28px 16px;background:#fff;cursor:pointer}
   .dropzone.drag{border-color:var(--purple);background:#F7F3FB}
   .dz-icon{font-size:28px;color:var(--muted);margin-bottom:8px}
+  /* Readable outline on light hero */
   .hero .btn.outline.gold { color: var(--purple); }
   .hero .btn.outline.gold:hover { background: var(--gold); color: var(--purple); }
 
-  /* Widen left column + reduce extra left whitespace on this page only */
-  .become-tutor-page + .member-body, 
-  .become-tutor-page .member-body { 
-    grid-template-columns: 11fr 4fr; 
-    gap: 40px;
-    padding-left: 24px;           
-    padding-right: var(--pad-x);  
+  /* ------- Neumorphic availability (scoped) ------- */
+  .become-tutor-page{
+    --neu-bg:#EEF2F7; --neu-dark:#c9d2df; --neu-light:#fff; --neu-text:#2f3a4a; --neu-accent:#4D7CFF;
   }
-  @media (max-width: 900px){
-    .become-tutor-page .member-body {
-      grid-template-columns: 1fr;
-      padding-left: var(--pad-x);
-      padding-right: var(--pad-x);
-    }
-    #requirements{ position:static; }
+  .become-tutor-page .neum-surface{background:var(--neu-bg);border-radius:16px;padding:8px 12px;}
+  .become-tutor-page .avail-row{display:flex;align-items:center;gap:16px;margin:12px 0 18px;}
+  .become-tutor-page .avail-day{width:56px;flex:0 0 56px;font-weight:700;color:var(--neu-text);}
+  .become-tutor-page .avail-slots{flex:1 1 auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:16px;}
+  .become-tutor-page .pill.hour{
+    display:inline-flex;align-items:center;justify-content:center;height:54px;padding:0 22px;min-width:132px;
+    border:0;border-radius:9999px;font-weight:700;letter-spacing:.02em;color:var(--neu-text);background:var(--neu-bg);
+    box-shadow:8px 8px 16px var(--neu-dark), -8px -8px 16px var(--neu-light);
+    transition:transform .12s ease, box-shadow .12s ease, color .12s ease; cursor:pointer;
   }
+  .become-tutor-page .pill.hour:hover{
+    transform:translateY(-1px);
+    box-shadow:10px 10px 20px var(--neu-dark), -10px -10px 20px var(--neu-light);
+  }
+  .become-tutor-page .pill.hour.on{
+    color:var(--neu-accent);
+    box-shadow:inset 6px 6px 12px var(--neu-dark), inset -6px -6px 12px var(--neu-light), 0 0 0 3px rgba(77,124,255,.28);
+  }
+  .become-tutor-page .pill.hour:active{
+    transform:translateY(0);
+    box-shadow:inset 6px 6px 12px var(--neu-dark), inset -6px -6px 12px var(--neu-light);
+  }
+  .become-tutor-page .pill.hour:focus-visible{ outline:2px solid var(--neu-accent); outline-offset:2px; }
 
-  /* Availability row layout: label + a wrap of hour pills */
-  .avail-row { display:flex; align-items:flex-start; gap:12px; flex-wrap:nowrap; }
-  .avail-day  { width:50px; font-weight:700; flex:0 0 auto; line-height:32px; }
-  .avail-slots{ display:flex; gap:8px; flex-wrap:wrap; }
-
-  /* Slightly tighter hour pills so 10 per day feel clickable and tidy */
-  .pill.hour { padding:8px 10px; font-weight:600; font-size:12px; border-radius:999px; }
+  @media (max-width:640px){
+    .become-tutor-page .avail-slots{grid-template-columns:repeat(auto-fill,minmax(108px,1fr));gap:12px;}
+    .become-tutor-page .pill.hour{min-width:108px;height:48px;padding:0 16px;}
+  }
 </style>
 
-<!-- JS: counters, courses → CSV, availability → JSON (hour slots), file picker, draft save/restore -->
+<!-- Page JS -->
 <script>
 (function () {
-  // --- small helpers
-  const $ = (sel, ctx=document) => ctx.querySelector(sel);
-  const $$ = (sel, ctx=document) => Array.from(ctx.querySelectorAll(sel));
-
-  // Counters
-  const headline = $('#headline');
-  const bio = $('#bio');
+  // --- Simple counters
+  const headline = document.getElementById('headline');
+  const bio = document.getElementById('bio');
   const setCount = (el, id) => { const n = document.getElementById(id); if (el && n) n.textContent = String(el.value.length); };
   headline && headline.addEventListener('input', () => setCount(headline, 'headline-count'));
   bio && bio.addEventListener('input', () => setCount(bio, 'bio-count'));
   setCount(headline, 'headline-count'); setCount(bio, 'bio-count');
 
-  // Courses (CSV of "CSC 340|A; CSC 210|A-")
-  const courseSelect = $('#course-select');
-  const addBtn = $('#btn-add-course');
-  const list = $('#course-list');
-  const csv = $('#courses-csv');
+  // --- Courses (CSV "CSC 340|A; CSC 210|A-")
+  const courseSelect = document.getElementById('course-select');
+  const addBtn = document.getElementById('btn-add-course');
+  const list = document.getElementById('course-list');
+  const csv = document.getElementById('courses-csv');
   const picked = new Map();
 
   function syncCSV() {
     const parts = [];
-    picked.forEach((v) => parts.push(v.code + '|' + (v.grade || 'A')));
+    picked.forEach(v => parts.push(v.code + '|' + (v.grade || 'A')));
     csv.value = parts.join('; ');
   }
   function renderCourses() {
@@ -250,8 +255,9 @@
           <option value="A+">A+</option><option value="A" selected>A</option><option value="A-">A-</option>
         </select>
         <a href="#" class="chip-x" aria-label="Remove">×</a>`;
-      li.querySelector('select').value = c.grade || 'A';
-      li.querySelector('select').addEventListener('change', (e) => { c.grade = e.target.value; syncCSV(); });
+      const sel = li.querySelector('select');
+      sel.value = c.grade || 'A';
+      sel.addEventListener('change', (e) => { c.grade = e.target.value; syncCSV(); });
       li.querySelector('.chip-x').addEventListener('click', (e) => { e.preventDefault(); picked.delete(c.code); renderCourses(); });
       list.appendChild(li);
     });
@@ -264,71 +270,87 @@
     courseSelect.value = '';
   });
 
-  // --- Availability: configurable 1-hour pills
-const DAYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-const START_HOUR = 8;   
-const END_HOUR = 22;  
-const HOURS = Array.from({ length: END_HOUR - START_HOUR }, (_, i) => i + START_HOUR);
+  // --- Availability: 1-hour pills (configurable)
+  const DAYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const START_HOUR = 8;   // 08:00
+  const END_HOUR   = 22;  // 22:00  (exclusive: last start time is 21:00)
+  const HOURS = Array.from({length: END_HOUR - START_HOUR}, (_, i) => START_HOUR + i);
 
-const availHost = document.getElementById('availability');
-const availInput = document.getElementById('availability-json');
-const avail = {}; // e.g., {"Mon-08:00": true}
+  const availHost = document.getElementById('availability');
+  const availInput = document.getElementById('availability-json');
+  const avail = {}; // e.g., {"Mon-08:00": true}
 
-function fmt(h) {
-  return String(h).padStart(2, '0') + ':00';
-}
+  function fmt(h){ return (h < 10 ? '0' + h : '' + h) + ':00'; }
+  function updateAvail(){ availInput.value = JSON.stringify(avail); }
 
-function key(day, h) {
-  return `${day}-${fmt(h)}`;
-}
+  function addHourRow(day) {
+    const row = document.createElement('div'); row.className = 'avail-row';
+    const label = document.createElement('div'); label.className = 'avail-day'; label.textContent = day;
+    const slots = document.createElement('div'); slots.className = 'avail-slots';
+    row.appendChild(label); row.appendChild(slots);
 
-function updateAvail() {
-  availInput.value = JSON.stringify(avail);
-}
-
-function renderAvailability(initialSelected = {}) {
-  availHost.innerHTML = '';
-  DAYS.forEach(day => {
-    const row = document.createElement('div');
-    row.className = 'avail-row';
-
-    const label = document.createElement('div');
-    label.className = 'avail-day';
-    label.textContent = day;
-
-    const slots = document.createElement('div');
-    slots.className = 'avail-slots';
-
-    HOURS.forEach(h => {
-      const k = key(day, h);
+    HOURS.forEach((hr) => {
+      const key = `${day}-${fmt(hr)}`;
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'pill hour';
-      btn.textContent = fmt(h);
-      if (initialSelected[k]) {
-        avail[k] = true;
-        btn.classList.add('on');
-      }
+      btn.textContent = fmt(hr);
+      if (avail[key]) btn.classList.add('on');
       btn.addEventListener('click', () => {
-        avail[k] = !avail[k];
-        btn.classList.toggle('on', !!avail[k]);
+        avail[key] = !avail[key];
+        btn.classList.toggle('on', !!avail[key]);
         updateAvail();
       });
       slots.appendChild(btn);
     });
 
-    row.appendChild(label);
-    row.appendChild(slots);
     availHost.appendChild(row);
-  });
-  updateAvail();
-}
+  }
 
-  // --- File picker (maps to hidden WTForms fields doc1/doc2/doc3)
+  // --- Restore draft (if any), then render availability
+  const saved = localStorage.getItem('tutor_draft');
+  if (saved) {
+    try {
+      const d = JSON.parse(saved);
+      if (d.headline) headline.value = d.headline;
+      if (d.bio) bio.value = d.bio;
+
+      // meeting options
+      if (Array.isArray(d.meeting)) {
+        document.querySelectorAll('input[name="meeting_options"]').forEach(i => {
+          i.checked = d.meeting.includes(i.value);
+        });
+      }
+
+      // courses from CSV
+      if (d.courses_csv) {
+        d.courses_csv.split(';').map(s => s.trim()).filter(Boolean).forEach(tok => {
+          const [code, grade] = tok.split('|');
+          picked.set(code, { code, grade: grade || 'A' });
+        });
+        renderCourses();
+      }
+
+      // availability
+      if (d.availability_json) {
+        const obj = JSON.parse(d.availability_json);
+        Object.assign(avail, obj || {});
+      }
+    } catch(_e) { /* ignore bad drafts */ }
+  }
+
+  // now build availability UI and reflect restored selections
+  DAYS.forEach(addHourRow);
+  updateAvail();
+
+  // --- File picker maps to hidden inputs
   const dz = document.getElementById('dropzone');
   const listFiles = document.getElementById('file-list');
-  const fileInputs = [ $('input[name="doc1"]'), $('input[name="doc2"]'), $('input[name="doc3"]') ];
-
+  const fileInputs = [
+    document.querySelector('input[name="doc1"]'),
+    document.querySelector('input[name="doc2"]'),
+    document.querySelector('input[name="doc3"]'),
+  ];
   function showRow(name, sizeText) {
     const row = document.createElement('div');
     row.className = 'sfsu-card';
@@ -350,8 +372,12 @@ function renderAvailability(initialSelected = {}) {
       for (const f of files) {
         while (slot < fileInputs.length && fileInputs[slot].files?.length) slot++;
         if (slot >= fileInputs.length) break;
-        try { const dt = new DataTransfer(); dt.items.add(f); fileInputs[slot].files = dt.files; showRow(f.name, formatSize(f.size)); }
-        catch(_e){ /* ignore */ }
+        try {
+          const dt = new DataTransfer();
+          dt.items.add(f);
+          fileInputs[slot].files = dt.files;
+          showRow(f.name, formatSize(f.size));
+        } catch (_e) { /* ignore */ }
         slot++;
       }
     };
@@ -362,68 +388,22 @@ function renderAvailability(initialSelected = {}) {
   ['dragleave','drop'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.remove('drag'); }));
   dz.addEventListener('drop', e => { /* use click-based picker for compatibility */ });
 
-  // --- Draft save / restore / clear
-  const DKEY = 'tutor_draft';
-
-  function saveDraft() {
+  // --- Draft save / clear
+  document.getElementById('btn-draft')?.addEventListener('click', () => {
     const payload = {
       headline: headline.value,
       bio: bio.value,
-      meeting: $$('input[name="meeting_options"]:checked').map(i => i.value),
+      meeting: Array.from(document.querySelectorAll('input[name="meeting_options"]:checked')).map(i => i.value),
       courses_csv: csv.value,
       availability_json: availInput.value
     };
-    localStorage.setItem(DKEY, JSON.stringify(payload));
+    localStorage.setItem('tutor_draft', JSON.stringify(payload));
     alert('Draft saved on this device.');
-  }
-
-  function restoreDraft() {
-    const raw = localStorage.getItem(DKEY);
-    if (!raw) { renderAvailability({}); return; }
-    try {
-      const d = JSON.parse(raw);
-      if (typeof d.headline === 'string') headline.value = d.headline;
-      if (typeof d.bio === 'string') bio.value = d.bio;
-      setCount(headline, 'headline-count'); setCount(bio, 'bio-count');
-
-      // meeting options
-      if (Array.isArray(d.meeting)) {
-        $$('input[name="meeting_options"]').forEach(i => { i.checked = d.meeting.includes(i.value); });
-      }
-
-      // courses
-      if (typeof d.courses_csv === 'string') {
-        csv.value = d.courses_csv;
-        // Rehydrate the chips UI best-effort (only course codes; default grade A)
-        d.courses_csv.split(';').map(s => s.trim()).filter(Boolean).forEach(token => {
-          const [code, gradeRaw] = token.split('|');
-          if (code && !picked.has(code)) picked.set(code.trim(), { code: code.trim(), grade: (gradeRaw||'A').trim() });
-        });
-        renderCourses();
-      }
-
-      // availability
-      let selected = {};
-      if (typeof d.availability_json === 'string' && d.availability_json.trim()) {
-        try { selected = JSON.parse(d.availability_json) || {}; } catch(_e){}
-      }
-      renderAvailability(selected);
-    } catch (_e) {
-      renderAvailability({});
-    }
-  }
-
-  function clearDraft() {
-    localStorage.removeItem(DKEY);
-    alert('Draft removed from this device.');
-  }
-
-  document.getElementById('btn-draft')?.addEventListener('click', saveDraft);
-  document.getElementById('btn-clear-draft')?.addEventListener('click', clearDraft);
-
-  // Initial render (and restore if present)
-  restoreDraft();
-
+  });
+  document.getElementById('btn-clear-draft')?.addEventListener('click', () => {
+    localStorage.removeItem('tutor_draft');
+    alert('Draft cleared on this device.');
+  });
 })();
 </script>
 {% endblock %}
