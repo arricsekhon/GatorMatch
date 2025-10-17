@@ -264,50 +264,65 @@
     courseSelect.value = '';
   });
 
-  // --- Availability: 1-hour pills 08:00–18:00
-  const DAYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-  const HOURS = Array.from({length:10}, (_,i) => i + 8); // 8..17 start times
-  const availHost = document.getElementById('availability');
-  const availInput = document.getElementById('availability-json');
-  const avail = {}; // e.g., {"Mon-08:00": true}
+  // --- Availability: configurable 1-hour pills
+const DAYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const START_HOUR = 8;   
+const END_HOUR = 22;  
+const HOURS = Array.from({ length: END_HOUR - START_HOUR }, (_, i) => i + START_HOUR);
 
-  function fmt(h){ return String(h).padStart(2,'0') + ':00'; }
-  function key(day,h){ return `${day}-${fmt(h)}`; }
+const availHost = document.getElementById('availability');
+const availInput = document.getElementById('availability-json');
+const avail = {}; // e.g., {"Mon-08:00": true}
 
-  function updateAvail(){ availInput.value = JSON.stringify(avail); }
+function fmt(h) {
+  return String(h).padStart(2, '0') + ':00';
+}
 
-  function renderAvailability(initialSelected = {}) {
-    availHost.innerHTML = '';
-    DAYS.forEach(day => {
-      const row = document.createElement('div');
-      row.className = 'avail-row';
-      const label = document.createElement('div');
-      label.className = 'avail-day';
-      label.textContent = day;
-      const slots = document.createElement('div');
-      slots.className = 'avail-slots';
+function key(day, h) {
+  return `${day}-${fmt(h)}`;
+}
 
-      HOURS.forEach(h => {
-        const k = key(day,h);
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'pill hour';
-        btn.textContent = fmt(h);
-        if (initialSelected[k]) { avail[k] = true; btn.classList.add('on'); }
-        btn.addEventListener('click', () => {
-          avail[k] = !avail[k];
-          btn.classList.toggle('on', !!avail[k]);
-          updateAvail();
-        });
-        slots.appendChild(btn);
+function updateAvail() {
+  availInput.value = JSON.stringify(avail);
+}
+
+function renderAvailability(initialSelected = {}) {
+  availHost.innerHTML = '';
+  DAYS.forEach(day => {
+    const row = document.createElement('div');
+    row.className = 'avail-row';
+
+    const label = document.createElement('div');
+    label.className = 'avail-day';
+    label.textContent = day;
+
+    const slots = document.createElement('div');
+    slots.className = 'avail-slots';
+
+    HOURS.forEach(h => {
+      const k = key(day, h);
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'pill hour';
+      btn.textContent = fmt(h);
+      if (initialSelected[k]) {
+        avail[k] = true;
+        btn.classList.add('on');
+      }
+      btn.addEventListener('click', () => {
+        avail[k] = !avail[k];
+        btn.classList.toggle('on', !!avail[k]);
+        updateAvail();
       });
-
-      row.appendChild(label);
-      row.appendChild(slots);
-      availHost.appendChild(row);
+      slots.appendChild(btn);
     });
-    updateAvail();
-  }
+
+    row.appendChild(label);
+    row.appendChild(slots);
+    availHost.appendChild(row);
+  });
+  updateAvail();
+}
 
   // --- File picker (maps to hidden WTForms fields doc1/doc2/doc3)
   const dz = document.getElementById('dropzone');
