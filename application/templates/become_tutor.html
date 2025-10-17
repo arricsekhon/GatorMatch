@@ -107,8 +107,8 @@
         <!-- Availability -->
         <h2 style="margin-top:28px">Availability</h2>
         <hr class="divider">
-        <div id="availability"></div>
-        <p class="tiny muted" style="margin-top:8px">Select 1-hour slots (8:00–18:00). You can refine later.</p>
+        <div id="availability" style="display:flex;flex-direction:column;gap:8px"></div>
+        <p class="tiny muted" style="margin-top:8px">Rough availability is enough. You can refine later.</p>
         <input type="hidden" name="availability_json" id="availability-json" value="{{ (request.form.get('availability_json') or '{}')|e }}">
         {% for err in form.availability_json.errors %}<div class="tiny" style="color:#8A1C1C">{{ err }}</div>{% endfor %}
 
@@ -147,6 +147,7 @@
         <div class="tutor-cta" style="margin-top:12px">
           <button type="submit" class="btn">Submit for Review</button>
           <button type="button" class="btn outline" id="btn-draft">Save as Draft</button>
+          <button type="button" class="btn outline" id="btn-clear-draft">Clear Draft</button>
         </div>
       </form>
     </div>
@@ -188,18 +189,17 @@
   .hero .btn.outline.gold:hover { background: var(--gold); color: var(--purple); }
 </style>
 
-<!-- Minimal JS: counters, courses → CSV, availability → JSON, simple file picker -->
+<!-- Minimal JS: counters, courses → CSV, availability → JSON, simple file picker + draft save/restore -->
 <script>
 (function () {
-  // Counters
+  // ----- Field refs & counters
   const headline = document.getElementById('headline');
   const bio = document.getElementById('bio');
   const setCount = (el, id) => { const n = document.getElementById(id); if (el && n) n.textContent = String(el.value.length); };
   headline && headline.addEventListener('input', () => setCount(headline, 'headline-count'));
   bio && bio.addEventListener('input', () => setCount(bio, 'bio-count'));
-  setCount(headline, 'headline-count'); setCount(bio, 'bio-count');
 
-  // Courses (CSV of "CSC 340|A; CSC 210|A-")
+  // ----- Courses (CSV of "CSC 340|A; CSC 210|A-")
   const courseSelect = document.getElementById('course-select');
   const addBtn = document.getElementById('btn-add-course');
   const list = document.getElementById('course-list');
@@ -239,49 +239,84 @@
     courseSelect.value = '';
   });
 
-  // Availability (JSON map) — 1-hour slots from 08:00 to 18:00
+  // ----- Availability (JSON map of keys like "Mon-Morning": true)
   const DAYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-  const HOURS = Array.from({ length: 11 }, (_, i) => String(8 + i).padStart(2, '0') + ':00');
-
+  const TIMES = ['Morning','Afternoon','Evening'];
   const availHost = document.getElementById('availability');
   const availInput = document.getElementById('availability-json');
   const avail = {};
-  function updateAvail(){ availInput.value = JSON.stringify(avail); }
 
-  function addRow(day){
+  function updateAvail() { availInput.value = JSON.stringify(avail); }
+
+  function addRow(day) {
     const row = document.createElement('div');
-    row.className = 'day-row'; // styled in global CSS (scoped under .become-tutor-page)
-
+    row.className = 'tutor-meta';
     const label = document.createElement('div');
-    label.className = 'day-label';
-    label.textContent = day;
+    label.textContent = day; label.style.width='50px'; label.style.fontWeight='700';
     row.appendChild(label);
-
-    const grid = document.createElement('div');
-    grid.className = 'slots';
-
-    HOURS.forEach(h => {
-      const key = `${day}-${h}`;
+    TIMES.forEach((slot) => {
+      const key = day + '-' + slot;
       const btn = document.createElement('button');
       btn.type = 'button';
-      btn.className = 'slot';
-      btn.textContent = h;
+      btn.className = 'pill';
+      btn.textContent = slot;
+      btn.dataset.key = key;
       btn.addEventListener('click', () => {
         avail[key] = !avail[key];
         btn.classList.toggle('on', !!avail[key]);
         updateAvail();
       });
-      grid.appendChild(btn);
+      row.appendChild(btn);
     });
-
-    row.appendChild(grid);
     availHost.appendChild(row);
   }
 
+  // Build availability UI first
   DAYS.forEach(addRow);
   updateAvail();
 
-  // File picker (for doc1, doc2, doc3)
+  // ----- Auto-restore from localStorage (if present)
+  try {
+    const raw = localStorage.getItem('tutor_draft');
+    if (raw) {
+      const d = JSON.parse(raw);
+      if (d.headline && headline) headline.value = d.headline;
+      if (d.bio && bio) bio.value = d.bio;
+
+      if (Array.isArray(d.meeting)) {
+        document.querySelectorAll('input[name="meeting_options"]').forEach(i => {
+          i.checked = d.meeting.includes(i.value);
+        });
+      }
+
+      if (typeof d.courses_csv === 'string' && d.courses_csv.trim()) {
+        // Parse "CSC 340|A; CSC 210|A-"
+        d.courses_csv.split(';').map(s => s.trim()).filter(Boolean).forEach(tok => {
+          const [code, grade] = tok.split('|').map(x => (x || '').trim());
+          if (code && !picked.has(code)) picked.set(code, { code, grade: grade || 'A' });
+        });
+        renderCourses();
+      }
+
+      if (typeof d.availability_json === 'string' && d.availability_json.trim()) {
+        const saved = JSON.parse(d.availability_json);
+        Object.keys(saved || {}).forEach(key => {
+          if (saved[key]) {
+            avail[key] = true;
+            const btn = document.querySelector(`.pill[data-key="${key}"]`);
+            if (btn) btn.classList.add('on');
+          }
+        });
+        updateAvail();
+      }
+    }
+  } catch (_) { /* ignore errors */ }
+
+  // Update counters after potential restore
+  setCount(headline, 'headline-count');
+  setCount(bio, 'bio-count');
+
+  // ----- File picker (maps to hidden WTForms fields doc1/doc2/doc3)
   const dz = document.getElementById('dropzone');
   const listFiles = document.getElementById('file-list');
   const fileInputs = [
@@ -311,7 +346,6 @@
         while (slot < fileInputs.length && fileInputs[slot].files?.length) slot++;
         if (slot >= fileInputs.length) break;
         try {
-          // Assign selected file to the hidden file input
           const dt = new DataTransfer();
           dt.items.add(f);
           fileInputs[slot].files = dt.files;
@@ -327,7 +361,7 @@
   ['dragleave','drop'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.remove('drag'); }));
   dz.addEventListener('drop', e => { /* use click-based picker for compatibility */ });
 
-  // Local draft (optional)
+  // ----- Local draft: save / clear / clear on submit
   document.getElementById('btn-draft')?.addEventListener('click', () => {
     const payload = {
       headline: headline.value,
@@ -338,6 +372,15 @@
     };
     localStorage.setItem('tutor_draft', JSON.stringify(payload));
     alert('Draft saved on this device.');
+  });
+
+  document.getElementById('btn-clear-draft')?.addEventListener('click', () => {
+    localStorage.removeItem('tutor_draft');
+    alert('Draft cleared on this device.');
+  });
+
+  document.getElementById('tutor-form')?.addEventListener('submit', () => {
+    localStorage.removeItem('tutor_draft');
   });
 })();
 </script>
