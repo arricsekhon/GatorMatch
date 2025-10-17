@@ -109,7 +109,7 @@
         <hr class="divider">
 
         <div id="availability" class="avail-grid" style="display:flex;flex-direction:column;gap:10px"></div>
-        <p class="tiny muted" style="margin-top:8px">Select 1-hour slots (08:00–18:00). You can refine later.</p>
+        <p class="tiny muted" style="margin-top:8px">Select 1-hour slots (08:00–22:00).</p>
         <input type="hidden" name="availability_json" id="availability-json" value="{{ (request.form.get('availability_json') or '{}')|e }}">
         {% for err in form.availability_json.errors %}<div class="tiny" style="color:#8A1C1C">{{ err }}</div>{% endfor %}
 
@@ -190,7 +190,7 @@
   /* Widen left column + reduce extra left whitespace on this page only */
   .become-tutor-page + .member-body, 
   .become-tutor-page .member-body { 
-    grid-template-columns: 9fr 4fr; 
+    grid-template-columns: 11fr 4fr; 
     gap: 40px;
     padding-left: 24px;           
     padding-right: var(--pad-x);  
