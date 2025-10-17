@@ -107,8 +107,8 @@
         <!-- Availability -->
         <h2 style="margin-top:28px">Availability</h2>
         <hr class="divider">
-        <div id="availability" style="display:flex;flex-direction:column;gap:8px"></div>
-        <p class="tiny muted" style="margin-top:8px">Rough availability is enough. You can refine later.</p>
+        <div id="availability"></div>
+        <p class="tiny muted" style="margin-top:8px">Select 1-hour slots (8:00–18:00). You can refine later.</p>
         <input type="hidden" name="availability_json" id="availability-json" value="{{ (request.form.get('availability_json') or '{}')|e }}">
         {% for err in form.availability_json.errors %}<div class="tiny" style="color:#8A1C1C">{{ err }}</div>{% endfor %}
 
@@ -239,31 +239,49 @@
     courseSelect.value = '';
   });
 
-  // Availability (JSON map)
+  // Availability (JSON map) — 1-hour slots from 08:00 to 18:00
   const DAYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-  const TIMES = ['Morning','Afternoon','Evening'];
+  const HOURS = Array.from({ length: 11 }, (_, i) => String(8 + i).padStart(2, '0') + ':00');
+
   const availHost = document.getElementById('availability');
   const availInput = document.getElementById('availability-json');
   const avail = {};
-  function updateAvail() { availInput.value = JSON.stringify(avail); }
-  function addRow(day) {
+  function updateAvail(){ availInput.value = JSON.stringify(avail); }
+
+  function addRow(day){
     const row = document.createElement('div');
-    row.className = 'tutor-meta';
+    row.className = 'day-row'; // styled in global CSS (scoped under .become-tutor-page)
+
     const label = document.createElement('div');
-    label.textContent = day; label.style.width='50px'; label.style.fontWeight='700';
+    label.className = 'day-label';
+    label.textContent = day;
     row.appendChild(label);
-    TIMES.forEach((slot) => {
-      const key = day + '-' + slot;
+
+    const grid = document.createElement('div');
+    grid.className = 'slots';
+
+    HOURS.forEach(h => {
+      const key = `${day}-${h}`;
       const btn = document.createElement('button');
-      btn.type = 'button'; btn.className = 'pill'; btn.textContent = slot;
-      btn.addEventListener('click', () => { avail[key] = !avail[key]; btn.classList.toggle('on', !!avail[key]); updateAvail(); });
-      row.appendChild(btn);
+      btn.type = 'button';
+      btn.className = 'slot';
+      btn.textContent = h;
+      btn.addEventListener('click', () => {
+        avail[key] = !avail[key];
+        btn.classList.toggle('on', !!avail[key]);
+        updateAvail();
+      });
+      grid.appendChild(btn);
     });
+
+    row.appendChild(grid);
     availHost.appendChild(row);
   }
-  DAYS.forEach(addRow); updateAvail();
 
-  // File picker (maps to hidden WTForms fields doc1/doc2/doc3)
+  DAYS.forEach(addRow);
+  updateAvail();
+
+  // File picker (for doc1, doc2, doc3)
   const dz = document.getElementById('dropzone');
   const listFiles = document.getElementById('file-list');
   const fileInputs = [

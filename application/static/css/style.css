@@ -515,19 +515,57 @@ textarea.form-control {
 .example-chips { margin-top:12px; justify-content:center; }
 .example-chips .chip { cursor:pointer; }
 
-/* ---- Become a Tutor: page-scoped layout ---- */
-.become-tutor-page {
-  --container: 1240px; /
+/* ---------- Become a Tutor: wider layout + slot grid (scoped) ---------- */
+.become-tutor-page .member-body{
+  max-width: 1240px;                 
+  grid-template-columns: 9fr 4fr;    
+  gap: 40px;
+  padding-left: 48px;                 
+  padding-right: 48px;
 }
 
-.become-tutor-page .member-body {
-  grid-template-columns: minmax(560px, 9fr) minmax(380px, 5fr);
-  gap: 56px;
+/* Availability hour-slot grid */
+.become-tutor-page .day-row{
+  display: grid;
+  grid-template-columns: 60px 1fr;    
+  align-items: start;
+  gap: 12px;
+  margin: 10px 0;
+}
+.become-tutor-page .day-label{
+  font-weight: 700;
+  width: 60px;
+  line-height: 32px;
+}
+.become-tutor-page .slots{
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+  gap: 8px;
+}
+.become-tutor-page .slot{
+  border: 1px solid var(--divider);
+  background: #fff;
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-weight: 700;
+  font-size: 12px;
+  cursor: pointer;
+}
+.become-tutor-page .slot.on{
+  background: var(--purple);
+  color: #fff;
+  border-color: var(--purple);
 }
 
-@media (max-width: 900px) {
-  .become-tutor-page .member-body {
+/* Mobile: stack and keep slots readable */
+@media (max-width: 900px){
+  .become-tutor-page .member-body{
+    max-width: 100%;
+    padding-left: var(--pad-x);
+    padding-right: var(--pad-x);
     grid-template-columns: 1fr;
-    gap: 24px;
+  }
+  .become-tutor-page .slots{
+    grid-template-columns: repeat(4, minmax(70px, 1fr));
   }
 }
