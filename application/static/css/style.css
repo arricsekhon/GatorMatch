@@ -514,3 +514,20 @@ textarea.form-control {
 .search-form { width:100%; max-width:840px; margin:0 auto; }
 .example-chips { margin-top:12px; justify-content:center; }
 .example-chips .chip { cursor:pointer; }
+
+/* ---- Become a Tutor: page-scoped layout ---- */
+.become-tutor-page {
+  --container: 1240px; /
+}
+
+.become-tutor-page .member-body {
+  grid-template-columns: minmax(560px, 9fr) minmax(380px, 5fr);
+  gap: 56px;
+}
+
+@media (max-width: 900px) {
+  .become-tutor-page .member-body {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+}
