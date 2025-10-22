@@ -6,13 +6,17 @@
   --muted: #555555;
   --divider: #E0E0E0;
   --bg: #ffffff;
+
   --container: 1100px;
   --pad-x: 80px;
   --banner-h: 40px;
   --nav-h: 80px;
+
   --radius-lg: 16px;
   --btn-radius: 8px;
+
   --shadow: 0 2px 6px rgba(0, 0, 0, 0.10);
+
   /* Baseline control sizing */
   --control-h: 56px;
 }
@@ -467,10 +471,10 @@ textarea.form-control {
   color: var(--muted);
   margin: 0;
   overflow: hidden;
-  display: -webkit-box;
+  display: -webkit-box;     
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
+  -webkit-line-clamp: 2;    
+  line-clamp: 2;            
 }
 
 .tutor-metrics { min-width:220px; text-align:right; }
@@ -513,17 +517,17 @@ textarea.form-control {
 
 /* ---------- Become a Tutor: wider layout + slot grid (scoped) ---------- */
 .become-tutor-page .member-body{
-  max-width: 1240px;
-  grid-template-columns: 9fr 4fr;
+  max-width: 1240px;                 
+  grid-template-columns: 9fr 4fr;    
   gap: 40px;
-  padding-left: 48px;
+  padding-left: 48px;                 
   padding-right: 48px;
 }
 
 /* Availability hour-slot grid */
 .become-tutor-page .day-row{
   display: grid;
-  grid-template-columns: 60px 1fr;
+  grid-template-columns: 60px 1fr;    
   align-items: start;
   gap: 12px;
   margin: 10px 0;
@@ -553,161 +557,15 @@ textarea.form-control {
   border-color: var(--purple);
 }
 
-/* -------------------- Mobile core layout -------------------- */
-
-/* Become-a-tutor: keep slots readable on tablets/phones */
+/* Mobile: stack and keep slots readable */
 @media (max-width: 900px){
   .become-tutor-page .member-body{
     max-width: 100%;
-    padding-left: var(--pad-x, 16px);
-    padding-right: var(--pad-x, 16px);
+    padding-left: var(--pad-x);
+    padding-right: var(--pad-x);
     grid-template-columns: 1fr;
   }
   .become-tutor-page .slots{
-    /* 2–4 columns as space allows, min 70px each */
-    grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+    grid-template-columns: repeat(4, minmax(70px, 1fr));
   }
 }
-
-/* -------------------- Mobile hamburger -------------------- */
-.nav-toggle { position: absolute; left: -9999px; } /* hide the checkbox */
-
-.nav-burger { display: none; cursor: pointer; padding: 10px; border-radius: 8px; }
-.nav-burger span { display: block; width: 22px; height: 2px; margin: 5px 0; background: #fff; transition: transform .2s, opacity .2s; }
-
-/* Base wrapper – desktop default; overridden per viewport */
-.nav-menu { display: flex; align-items: center; gap: 24px; }
-
-/* Collapse nav under a burger on phones */
-@media (max-width: 768px) {
-  .nav { height: auto; }
-  .nav-inner { padding: 0 16px; flex-wrap: wrap; gap: 8px; }
-
-  .nav-burger { display: block; order: 2; }
-  .nav-burger:focus-visible { outline: 2px solid var(--gold, #f7c948); outline-offset: 2px; }
-  .logo { order: 1; }
-
-  .nav-menu {
-    order: 3;
-    width: 100%;
-    display: none; /* hidden until toggled */
-    flex-direction: column;
-    align-items: stretch;
-    gap: 12px;
-    padding: 8px 0 12px;
-  }
-
-  /* Avoid wrapping buttons/links inside the collapsed menu */
-  .links a, .auth .login-link, .auth .btn { white-space: nowrap; }
-
-  /* Toggle states */
-  .nav-toggle:checked ~ .nav-burger span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
-  .nav-toggle:checked ~ .nav-burger span:nth-child(2) { opacity: 0; }
-  .nav-toggle:checked ~ .nav-burger span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
-  .nav-toggle:checked ~ .nav-menu { display: flex; }
-
-  .links { gap: 12px; }
-  .links, .auth { display: flex; flex-direction: column; }
-  .auth { align-items: flex-start; }
-}
-
-/* Desktop (≥769px): unwrap the wrapper so existing layout stays intact */
-@media (min-width: 769px) {
-  .nav-burger { display: none; }
-  .nav-menu { display: contents; }
-}
-
-/* --------- Mobile-only layout for Results/Tutor cards + Member profile --------- */
-@media (max-width: 640px) {
-  /* Results header */
-  .results-header-row { flex-wrap: wrap; gap: 12px; }
-  .search-wrap { width: 100%; max-width: none; }
-  .sort-wrap { width: 100%; justify-content: flex-start; }
-
-  /* Tutor card */
-  .tutor-head { flex-wrap: wrap; align-items: center; }
-  .tutor-text { flex: 1 1 auto; min-width: 0; }
-  .tutor-metrics {
-    flex: 1 1 100%;
-    min-width: 0;
-    text-align: left;
-    margin-top: 8px;
-  }
-  .tutor-cta { flex-wrap: wrap; }
-
-  /* Member profile – neutralize vertical name & stack hero */
-  /* Collapse header/hero to a single column and center content */
-  [class*="member"] [class*="hero"],
-  [class*="profile"] [class*="hero"],
-  [class*="member"] [class*="header"],
-  [class*="profile"] [class*="header"] {
-    display: grid;
-    grid-template-columns: 1fr !important;
-    gap: 16px;
-    align-items: center;
-    text-align: center;
-    padding-inline: var(--pad-x, 16px);
-  }
-
-  /* Force horizontal name; remove any rotation */
-  [class*="member"] h1,
-  [class*="profile"] h1,
-  [class*="member"] [class*="name"],
-  [class*="profile"] [class*="name"] {
-    writing-mode: horizontal-tb !important;
-    transform: none !important;
-    white-space: normal !important;
-    letter-spacing: normal !important;
-    margin: 0 auto;
-    max-width: 100%;
-    line-height: 1.15;
-  }
-
-  /* Sensible avatar sizing on phones */
-  [class*="member"] [class*="avatar"],
-  [class*="profile"] [class*="avatar"],
-  .avatar {
-    width: clamp(120px, 35vw, 200px);
-    height: clamp(120px, 35vw, 200px);
-    margin-inline: auto;
-  }
-
-  /* Readable bio width */
-  [class*="member"] [class*="bio"],
-  [class*="profile"] [class*="bio"] {
-    max-width: 70ch;
-    margin-inline: auto;
-  }
-}
-
-/* -------------------- Mobile overflow hardening -------------------- */
-@media (max-width: 768px) {
-  html { box-sizing: border-box; overflow-x: hidden; }
-  *, *::before, *::after { box-sizing: inherit; }
-  body { width: 100%; }
-
-  /* Ensure edge elements never exceed the viewport */
-  .banner, .nav, .footer,
-  .container, .section, .hero, .card, .panel { max-width: 100%; }
-
-  img, svg, video { max-width: 100%; height: auto; display: block; }
-
-  /* Form controls: never exceed their parent */
-  input[type="text"],
-  input[type="email"],
-  input[type="password"],
-  input[type="search"],
-  select,
-  textarea { max-width: 100%; }
-
-  /* Very large headings: keep scale but prevent spill */
-  .hero h1, h1 {
-    overflow-wrap: anywhere;
-    word-break: normal;
-    hyphens: auto;
-    -webkit-hyphens: auto;
-    font-size: clamp(2rem, 7vw, 56px);
-    line-height: 1.1;
-  }
-}
-
