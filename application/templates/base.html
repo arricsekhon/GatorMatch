@@ -30,6 +30,14 @@
     <div class="nav-inner">
       <a class="logo" href="{{ url_for('home_page') }}">SFSU</a>
 
+  <!-- Hamburger toggle -->
+    <input id="nav-toggle" type="checkbox" class="nav-toggle" />
+    <label for="nav-toggle" class="nav-burger" aria-label="Toggle navigation" aria-controls="nav-menu">
+      <span></span><span></span><span></span>
+    </label>
+
+    <!-- Wrap existing links + auth so the burger can toggle them together -->
+    <div id="nav-menu" class="nav-menu">
       <ul class="links">
         <li>
           <a href="{{ url_for('home_page') }}" class="{% if request.path == url_for('home_page') %}active{% endif %}">
