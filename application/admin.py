@@ -3,8 +3,10 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from flask_wtf import FlaskForm
 from wtforms import HiddenField, SubmitField
 from application.db import SessionLocal
-from application.models import TutorApplication, User
+from application.models import TutorApplication, User, Tutor
 from flask_login import current_user, login_required
+from application.models import slugify
+from datetime import datetime
 
 bp = Blueprint("admin", __name__, url_prefix="/admin")
 
@@ -51,24 +53,67 @@ def approve_app(app_id: int):
     form = CSRFOnlyForm()
     if not form.validate_on_submit():
         abort(400)
+
     with SessionLocal() as db:
         app = db.get(TutorApplication, app_id)
         if not app:
             abort(404)
+
+        # 1) mark application approved
         app.status = "approved"
 
-        # promote linked user (by user_id or fallback to email lookup)
-        user = None
-        if app.user_id:
-            user = db.get(User, app.user_id)
+        # 2) fetch user, promote to tutor (unless admin)
+        user = db.get(User, app.user_id)
         if not user and app.email:
             user = db.query(User).filter(
                 User.email == app.email.lower()).first()
-        if user:
-            if user.role != "admin":  # keep admins as admin
-                user.role = "tutor"
+            if user:
+                app.user_id = user.id  # backfill link
+
+        if not user:
+            abort(400)  # inconsistent state (shouldn't happen in normal flow)
+
+        if user.role != "admin":
+            user.role = "tutor"
+
+        # 3) upsert Tutor listing
+        tutor = db.query(Tutor).filter(Tutor.user_id == user.id).first()
+        base_slug = slugify(user.name or user.email.split("@")[0])
+        slug = base_slug
+        # ensure uniqueness
+        if not tutor:
+            i = 1
+            while db.query(Tutor).filter(Tutor.slug == slug).first():
+                i += 1
+                slug = slugify(base_slug, str(i))
+
+            tutor = Tutor(
+                user_id=user.id,
+                application_id=app.id,
+                slug=slug,
+                headline=app.headline,
+                bio=app.bio,
+                meeting_options=app.meeting_options,
+                courses_csv="; ".join([tok.split("|", 1)[0].strip().upper()
+                                       for tok in (app.courses_csv or "").split(";") if tok.strip()]),
+                is_active=1,
+                published_at=datetime.utcnow(),
+            )
+            db.add(tutor)
+        else:
+            tutor.application_id = app.id
+            tutor.headline = app.headline
+            tutor.bio = app.bio
+            tutor.meeting_options = app.meeting_options
+            tutor.courses_csv = "; ".join([tok.split("|", 1)[0].strip().upper()
+                                           for tok in (app.courses_csv or "").split(";") if tok.strip()])
+            tutor.is_active = 1
+            if not tutor.published_at:
+                tutor.published_at = datetime.utcnow()
+
         db.commit()
-    flash("Application approved. User promoted to tutor.", "success")
+
+    flash("Application approved, listing published, and user promoted to tutor.", "success")
     return redirect(url_for("admin.list_apps"))
 
 

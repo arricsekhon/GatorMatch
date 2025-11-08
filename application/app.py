@@ -1,7 +1,9 @@
 # application/app.py
 from __future__ import annotations
+from sqlalchemy.orm import joinedload
+
 from application.forms import LoginForm, SignupForm, TutorApplicationForm
-from application.models import User, TutorApplication
+from application.models import User, TutorApplication, Tutor
 from application.db import Base, engine, SessionLocal
 from application.admin import bp as admin_bp
 
@@ -301,30 +303,121 @@ def search_page():
 
 @app.route("/results")
 def results_page():
-    members = load_team_data()
-    tutors = [normalize_tutor(m) for m in members]
-    view = filter_sort_paginate(tutors, request.args)
+    q = (request.args.get("q") or "").strip().casefold()
+    subject = (request.args.get("subject")
+               or "").strip().upper()    # e.g., "CSC"
+    course = (request.args.get("course") or "").strip(
+    ).upper()      # e.g., "CSC 340"
+    location = (request.args.get("location") or "").strip(
+    ).casefold()  # "library"|"mashouf"|"zoom"
+    sort = (request.args.get("sort") or "best").strip()
 
+    with SessionLocal() as db:
+        rows = (
+            db.query(Tutor)
+            # <-- eager load to avoid DetachedInstanceError
+            .options(joinedload(Tutor.user))
+            .filter(Tutor.is_active == 1)
+            .filter(Tutor.published_at.isnot(None))
+            .order_by(Tutor.created_at.desc())
+            .all()
+        )
+
+    def matches(t: Tutor) -> bool:
+        blob = f"{t.slug} {t.headline} {t.bio} {t.courses_csv} {t.meeting_options}".casefold()
+        if q and q not in blob:
+            return False
+        if subject:
+            # subject matches prefix of a course code
+            if subject not in " ".join([c.split()[0] for c in (t.courses_csv or "").split(";")]).upper():
+                return False
+        if course and course not in (t.courses_csv or ""):
+            return False
+        if location and location not in (t.meeting_options or "").casefold():
+            return False
+        return True
+
+    tutors = [t for t in rows if matches(t)]
+
+    # sort options (reuse your logic)
+    if sort == "highest":
+        tutors.sort(key=lambda t: (t.rating_avg, t.rating_count), reverse=True)
+    elif sort == "lowest":
+        tutors.sort(key=lambda t: (t.rating_avg, -t.rating_count))
+    elif sort == "experience":
+        tutors.sort(key=lambda t: t.hours_total_min, reverse=True)
+    else:
+        def score(t):
+            name_hit = 1 if (q and q in (t.slug or "").casefold()) else 0
+            return (name_hit, t.rating_avg, t.rating_count, t.hours_total_min)
+        tutors.sort(key=score, reverse=True)
+
+    # pagination (same as before)
+    from math import ceil
+    try:
+        page = int(request.args.get("page", 1) or 1)
+    except ValueError:
+        page = 1
+    page = max(page, 1)
+    per_page = 5
+    total = len(tutors)
+    pages = max(ceil(total / per_page), 1)
+    page = min(page, pages)
+    start = (page - 1) * per_page
+    page_items = tutors[start: start + per_page]
+
+    # facets build from the filtered set
+    from collections import Counter, OrderedDict
+    subject_counts = Counter(c.split()[0] for t in tutors for c in (
+        t.courses_csv or "").split(";") if c.strip())
+    course_counts = Counter(c.strip() for t in tutors for c in (
+        t.courses_csv or "").split(";") if c.strip())
+    location_counts = Counter(m for t in tutors for m in (
+        t.meeting_options or "").split(",") if m)
+
+    facets = {
+        "subjects": OrderedDict(sorted(subject_counts.items())),
+        "courses": OrderedDict(sorted(course_counts.items())),
+        "locations": OrderedDict(sorted(location_counts.items())),
+    }
+
+    # chips like before
     chips = []
-    subj = (request.args.get("subject") or "").strip()
-    if subj:
-        chips.append({"key": "subject", "label": subj.upper()})
-    crs = (request.args.get("course") or "").strip()
-    if crs:
-        chips.append({"key": "course", "label": crs})
-    loc = (request.args.get("location") or "").strip()
-    if loc:
-        chips.append({"key": "location", "label": loc.title()})
+    if subject:
+        chips.append({"key": "subject", "label": subject})
+    if course:
+        chips.append({"key": "course", "label": course})
+    if location:
+        chips.append({"key": "location", "label": location.title()})
+
+    # Reuse your existing results template (it expects fields like .headline/.courses)
+    # Minimal adapter: convert Tutor -> dict your template uses.
+    def adapt(t: Tutor):
+        return {
+            "slug": t.slug,
+            "name": t.user.name if t.user else t.slug,
+            "first": (t.user.name.split()[0] if t.user and t.user.name else "Tutor"),
+            "avatar": "",  # (optional) add later
+            "headline": t.headline,
+            "desc": t.bio,
+            "rating": (t.rating_avg or 0)/10,  # if you store x10
+            "rating_count": t.rating_count,
+            "hours": t.hours_total_min,
+            "courses": [c.strip() for c in (t.courses_csv or "").split(";") if c.strip()],
+            "locations": [m for m in (t.meeting_options or "").split(",") if m],
+        }
+
+    view_items = [adapt(t) for t in page_items]
 
     return render_template(
         "results.html",
-        q=request.args.get("q", ""),
-        sort=(request.args.get("sort") or "best"),
-        tutors=view["items"],
-        total=view["total"],
-        page=view["page"],
-        pages=view["pages"],
-        facets=view["facets"],
+        q=(request.args.get("q") or ""),
+        sort=sort,
+        tutors=view_items,
+        total=total,
+        page=page,
+        pages=pages,
+        facets=facets,
         chips=chips,
     )
 
