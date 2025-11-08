@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Admin · Dashboard{% endblock %}
+{% block content %}
+<section class="hero">
+    <h1>Admin Dashboard</h1>
+    <p class="muted">Welcome, {{ current_user.name }} ({{ current_user.role }})</p>
+</section>
+
+<section class="member-body" style="display: flex; justify-content: center; align-items: center; height: 20vh;">
+    <article class="sfsu-card" style="padding: 30px; max-width: 600px; width: 100%; box-sizing: border-box;">
+        <h2>Applications</h2>
+        <ul>
+            <li>Pending: <strong>{{ pending }}</strong></li>
+            <li>Approved: <strong>{{ approved }}</strong></li>
+            <li>Rejected: <strong>{{ rejected }}</strong></li>
+        </ul>
+        <a class="btn" href="{{ url_for('admin.list_apps', status='pending') }}">Review Pending</a>
+    </article>
+</section>
+{% endblock %}

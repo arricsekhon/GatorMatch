@@ -7,6 +7,7 @@ from flask_login import UserMixin
 
 from .db import Base
 
+
 class User(UserMixin, Base):
     __tablename__ = "users"
 
@@ -14,6 +15,8 @@ class User(UserMixin, Base):
     name = Column(String(120), nullable=False)
     email = Column(String(255), nullable=False, unique=True, index=True)
     password_hash = Column(String(255), nullable=False)
+    # "user", "tutor", "admin"
+    role = Column(String(20), nullable=False, default="user")
     created_at = Column(DateTime, nullable=False, server_default=func.now())
 
     # Flask-Login requires this to be str-convertible; default from UserMixin is fine.
@@ -31,7 +34,16 @@ class User(UserMixin, Base):
     def _normalize_name(self, key, value):
         return (value or "").strip()
 
+    @property
+    def is_admin(self) -> bool:
+        return (self.role or "user") == "admin"
+
+    @property
+    def is_tutor(self) -> bool:
+        return (self.role or "user") in ("tutor", "admin")
+
 # --- Tutor Applications ------------------------------------------------------
+
 
 class TutorApplication(Base):
     __tablename__ = "tutor_applications"
@@ -50,9 +62,12 @@ class TutorApplication(Base):
     bio = Column(Text, nullable=False)
 
     # Comma-separated values for simple querying; keep JSON in availability_json
-    meeting_options = Column(String(120), nullable=False)   # e.g. "library,zoom"
-    courses_csv = Column(String(1000), nullable=False)      # e.g. "CSC 340|A; CSC 210|A-"
-    availability_json = Column(Text, nullable=True)         # JSON map {"Mon-Morning": true, ...}
+    meeting_options = Column(
+        String(120), nullable=False)   # e.g. "library,zoom"
+    # e.g. "CSC 340|A; CSC 210|A-"
+    courses_csv = Column(String(1000), nullable=False)
+    # JSON map {"Mon-Morning": true, ...}
+    availability_json = Column(Text, nullable=True)
 
     # Uploaded documents (filenames only; storage path handled by app.py)
     documents_csv = Column(String(1200), nullable=True)     # "a.pdf,b.png"

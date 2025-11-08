@@ -1,12 +1,17 @@
 # application/app.py
 from __future__ import annotations
+from application.forms import LoginForm, SignupForm, TutorApplicationForm
+from application.models import User, TutorApplication
+from application.db import Base, engine, SessionLocal
+from application.admin import bp as admin_bp
+
 
 import os
 import json
 import logging
 import re
 from pathlib import Path
-from functools import lru_cache
+from functools import lru_cache, wraps
 from collections import Counter, OrderedDict
 from math import ceil
 from typing import Iterable
@@ -24,14 +29,18 @@ from werkzeug.utils import secure_filename
 load_dotenv()
 
 # --- Paths---
-BASE_DIR    = Path(__file__).resolve().parent          
+BASE_DIR = Path(__file__).resolve().parent
 TEMPLATE_DIR = BASE_DIR / "templates"
-STATIC_DIR   = BASE_DIR / "static"
-DATA_FILE    = BASE_DIR / "data" / "team1_section4.json"
-UPLOAD_DIR   = STATIC_DIR / "uploads"                  # will be created on first use
+STATIC_DIR = BASE_DIR / "static"
+DATA_FILE = BASE_DIR / "data" / "team1_section4.json"
+# will be created on first use
+UPLOAD_DIR = STATIC_DIR / "uploads"
 
-app = Flask(__name__, template_folder=str(TEMPLATE_DIR), static_folder=str(STATIC_DIR))
+app = Flask(__name__, template_folder=str(
+    TEMPLATE_DIR), static_folder=str(STATIC_DIR))
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "dev-key")
+app.register_blueprint(admin_bp)
+
 
 # Security-focused cookie defaults
 app.config.update(
@@ -41,7 +50,8 @@ app.config.update(
 )
 
 # Upload policy (aligns with the UI copy: PDF/PNG/JPG, up to 10 MB each, max 3 files)
-app.config.setdefault("MAX_CONTENT_LENGTH", 30 * 1024 * 1024)  # hard cap for a single request
+app.config.setdefault("MAX_CONTENT_LENGTH", 30 * 1024 *
+                      1024)  # hard cap for a single request
 ALLOWED_EXTS = {".pdf", ".png", ".jpg", ".jpeg"}
 
 app.logger.setLevel(logging.INFO)
@@ -50,9 +60,6 @@ log = app.logger
 csrf = CSRFProtect(app)
 
 # -------------------- DB wiring --------------------
-from application.db import Base, engine, SessionLocal
-from application.models import User, TutorApplication
-from application.forms import LoginForm, SignupForm, TutorApplicationForm
 
 Base.metadata.create_all(bind=engine)
 
@@ -166,7 +173,8 @@ def filter_sort_paginate(tutors: list[dict], args) -> dict:
     filtered = [t for t in tutors if matches(t)]
 
     if sort == "highest":
-        filtered.sort(key=lambda t: (t["rating"], t["rating_count"]), reverse=True)
+        filtered.sort(key=lambda t: (
+            t["rating"], t["rating_count"]), reverse=True)
     elif sort == "lowest":
         filtered.sort(key=lambda t: (t["rating"], -t["rating_count"]))
     elif sort == "experience":
@@ -182,9 +190,10 @@ def filter_sort_paginate(tutors: list[dict], args) -> dict:
     pages = max(ceil(total / per_page), 1)
     page = min(page, pages)
     start = (page - 1) * per_page
-    page_items = filtered[start : start + per_page]
+    page_items = filtered[start: start + per_page]
 
-    subject_counts = Counter(c.split()[0] for t in filtered for c in t["courses"])
+    subject_counts = Counter(c.split()[0]
+                             for t in filtered for c in t["courses"])
     course_counts = Counter(c for t in filtered for c in t["courses"])
     location_counts = Counter(l for t in filtered for l in t["locations"])
 
@@ -331,7 +340,7 @@ def api_search():
     results = [
         m
         for m in members
-        if q_lower in f"{m.get('name','')} {m.get('role','')}".casefold()
+        if q_lower in f"{m.get('name', '')} {m.get('role', '')}".casefold()
     ]
     return jsonify(
         [
@@ -384,7 +393,8 @@ def signup():
         email = form.email.data.strip().lower()
         with SessionLocal() as db:
             if db.query(User).filter(User.email == email).first():
-                form.email.errors.append("An account with this email already exists.")
+                form.email.errors.append(
+                    "An account with this email already exists.")
                 return render_template("signup.html", form=form)
             user = User(name=form.name.data.strip())
             user.email = email
@@ -406,7 +416,8 @@ def login():
             if not user or not user.check_password(form.password.data):
                 error_msg = "Invalid email or password."
                 form.password.errors.append(error_msg)  # keep inline cue
-                return render_template("login.html", form=form, error=error_msg)  # show top alert
+                # show top alert
+                return render_template("login.html", form=form, error=error_msg)
             login_user(user)
             next_url = request.args.get("next") or url_for("home_page")
             return redirect(next_url)
@@ -446,13 +457,16 @@ def become_tutor():
         with SessionLocal() as db:
             app_row = TutorApplication(
                 user_id=current_user.id if current_user.is_authenticated else None,
-                name=prefill["name"] or request.form.get("name", "").strip() or "Unknown",
-                email=prefill["email"] or request.form.get("email", "").strip(),
+                name=prefill["name"] or request.form.get(
+                    "name", "").strip() or "Unknown",
+                email=prefill["email"] or request.form.get(
+                    "email", "").strip(),
                 headline=form.headline.data.strip(),
                 bio=form.bio.data.strip(),
                 meeting_options=",".join(form.meeting_options.data or []),
                 courses_csv=form.courses_csv.data.strip(),
-                availability_json=(form.availability_json.data or "").strip() or None,
+                availability_json=(
+                    form.availability_json.data or "").strip() or None,
                 documents_csv=documents_csv,
                 status="pending",
             )
@@ -486,3 +500,15 @@ if __name__ == "__main__":
     port = int(os.getenv("PORT", 5001))
     host = os.getenv("HOST", "127.0.0.1")
     app.run(host=host, port=port, debug=os.getenv("FLASK_DEBUG") == "1")
+
+# -------------------- Admin commands --------------------
+
+
+def admin_required(view_func):
+    @wraps(view_func)
+    @login_required
+    def wrapped(*args, **kwargs):
+        if not current_user.is_authenticated or not getattr(current_user, "role", None) == "admin":
+            abort(403)
+        return view_func(*args, **kwargs)
+    return wrapped

@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Admin · Applications{% endblock %}
+{% block content %}
+<section class="hero">
+    <h1>Tutor Applications</h1>
+    <p class="muted">
+        Filter:
+        <a class="link" href="{{ url_for('admin.list_apps') }}">All</a> ·
+        <a class="link" href="{{ url_for('admin.list_apps', status='pending') }}">Pending</a> ·
+        <a class="link" href="{{ url_for('admin.list_apps', status='approved') }}">Approved</a> ·
+        <a class="link" href="{{ url_for('admin.list_apps', status='rejected') }}">Rejected</a>
+    </p>
+</section>
+
+<section class="member-body">
+    {% if not apps %}
+    <!-- Full-width row spanning both grid columns -->
+    <div style="grid-column: 1 / -1; display:flex; justify-content:center; padding:24px 0;">
+        <article class="sfsu-card" style="padding:16px; text-align:center; max-width:520px; width:100%;">
+            No applications.
+        </article>
+    </div>
+    {% else %}
+    <div class="results-col">
+        {% for a in apps %}
+        <article class="sfsu-card" style="padding:16px;margin-bottom:12px">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+                <div>
+                    <h3 style="margin:0">{{ a.name }} <span class="muted">({{ a.email }})</span></h3>
+                    <div class="tiny muted">Status: {{ a.status }} · Submitted: {{ a.created_at }}</div>
+                </div>
+                {% if a.status == 'pending' %}
+                <div style="display:flex;gap:8px">
+                    <form method="post" action="{{ url_for('admin.approve_app', app_id=a.id) }}">
+                        {{ form.csrf_token }}
+                        <button class="btn" type="submit">Approve</button>
+                    </form>
+                    <form method="post" action="{{ url_for('admin.reject_app', app_id=a.id) }}">
+                        {{ form.csrf_token }}
+                        <button class="btn outline" type="submit">Reject</button>
+                    </form>
+                </div>
+                {% endif %}
+            </div>
+
+            <hr class="divider">
+            <div class="small"><strong>Headline:</strong> {{ a.headline }}</div>
+            <div class="small"><strong>Bio:</strong> {{ a.bio }}</div>
+            <div class="small">
+                <strong>Meeting:</strong> {{ a.meeting_options or '—' }}
+                &nbsp;|&nbsp;
+                <strong>Courses:</strong> {{ a.courses_csv }}
+            </div>
+            {% if a.documents_csv %}
+            <div class="small" style="margin-top:6px">
+                <strong>Documents:</strong>
+                {% for path in (a.documents_csv.split(',') if a.documents_csv else []) %}
+                <a class="link" href="{{ url_for('static', filename=path) }}" target="_blank" rel="noopener">
+                    {{ path.rsplit('/',1)[-1] }}
+                </a>{% if not loop.last %} · {% endif %}
+                {% endfor %}
+            </div>
+            {% endif %}
+        </article>
+        {% endfor %}
+    </div>
+    {% endif %}
+</section>
+
+{% endblock %}

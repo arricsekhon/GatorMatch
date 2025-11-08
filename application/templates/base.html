@@ -1,24 +1,28 @@
 <!doctype html>
 <html lang="en">
+
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>{% block title %}SFSU Tutors{% endblock %}</title>
 
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Open+Sans:wght@400;600&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css', v='20251016') }}">
 
   {% if GA_ID %}
   <script async src="https://www.googletagmanager.com/gtag/js?id={{ GA_ID }}"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
+    function gtag() { dataLayer.push(arguments); }
     gtag('js', new Date());
     gtag('config', '{{ GA_ID }}');
   </script>
   {% endif %}
 </head>
+
 <body>
   <!-- Top banner -->
   <div class="banner">
@@ -42,22 +46,26 @@
           </a>
         </li>
         <li>
-          <a href="{{ url_for('search_page') }}" class="{% if request.path == url_for('search_page') %}active{% endif %}">
+          <a href="{{ url_for('search_page') }}"
+            class="{% if request.path == url_for('search_page') %}active{% endif %}">
             Search
           </a>
         </li>
+        {% if current_user.is_authenticated and current_user.role == 'admin' %}
+        <a class="nav-link" href="{{ url_for('admin.dashboard') }}">Admin</a>
+        {% endif %}
       </ul>
 
       <!-- Auth actions (right side) -->
       <div class="auth">
         {% if current_user.is_authenticated %}
-          <form method="post" action="{{ url_for('logout') }}">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button class="btn outline gold" type="submit">Log out</button>
-          </form>
+        <form method="post" action="{{ url_for('logout') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="btn outline gold" type="submit">Log out</button>
+        </form>
         {% else %}
-          <a href="{{ url_for('login') }}" class="login-link">Log in</a>
-          <a href="{{ url_for('signup') }}" class="btn outline gold">Sign Up</a>
+        <a href="{{ url_for('login') }}" class="login-link">Log in</a>
+        <a href="{{ url_for('signup') }}" class="btn outline gold">Sign Up</a>
         {% endif %}
       </div>
     </div>
@@ -71,4 +79,5 @@
     <p>© 2025 SFSU · For demonstration only.</p>
   </footer>
 </body>
+
 </html>
