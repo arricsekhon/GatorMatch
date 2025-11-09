@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block title %}{{ tutor.user.name }} - Tutor Profile{% endblock %}
+{% block content %}
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/tutor_profile.css') }}">
+
+<!-- Tutor Hero Section -->
+<section class="tutor-profile-hero">
+  <div class="tutor-hero-content">
+    <div class="tutor-avatar-large">
+      <svg width="120" height="120" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 12c2.21 0 4-1.79 4-4S14.21 4 12 4 8 5.79 8 8s1.79 4 4 4zm0 2c-2.67 
+                 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+      </svg>
+    </div>
+
+    <h1 class="tutor-profile-name">{{ tutor.user.name }}</h1>
+    <p class="tutor-profile-headline">{{ tutor.headline }}</p>
+    
+    <!-- Rating Display -->
+    <div class="tutor-rating-section">
+      <div class="stars">
+        {% set rating_display = (tutor.rating_avg / 10) if tutor.rating_avg else 0 %}
+        {% set full = rating_display|round(0, 'floor')|int %}
+        {% for i in range(1,6) %}
+          <svg class="star {{ 'on' if i<=full else 'off' }}" viewBox="0 0 24 24">
+            <path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.786 1.402 8.168L12 18.897 4.664 23.164l1.402-8.168L.132 9.21l8.2-1.192z"/>
+          </svg>
+        {% endfor %}
+      </div>
+      <span class="rating-text">{{ '%.1f'|format(rating_display) if tutor.rating_avg else 'No ratings yet' }}</span>
+      <span class="rating-count">({{ tutor.rating_count }} reviews)</span>
+    </div>
+    
+    <div class="tutor-experience">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>
+      </svg>
+      <span>{{ tutor.hours_total_min }} hours of tutoring experience</span>
+    </div>
+  </div>
+</section>
+
+<!-- Main Content Grid -->
+<section class="tutor-profile-body">
+  <!-- Left Column -->
+  <div class="tutor-left-column">
+    <!-- About Section -->
+    <div class="tutor-card">
+      <h2 class="tutor-section-title">About Me</h2>
+      <p class="tutor-bio">{{ tutor.bio }}</p>
+    </div>
+
+    <!-- Courses Section -->
+    {% if courses and courses|length %}
+      <div class="tutor-card">
+        <h2 class="tutor-section-title">Courses I Tutor</h2>
+        <div class="tutor-tags">
+          {% for course in courses %}
+            <span class="tutor-tag course-tag">{{ course }}</span>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Right Column -->
+  <aside class="tutor-right-column">
+    <!-- Meeting Options -->
+    {% if meeting_options and meeting_options|length %}
+      <div class="tutor-card">
+        <h3 class="tutor-sidebar-title">Meeting Options</h3>
+        <div class="tutor-tags">
+          {% for option in meeting_options %}
+            <span class="tutor-tag location-tag">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+              </svg>
+              {{ option }}
+            </span>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- Contact Section -->
+    <div class="tutor-card" id="contact">
+      <h2 class="tutor-section-title">Contact</h2>
+
+      {% if request.args.get('sent') %}
+        <div class="alert-success">
+          ✓ Message sent successfully! The tutor will receive your message.
+        </div>
+      {% endif %}
+
+      {% if current_user.is_authenticated %}
+        <p class="tutor-contact-desc">
+          Ready to start your tutoring session? Click the button below to begin chatting.
+        </p>
+        <a href="#contact" class="btn btn-primary btn-large">Start Chat</a>
+      {% else %}
+        <div class="alert-info">
+          Please <a href="{{ url_for('login', next=request.path) }}">log in</a> to contact this tutor.
+        </div>
+      {% endif %}
+    </div>
+  </aside>
+</section>
+
+<!-- Bottom Actions (Centered) -->
+<section class="tutor-bottom-actions">
+  <div class="tutor-actions-centered">
+    <a href="{{ url_for('results_page') }}" class="btn btn-outline btn-action">← Back to Search</a>
+    <a href="#contact" class="btn btn-primary btn-action">Chat Now</a>
+  </div>
+</section>
+
+{% endblock %}
