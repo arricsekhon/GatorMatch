@@ -301,6 +301,35 @@ def search_page():
     return render_template("search.html")
 
 
+@app.route("/tutors/<slug>")
+def tutor_profile(slug: str):
+    """Display individual tutor profile from database."""
+    with SessionLocal() as db:
+        tutor = (
+            db.query(Tutor)
+            .options(joinedload(Tutor.user))
+            .filter(Tutor.slug == slug)
+            .filter(Tutor.is_active == 1)
+            .filter(Tutor.published_at.isnot(None))
+            .first()
+        )
+        
+        if not tutor:
+            log.warning("Tutor not found: %s", slug)
+            abort(404)
+        
+        # Parse courses and meeting options
+        courses = [c.strip() for c in (tutor.courses_csv or "").split(";") if c.strip()]
+        meeting_options = [m.strip() for m in (tutor.meeting_options or "").split(",") if m.strip()]
+        
+        return render_template(
+            "tutor_profile.html",
+            tutor=tutor,
+            courses=courses,
+            meeting_options=meeting_options,
+        )
+
+
 @app.route("/results")
 def results_page():
     q = (request.args.get("q") or "").strip().casefold()

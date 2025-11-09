@@ -169,8 +169,8 @@
         </div>
 
         <div class="tutor-cta">
-          <a class="btn" href="{{ url_for('member_page', slug=t.slug) }}">View {{ t.first }}'s Profile</a>
-          <a class="btn outline" href="{{ url_for('member_page', slug=t.slug) }}#contact">Contact Tutor</a>
+          <a class="btn" href="{{ url_for('tutor_profile', slug=t.slug) }}">View {{ t.first }}'s Profile</a>
+          <a class="btn outline" href="{{ url_for('tutor_profile', slug=t.slug) }}#contact">Contact Tutor</a>
         </div>
       </article>
       {% endfor %}

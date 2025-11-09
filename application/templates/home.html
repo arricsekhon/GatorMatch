@@ -6,9 +6,9 @@
 <section class="hero">
   <h1>Start Strong with the Right Tutor</h1>
   <h2>Search, connect, and learn from fellow Gators.</h2>
-  <div style="margin-top: 24px;">
-    <a class="btn" href="{{ url_for('become_tutor') }}">Become a Tutor</a>
-    <a class="btn outline" href="{{ url_for('search_page') }}" style="margin-left:12px">Search Tutors</a>
+  <div class="hero-buttons">
+    <a class="btn hero-btn" href="{{ url_for('become_tutor') }}">Become a Tutor</a>
+    <a class="btn outline hero-btn" href="{{ url_for('search_page') }}">Search Tutors</a>
   </div>
 </section>
 
@@ -63,9 +63,9 @@
 <!-- CTA band -->
 <section class="section cta-band" style="text-align:center">
   <h2 class="howitworks-title" style="margin-bottom:12px">Ready to get started?</h2>
-  <div>
-    <a class="btn outline" href="{{ url_for('search_page') }}">Search Tutors</a>
-    <a class="btn" href="{{ url_for('become_tutor') }}" style="margin-left:12px">Become a Tutor</a>
+  <div class="hero-buttons">
+    <a class="btn outline hero-btn" href="{{ url_for('search_page') }}">Search Tutors</a>
+    <a class="btn hero-btn" href="{{ url_for('become_tutor') }}">Become a Tutor</a>
   </div>
 </section>
 
