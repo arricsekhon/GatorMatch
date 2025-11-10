@@ -763,6 +763,14 @@ textarea.form-control {
     font-size: 18px;
   }
   
+  /* Login/Signup card - responsive width */
+  .sfsu-card {
+    width: 100% !important;
+    max-width: 100%;
+    padding: 28px !important;
+    margin: 0 4px;
+  }
+  
   /* Hero buttons on mobile */
   .hero-buttons {
     flex-direction: column;
