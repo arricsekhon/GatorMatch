@@ -7,7 +7,7 @@
 
 # Below is a list of items required. Missing items will causes points to be deducted from multiple milestone submissions.
 
-1. Server URL or IP: http://13.58.84.97
+1. Server URL or IP: http://18.191.185.168
 2. SSH username: ubuntu
 3. SSH password or key: sfsu-team1-key.pem
     <br> If a ssh key is used please upload the key to the credentials folder.
@@ -22,6 +22,7 @@
 ## These values need to kept update to date throughout the semester. <br>
 ## <strong>Failure to do so will result it points be deducted from milestone submissions.</strong><br>
 ## You may store the most of the above in this README.md file. DO NOT Store the SSH key or any keys in this README.md file.
+
 
 
 
