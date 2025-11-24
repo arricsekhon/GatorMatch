@@ -1,0 +1,600 @@
+{# application/templates/tutor_dashboard.html #}
+{% extends "base.html" %}
+
+{% block title %}Tutor Dashboard · SFSU Tutors{% endblock %}
+
+{% block content %}
+<style>
+  /* Ensure the full page background (including below content) is the light gray */
+  html, body {
+    background-color: #F7F7FA !important;
+  }
+
+  /* --- Tutor dashboard layout (scoped to this page) --- */
+
+  .tutor-shell {
+    background-color: #F7F7FA;
+    padding: 32px 0 64px;
+  }
+
+  .tutor-container {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  .tutor-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 2.3fr) minmax(0, 1.3fr);
+    gap: 24px;
+    align-items: flex-start;
+  }
+
+  .tutor-main-col,
+  .tutor-side-col {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .tutor-page-header-title {
+    font-size: 28px;
+    color: #2E0057;
+    margin: 0 0 4px;
+  }
+
+  .tutor-page-header-subtitle {
+    font-size: 14px;
+    color: #666666;
+    margin: 0 0 24px;
+  }
+
+  .tutor-card {
+    background-color: #ffffff;
+    border-radius: 20px;
+    padding: 20px 24px;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+  }
+
+  .tutor-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+
+  .tutor-card-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #2E0057;
+  }
+
+  .tutor-card-subtitle {
+    font-size: 12px;
+    color: #777777;
+  }
+
+  .tutor-card-body {
+    margin-top: 4px;
+  }
+
+  .tutor-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    line-height: 1.4;
+  }
+
+  .tutor-tag-status-pending {
+    background-color: #FFEFD7;
+    color: #9A5B00;
+  }
+
+  .tutor-tag-status-confirmed {
+    background-color: #D4F4DD;
+    color: #0F7A2F;
+  }
+
+  .tutor-tag-status-cancelled {
+    background-color: #FDE2E2;
+    color: #BA1B1B;
+  }
+
+  .tutor-tag-status-active {
+    background-color: #D4F4DD;
+    color: #0F7A2F;
+  }
+
+  .tutor-tag-status-recent {
+    background-color: #EEE7FF;
+    color: #5A3BA8;
+  }
+
+  .tutor-pill-button {
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-size: 13px;
+    border: 1px solid #E1E1E6;
+    background-color: #ffffff;
+    cursor: pointer;
+  }
+
+  .tutor-pill-button-primary {
+    background-color: #27AE60;
+    border-color: #27AE60;
+    color: #ffffff;
+  }
+
+  .tutor-pill-button-danger {
+    background-color: transparent;
+    border-color: #E57373;
+    color: #C0392B;
+  }
+
+  .tutor-session-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 0;
+    border-top: 1px solid #F0F0F4;
+    gap: 16px;
+  }
+
+  .tutor-session-row:first-of-type {
+    border-top: none;
+  }
+
+  .tutor-session-main {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .tutor-session-title {
+    font-size: 14px;
+    color: #2E0057;
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+
+  .tutor-session-course {
+    font-size: 13px;
+    color: #555555;
+    margin-bottom: 2px;
+  }
+
+  .tutor-session-meta {
+    font-size: 12px;
+    color: #777777;
+  }
+
+  .tutor-student-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 999px;
+    background-color: #EEE7FF;
+    color: #5A3BA8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+
+  .tutor-messages-list {
+    margin-top: 8px;
+  }
+
+  .tutor-message-row {
+    padding: 10px 0;
+    border-top: 1px solid #F0F0F4;
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .tutor-message-row:first-of-type {
+    border-top: none;
+  }
+
+  .tutor-message-subject {
+    font-size: 13px;
+    color: #2E0057;
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+
+  .tutor-message-preview {
+    font-size: 12px;
+    color: #777777;
+  }
+
+  .tutor-message-meta {
+    font-size: 11px;
+    color: #999999;
+    white-space: nowrap;
+  }
+
+  .tutor-availability-list {
+    font-size: 12px;
+    color: #555555;
+    line-height: 1.6;
+  }
+
+  .tutor-availability-list strong {
+    color: #2E0057;
+  }
+
+  /* Responsive */
+  @media (max-width: 960px) {
+    .tutor-layout {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  @media (max-width: 600px) {
+    .tutor-shell {
+      padding-top: 20px;
+      padding-bottom: 40px;
+    }
+
+    .tutor-container {
+      padding: 0 16px;
+    }
+
+    .tutor-card {
+      padding: 16px 16px 18px;
+      border-radius: 18px;
+    }
+
+    .tutor-page-header-title {
+      font-size: 22px;
+    }
+  }
+</style>
+
+<div class="tutor-shell">
+  <div class="tutor-container">
+    <!-- Page header -->
+    <header style="display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:12px;">
+      <div>
+        <h1 class="tutor-page-header-title">Tutor Dashboard</h1>
+        <p class="tutor-page-header-subtitle">
+          Manage your tutoring requests, upcoming sessions, and messages with students.
+        </p>
+      </div>
+
+      <form method="get" action="{{ url_for('tutor_availability') }}">
+        <button type="submit"
+                style="border-radius:999px;padding:10px 20px;border:1px solid #E1E1E6;background-color:#2E0057;color:#ffffff;font-size:13px;box-shadow:0 8px 20px rgba(46,0,87,0.25);cursor:pointer;">
+          Manage Availability
+        </button>
+      </form>
+    </header>
+
+    <div class="tutor-layout">
+      <!-- LEFT COLUMN -->
+      <div class="tutor-main-col">
+        <!-- Session Requests -->
+        <section class="tutor-card">
+          <div class="tutor-card-header">
+            <div>
+              <div class="tutor-card-title">Session Requests</div>
+              <div class="tutor-card-subtitle">
+                Approve or decline new tutoring requests from students.
+              </div>
+            </div>
+          </div>
+
+          <div class="tutor-card-body">
+            {% if pending_sessions %}
+              {% for s in pending_sessions %}
+              <div class="tutor-session-row">
+                <div class="tutor-session-main">
+                  <div class="tutor-student-avatar">
+                    {% if s.student and s.student.name %}
+                      {{ s.student.name.split()[0][0] }}{{ s.student.name.split()[-1][0] if s.student.name.split()|length > 1 else "" }}
+                    {% else %}
+                      ST
+                    {% endif %}
+                  </div>
+                  <div style="flex:1 1 auto;min-width:0;">
+                    <div class="tutor-session-title">
+                      {{ s.student.name if s.student else "Student" }}
+                    </div>
+                    <div class="tutor-session-course">
+                      {{ s.course_code }} · {{ s.course_title }}
+                    </div>
+                    <div class="tutor-session-meta">
+                      {{ s.location_label }}
+                      ·
+                      {% if s.start_at %}
+                        {{ s.start_at.strftime("%a, %b %d") }}
+                        ·
+                        {{ s.start_at.strftime("%I:%M %p") }}
+                        – {{ s.end_at.strftime("%I:%M %p") if s.end_at else "" }}
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+
+                <div style="display:flex;gap:8px;flex-shrink:0;">
+                  <form method="post" action="#" data-session-id="{{ s.id }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button class="tutor-pill-button tutor-pill-button-primary" type="button">
+                      Approve
+                    </button>
+                  </form>
+                  <form method="post" action="#" data-session-id="{{ s.id }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button class="tutor-pill-button tutor-pill-button-danger" type="button">
+                      Deny
+                    </button>
+                  </form>
+                </div>
+              </div>
+              {% endfor %}
+            {% else %}
+              <p style="font-size:13px;color:#999999;margin-top:4px;">
+                You don’t have any pending session requests right now.
+              </p>
+            {% endif %}
+          </div>
+        </section>
+
+        <!-- Upcoming Tutoring Sessions -->
+        <section class="tutor-card">
+          <div class="tutor-card-header">
+            <div>
+              <div class="tutor-card-title">Upcoming Tutoring Sessions</div>
+              <div class="tutor-card-subtitle">
+                Sessions you have scheduled with your students.
+              </div>
+            </div>
+          </div>
+
+          <div class="tutor-card-body">
+            {% if upcoming_sessions %}
+              {% for s in upcoming_sessions %}
+              <div class="tutor-session-row">
+                <div class="tutor-session-main">
+                  <div style="flex:1 1 auto;min-width:0;">
+                    <div class="tutor-session-title">
+                      {{ s.course_code }} · {{ s.course_title }}
+                    </div>
+                    <div class="tutor-session-course">
+                      {{ s.student.name if s.student else "Student" }}
+                    </div>
+                    <div class="tutor-session-meta">
+                      {{ s.location_label }}
+                      ·
+                      {% if s.start_at %}
+                        {{ s.start_at.strftime("%a, %b %d") }}
+                        ·
+                        {{ s.start_at.strftime("%I:%M %p") }}
+                        – {{ s.end_at.strftime("%I:%M %p") if s.end_at else "" }}
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+                <div style="text-align:right;flex-shrink:0;">
+                  {% if s.status in ("confirmed", "approved") %}
+                    <span class="tutor-tag tutor-tag-status-confirmed">Confirmed</span>
+                  {% elif s.status == "pending" %}
+                    <span class="tutor-tag tutor-tag-status-pending">Pending</span>
+                  {% elif s.status in ("cancelled", "denied") %}
+                    <span class="tutor-tag tutor-tag-status-cancelled">Cancelled</span>
+                  {% endif %}
+                  <div style="margin-top:8px;">
+                    <a href="#"
+                       class="tutor-pill-button tutor-pill-button-danger"
+                       style="text-decoration:none;display:inline-block;">
+                      Cancel session
+                    </a>
+                  </div>
+                </div>
+              </div>
+              {% endfor %}
+            {% else %}
+              <p style="font-size:13px;color:#999999;margin-top:4px;">
+                You don’t have any upcoming sessions yet.
+              </p>
+            {% endif %}
+          </div>
+        </section>
+
+        <!-- Messages -->
+        <section class="tutor-card">
+          <div class="tutor-card-header">
+            <div>
+              <div class="tutor-card-title">Messages</div>
+              <div class="tutor-card-subtitle">
+                Communicate with your students about their sessions.
+              </div>
+            </div>
+            <a href="#"
+               style="font-size:12px;color:#2E0057;text-decoration:underline;">
+              View all
+            </a>
+          </div>
+
+          <div class="tutor-messages-list">
+            {% if message_threads %}
+              {% for t in message_threads %}
+              <div class="tutor-message-row">
+                <div>
+                  <div class="tutor-message-subject">
+                    {{ t.subject }}
+                  </div>
+                  <div class="tutor-message-preview">
+                    {% set last = t.messages[-1] if t.messages else None %}
+                    {% if last %}
+                      {% if last.body|length > 90 %}
+                        {{ last.body[:90] }}…
+                      {% else %}
+                        {{ last.body }}
+                      {% endif %}
+                    {% else %}
+                      No messages yet.
+                    {% endif %}
+                  </div>
+                </div>
+                <div class="tutor-message-meta">
+                  {% if t.last_message_at %}
+                    {{ t.last_message_at.strftime("%b %d, %Y") }}<br>
+                    {{ t.last_message_at.strftime("%I:%M %p") }}
+                  {% endif %}
+                </div>
+              </div>
+              {% endfor %}
+            {% else %}
+              <p style="font-size:13px;color:#999999;">
+                You don’t have any message threads yet.
+              </p>
+            {% endif %}
+          </div>
+        </section>
+      </div>
+
+      <!-- RIGHT COLUMN -->
+      <aside class="tutor-side-col">
+        <!-- Next Session -->
+        <section class="tutor-card">
+          <div class="tutor-card-header">
+            <div class="tutor-card-title">Next Session</div>
+          </div>
+          <div class="tutor-card-body">
+            {% if next_session %}
+              <p style="font-size:14px;font-weight:600;color:#2E0057;margin-bottom:4px;">
+                {{ next_session.course_code }} · {{ next_session.course_title }}
+              </p>
+              <p style="font-size:13px;color:#555555;margin-bottom:4px;">
+                With {{ next_session.student.name if next_session.student else "Student" }}
+              </p>
+              {% if next_session.start_at %}
+              <p style="font-size:12px;color:#777777;margin-bottom:4px;">
+                {{ next_session.start_at.strftime("%a, %b %d") }}
+                · {{ next_session.start_at.strftime("%I:%M %p") }}
+                – {{ next_session.end_at.strftime("%I:%M %p") if next_session.end_at else "" }}
+              </p>
+              {% endif %}
+              <p style="font-size:12px;color:#777777;margin-bottom:8px;">
+                {{ next_session.location_label }}
+              </p>
+              {% if next_session.meeting_url %}
+              <a href="{{ next_session.meeting_url }}" target="_blank" rel="noopener"
+                 class="tutor-pill-button tutor-pill-button-primary"
+                 style="text-decoration:none;display:inline-block;margin-top:4px;">
+                Join Zoom Meeting
+              </a>
+              {% endif %}
+            {% else %}
+              <p style="font-size:13px;color:#999999;">
+                You don’t have any upcoming sessions scheduled.
+              </p>
+            {% endif %}
+          </div>
+        </section>
+
+        <!-- Quick Links -->
+        <section class="tutor-card">
+          <div class="tutor-card-header">
+            <div class="tutor-card-title">Quick Links</div>
+          </div>
+          <ul style="list-style:none;padding:0;margin:4px 0 0;font-size:13px;color:#2E0057;">
+            <li style="padding:6px 0;">
+              <a href="{{ url_for('tutor_availability') }}" style="text-decoration:none;color:#2E0057;">
+                Manage Availability
+              </a>
+            </li>
+            <li style="padding:6px 0;">
+              <a href="#" style="text-decoration:none;color:#2E0057;">
+                Session History
+              </a>
+            </li>
+          </ul>
+        </section>
+
+        <!-- Your Students -->
+        <section class="tutor-card">
+          <div class="tutor-card-header">
+            <div class="tutor-card-title">Your Students</div>
+          </div>
+          <div class="tutor-card-body">
+            {% if students %}
+              {% for s in students %}
+              <div class="tutor-session-row" style="padding:8px 0;">
+                <div class="tutor-session-main">
+                  <div class="tutor-student-avatar">
+                    {% if s.name %}
+                      {{ s.name.split()[0][0] }}{{ s.name.split()[-1][0] if s.name.split()|length > 1 else "" }}
+                    {% else %}
+                      ST
+                    {% endif %}
+                  </div>
+                  <div>
+                    <div class="tutor-session-title">{{ s.name }}</div>
+                    <div class="tutor-session-meta">{{ s.email }}</div>
+                  </div>
+                </div>
+                <div style="flex-shrink:0;">
+                  <span class="tutor-tag tutor-tag-status-recent">Recently active</span>
+                </div>
+              </div>
+              {% endfor %}
+            {% else %}
+              <p style="font-size:13px;color:#999999;">
+                You haven’t met with any students yet.
+              </p>
+            {% endif %}
+          </div>
+        </section>
+
+        <!-- Availability -->
+        <section class="tutor-card">
+          <div class="tutor-card-header">
+            <div class="tutor-card-title">Availability</div>
+          </div>
+          <div class="tutor-card-body">
+            {% if availability_blocks %}
+              <div class="tutor-availability-list">
+                {% for block in availability_blocks %}
+                  <div>
+                    <strong>
+                      {%
+                        set weekday_labels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+                      %}
+                      {{ weekday_labels[block.weekday] if 0 <= block.weekday <= 6 else "Day" }}
+                    </strong>:
+                    {{ block.start_time.strftime("%I:%M %p") }}
+                    – {{ block.end_time.strftime("%I:%M %p") }}
+                    {% if block.meeting_options %}
+                      · {{ block.meeting_options }}
+                    {% endif %}
+                  </div>
+                {% endfor %}
+              </div>
+            {% else %}
+              <p style="font-size:13px;color:#999999;margin-bottom:8px;">
+                You haven’t added any availability yet.
+              </p>
+            {% endif %}
+
+            <form method="get" action="{{ url_for('tutor_availability') }}" style="margin-top:12px;">
+              <button type="submit"
+                      class="tutor-pill-button"
+                      style="width:100%;text-align:center;border-color:#2E0057;color:#2E0057;">
+                Manage Availability
+              </button>
+            </form>
+          </div>
+        </section>
+      </aside>
+    </div>
+  </div>
+</div>
+{% endblock %}

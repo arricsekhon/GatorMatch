@@ -60,6 +60,16 @@
               Search
             </a>
           </li>
+
+          {% if current_user.is_authenticated and current_user.is_tutor %}
+          <li>
+            <a href="{{ url_for('tutor_dashboard') }}"
+              class="{% if request.path.startswith('/tutor') %}active{% endif %}">
+              Tutor
+            </a>
+          </li>
+          {% endif %}
+
           {% if current_user.is_authenticated and current_user.role == 'admin' %}
           <li>
             <a class="nav-link" href="{{ url_for('admin.dashboard') }}">Admin</a>

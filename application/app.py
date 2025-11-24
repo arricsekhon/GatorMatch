@@ -1,12 +1,5 @@
 # application/app.py
 from __future__ import annotations
-from sqlalchemy.orm import joinedload
-
-from application.forms import LoginForm, SignupForm, TutorApplicationForm
-from application.models import User, TutorApplication, Tutor
-from application.db import Base, engine, SessionLocal
-from application.admin import bp as admin_bp
-
 
 import os
 import json
@@ -17,20 +10,46 @@ from functools import lru_cache, wraps
 from collections import Counter, OrderedDict
 from math import ceil
 from typing import Iterable
+from datetime import datetime, time
 
 from dotenv import load_dotenv
 from flask import (
-    Flask, render_template, request, jsonify, abort, redirect, url_for, flash
+    Flask,
+    render_template,
+    request,
+    jsonify,
+    abort,
+    redirect,
+    url_for,
+    flash,
 )
 from flask_login import (
-    LoginManager, login_user, logout_user, login_required, current_user
+    LoginManager,
+    login_user,
+    logout_user,
+    login_required,
+    current_user,
 )
 from flask_wtf import CSRFProtect
+from sqlalchemy.orm import joinedload
 from werkzeug.utils import secure_filename
+
+from application.forms import LoginForm, SignupForm, TutorApplicationForm
+from application.models import (
+    User,
+    TutorApplication,
+    Tutor,
+    TutoringSession,
+    MessageThread,
+    TutorAvailabilityBlock,
+)
+Session = TutoringSession
+from application.db import Base, engine, SessionLocal
+from application.admin import bp as admin_bp
 
 load_dotenv()
 
-# --- Paths---
+# --- Paths ---
 BASE_DIR = Path(__file__).resolve().parent
 TEMPLATE_DIR = BASE_DIR / "templates"
 STATIC_DIR = BASE_DIR / "static"
@@ -38,11 +57,13 @@ DATA_FILE = BASE_DIR / "data" / "team1_section4.json"
 # will be created on first use
 UPLOAD_DIR = STATIC_DIR / "uploads"
 
-app = Flask(__name__, template_folder=str(
-    TEMPLATE_DIR), static_folder=str(STATIC_DIR))
+app = Flask(
+    __name__,
+    template_folder=str(TEMPLATE_DIR),
+    static_folder=str(STATIC_DIR),
+)
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "dev-key")
 app.register_blueprint(admin_bp)
-
 
 # Security-focused cookie defaults
 app.config.update(
@@ -51,9 +72,8 @@ app.config.update(
     SESSION_COOKIE_SECURE=os.getenv("COOKIE_SECURE", "1") == "1",
 )
 
-# Upload policy (aligns with the UI copy: PDF/PNG/JPG, up to 10 MB each, max 3 files)
-app.config.setdefault("MAX_CONTENT_LENGTH", 30 * 1024 *
-                      1024)  # hard cap for a single request
+# Upload policy (PDF/PNG/JPG, up to 10 MB each, max 3 files)
+app.config.setdefault("MAX_CONTENT_LENGTH", 30 * 1024 * 1024)  # 30 MB
 ALLOWED_EXTS = {".pdf", ".png", ".jpg", ".jpeg"}
 
 app.logger.setLevel(logging.INFO)
@@ -79,6 +99,8 @@ def load_user(user_id: str) -> User | None:
 
 
 # -------------------- Data loading & caching --------------------
+
+
 @lru_cache(maxsize=1)
 def _load_cached(mtime: int):
     with open(DATA_FILE, "r", encoding="utf-8") as f:
@@ -101,6 +123,7 @@ def find_member(slug: str):
 
 
 # -------------------- Normalization & helpers --------------------
+
 COURSE_RE = re.compile(r"\b([A-Z]{2,4})\s?(\d{3})\b", re.IGNORECASE)
 
 
@@ -121,7 +144,9 @@ def normalize_tutor(m: dict) -> dict:
             m.get("subtitle", ""),
             " ".join(s for s in m.get("skills", []) if isinstance(s, str)),
             " ".join(
-                c.get("title", "") for c in m.get("contributions", []) if isinstance(c, dict)
+                c.get("title", "")
+                for c in m.get("contributions", [])
+                if isinstance(c, dict)
             ),
         ]
     )
@@ -164,24 +189,31 @@ def filter_sort_paginate(tutors: list[dict], args) -> dict:
         text = f"{t['name']} {t['headline']} {t['desc']}".casefold()
         if q and q not in text:
             return False
-        if subject and not any(subject == c.split()[0].casefold() for c in t["courses"]):
+        if subject and not any(
+            subject == c.split()[0].casefold() for c in t["courses"]
+        ):
             return False
         if course and course not in t["courses"]:
             return False
-        if location and not any(location == loc.casefold() for loc in t["locations"]):
+        if location and not any(
+            location == loc.casefold() for loc in t["locations"]
+        ):
             return False
         return True
 
     filtered = [t for t in tutors if matches(t)]
 
     if sort == "highest":
-        filtered.sort(key=lambda t: (
-            t["rating"], t["rating_count"]), reverse=True)
+        filtered.sort(
+            key=lambda t: (t["rating"], t["rating_count"]),
+            reverse=True,
+        )
     elif sort == "lowest":
         filtered.sort(key=lambda t: (t["rating"], -t["rating_count"]))
     elif sort == "experience":
         filtered.sort(key=lambda t: t["hours"], reverse=True)
     else:
+
         def score(t: dict):
             name_hit = 1 if (q and q in t["name"].casefold()) else 0
             return (name_hit, t["rating"], t["rating_count"], t["hours"])
@@ -192,10 +224,11 @@ def filter_sort_paginate(tutors: list[dict], args) -> dict:
     pages = max(ceil(total / per_page), 1)
     page = min(page, pages)
     start = (page - 1) * per_page
-    page_items = filtered[start: start + per_page]
+    page_items = filtered[start : start + per_page]
 
-    subject_counts = Counter(c.split()[0]
-                             for t in filtered for c in t["courses"])
+    subject_counts = Counter(
+        c.split()[0] for t in filtered for c in t["courses"]
+    )
     course_counts = Counter(c for t in filtered for c in t["courses"])
     location_counts = Counter(l for t in filtered for l in t["locations"])
 
@@ -261,12 +294,16 @@ def save_files(files: Iterable, dest_dir: Path) -> list[str]:
 
 
 # -------------------- Context (GA hook) --------------------
+
+
 @app.context_processor
 def inject_globals():
     return {"GA_ID": os.getenv("GA_ID", "").strip()}
 
 
 # -------------------- Routes: public pages --------------------
+
+
 @app.route("/")
 def home_page():
     return render_template("home.html")
@@ -313,15 +350,23 @@ def tutor_profile(slug: str):
             .filter(Tutor.published_at.isnot(None))
             .first()
         )
-        
+
         if not tutor:
             log.warning("Tutor not found: %s", slug)
             abort(404)
-        
+
         # Parse courses and meeting options
-        courses = [c.strip() for c in (tutor.courses_csv or "").split(";") if c.strip()]
-        meeting_options = [m.strip() for m in (tutor.meeting_options or "").split(",") if m.strip()]
-        
+        courses = [
+            c.strip()
+            for c in (tutor.courses_csv or "").split(";")
+            if c.strip()
+        ]
+        meeting_options = [
+            m.strip()
+            for m in (tutor.meeting_options or "").split(",")
+            if m.strip()
+        ]
+
         return render_template(
             "tutor_profile.html",
             tutor=tutor,
@@ -333,18 +378,14 @@ def tutor_profile(slug: str):
 @app.route("/results")
 def results_page():
     q = (request.args.get("q") or "").strip().casefold()
-    subject = (request.args.get("subject")
-               or "").strip().upper()    # e.g., "CSC"
-    course = (request.args.get("course") or "").strip(
-    ).upper()      # e.g., "CSC 340"
-    location = (request.args.get("location") or "").strip(
-    ).casefold()  # "library"|"mashouf"|"zoom"
+    subject = (request.args.get("subject") or "").strip().upper()  # "CSC"
+    course = (request.args.get("course") or "").strip().upper()  # "CSC 340"
+    location = (request.args.get("location") or "").strip().casefold()
     sort = (request.args.get("sort") or "best").strip()
 
     with SessionLocal() as db:
         rows = (
             db.query(Tutor)
-            # <-- eager load to avoid DetachedInstanceError
             .options(joinedload(Tutor.user))
             .filter(Tutor.is_active == 1)
             .filter(Tutor.published_at.isnot(None))
@@ -353,12 +394,19 @@ def results_page():
         )
 
     def matches(t: Tutor) -> bool:
-        blob = f"{t.slug} {t.headline} {t.bio} {t.courses_csv} {t.meeting_options}".casefold()
+        blob = (
+            f"{t.slug} {t.headline} {t.bio} {t.courses_csv} {t.meeting_options}"
+        ).casefold()
         if q and q not in blob:
             return False
         if subject:
             # subject matches prefix of a course code
-            if subject not in " ".join([c.split()[0] for c in (t.courses_csv or "").split(";")]).upper():
+            course_subjects = [
+                c.split()[0]
+                for c in (t.courses_csv or "").split(";")
+                if c.strip()
+            ]
+            if subject not in " ".join(course_subjects).upper():
                 return False
         if course and course not in (t.courses_csv or ""):
             return False
@@ -368,21 +416,24 @@ def results_page():
 
     tutors = [t for t in rows if matches(t)]
 
-    # sort options (reuse your logic)
+    # sort options
     if sort == "highest":
-        tutors.sort(key=lambda t: (t.rating_avg, t.rating_count), reverse=True)
+        tutors.sort(
+            key=lambda t: (t.rating_avg, t.rating_count),
+            reverse=True,
+        )
     elif sort == "lowest":
         tutors.sort(key=lambda t: (t.rating_avg, -t.rating_count))
     elif sort == "experience":
         tutors.sort(key=lambda t: t.hours_total_min, reverse=True)
     else:
-        def score(t):
+
+        def score(t: Tutor):
             name_hit = 1 if (q and q in (t.slug or "").casefold()) else 0
             return (name_hit, t.rating_avg, t.rating_count, t.hours_total_min)
+
         tutors.sort(key=score, reverse=True)
 
-    # pagination (same as before)
-    from math import ceil
     try:
         page = int(request.args.get("page", 1) or 1)
     except ValueError:
@@ -393,16 +444,26 @@ def results_page():
     pages = max(ceil(total / per_page), 1)
     page = min(page, pages)
     start = (page - 1) * per_page
-    page_items = tutors[start: start + per_page]
+    page_items = tutors[start : start + per_page]
 
-    # facets build from the filtered set
-    from collections import Counter, OrderedDict
-    subject_counts = Counter(c.split()[0] for t in tutors for c in (
-        t.courses_csv or "").split(";") if c.strip())
-    course_counts = Counter(c.strip() for t in tutors for c in (
-        t.courses_csv or "").split(";") if c.strip())
-    location_counts = Counter(m for t in tutors for m in (
-        t.meeting_options or "").split(",") if m)
+    subject_counts = Counter(
+        c.split()[0]
+        for t in tutors
+        for c in (t.courses_csv or "").split(";")
+        if c.strip()
+    )
+    course_counts = Counter(
+        c.strip()
+        for t in tutors
+        for c in (t.courses_csv or "").split(";")
+        if c.strip()
+    )
+    location_counts = Counter(
+        m
+        for t in tutors
+        for m in (t.meeting_options or "").split(",")
+        if m
+    )
 
     facets = {
         "subjects": OrderedDict(sorted(subject_counts.items())),
@@ -410,7 +471,6 @@ def results_page():
         "locations": OrderedDict(sorted(location_counts.items())),
     }
 
-    # chips like before
     chips = []
     if subject:
         chips.append({"key": "subject", "label": subject})
@@ -419,21 +479,29 @@ def results_page():
     if location:
         chips.append({"key": "location", "label": location.title()})
 
-    # Reuse your existing results template (it expects fields like .headline/.courses)
-    # Minimal adapter: convert Tutor -> dict your template uses.
     def adapt(t: Tutor):
         return {
             "slug": t.slug,
             "name": t.user.name if t.user else t.slug,
-            "first": (t.user.name.split()[0] if t.user and t.user.name else "Tutor"),
-            "avatar": "",  # (optional) add later
+            "first": (
+                t.user.name.split()[0]
+                if t.user and t.user.name
+                else "Tutor"
+            ),
+            "avatar": "",
             "headline": t.headline,
             "desc": t.bio,
-            "rating": (t.rating_avg or 0)/10,  # if you store x10
+            "rating": (t.rating_avg or 0) / 10.0,
             "rating_count": t.rating_count,
             "hours": t.hours_total_min,
-            "courses": [c.strip() for c in (t.courses_csv or "").split(";") if c.strip()],
-            "locations": [m for m in (t.meeting_options or "").split(",") if m],
+            "courses": [
+                c.strip()
+                for c in (t.courses_csv or "").split(";")
+                if c.strip()
+            ],
+            "locations": [
+                m for m in (t.meeting_options or "").split(",") if m
+            ],
         }
 
     view_items = [adapt(t) for t in page_items]
@@ -476,7 +544,9 @@ def api_search():
     )
 
 
-# -------------------- In-site messaging (route fixed) --------------------
+# -------------------- In-site messaging (legacy contact form) --------------------
+
+
 @app.post("/messages")
 @login_required
 def post_message():
@@ -503,11 +573,15 @@ def post_message():
 
     # TODO: persist to DB in the next milestone
     if form:
-        return redirect(url_for("member_page", slug=to_slug, sent=1, _anchor="contact"))
+        return redirect(
+            url_for("member_page", slug=to_slug, sent=1, _anchor="contact")
+        )
     return jsonify({"ok": True}), 201
 
 
 # -------------------- Auth --------------------
+
+
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
     form = SignupForm()
@@ -516,7 +590,8 @@ def signup():
         with SessionLocal() as db:
             if db.query(User).filter(User.email == email).first():
                 form.email.errors.append(
-                    "An account with this email already exists.")
+                    "An account with this email already exists."
+                )
                 return render_template("signup.html", form=form)
             user = User(name=form.name.data.strip())
             user.email = email
@@ -537,9 +612,10 @@ def login():
             user = db.query(User).filter(User.email == email).first()
             if not user or not user.check_password(form.password.data):
                 error_msg = "Invalid email or password."
-                form.password.errors.append(error_msg)  # keep inline cue
-                # show top alert
-                return render_template("login.html", form=form, error=error_msg)
+                form.password.errors.append(error_msg)
+                return render_template(
+                    "login.html", form=form, error=error_msg
+                )
             login_user(user)
             next_url = request.args.get("next") or url_for("home_page")
             return redirect(next_url)
@@ -553,7 +629,9 @@ def logout():
     return redirect(url_for("home_page"))
 
 
-# -------------------- Become a Tutor (new: full form handling) --------------------
+# -------------------- Become a Tutor --------------------
+
+
 @app.route("/tutors/new", methods=["GET", "POST"])
 @login_required
 def become_tutor():
@@ -562,7 +640,9 @@ def become_tutor():
     # Prefill-only data for the template (read-only fields in UI)
     prefill = {
         "name": current_user.name if current_user.is_authenticated else "",
-        "email": current_user.email if current_user.is_authenticated else "",
+        "email": current_user.email
+        if current_user.is_authenticated
+        else "",
     }
 
     if form.validate_on_submit():
@@ -572,23 +652,35 @@ def become_tutor():
             request.files.get("doc2"),
             request.files.get("doc3"),
         ]
-        saved_paths = save_files([f for f in files_to_save if f], UPLOAD_DIR)
+        saved_paths = save_files(
+            [f for f in files_to_save if f],
+            UPLOAD_DIR,
+        )
         documents_csv = ",".join(saved_paths) if saved_paths else None
 
         # Persist application
         with SessionLocal() as db:
             app_row = TutorApplication(
-                user_id=current_user.id if current_user.is_authenticated else None,
-                name=prefill["name"] or request.form.get(
-                    "name", "").strip() or "Unknown",
-                email=prefill["email"] or request.form.get(
-                    "email", "").strip(),
+                user_id=current_user.id
+                if current_user.is_authenticated
+                else None,
+                name=(
+                    prefill["name"]
+                    or request.form.get("name", "").strip()
+                    or "Unknown"
+                ),
+                email=prefill["email"]
+                or request.form.get("email", "").strip(),
                 headline=form.headline.data.strip(),
                 bio=form.bio.data.strip(),
-                meeting_options=",".join(form.meeting_options.data or []),
+                meeting_options=",".join(
+                    form.meeting_options.data or []
+                ),
                 courses_csv=form.courses_csv.data.strip(),
                 availability_json=(
-                    form.availability_json.data or "").strip() or None,
+                    form.availability_json.data or ""
+                ).strip()
+                or None,
                 documents_csv=documents_csv,
                 status="pending",
             )
@@ -598,15 +690,304 @@ def become_tutor():
         # Friendly UX: show a banner on the same page
         return redirect(url_for("become_tutor", submitted=1))
 
-    # GET or invalid POST
     submitted = request.args.get("submitted") == "1"
     if submitted:
-        flash("Application submitted. Status: Pending review (24–48 hours).", "success")
+        flash(
+            "Application submitted. Status: Pending review (24–48 hours).",
+            "success",
+        )
 
     return render_template("become_tutor.html", form=form, prefill=prefill)
 
 
+# -------------------- Tutor dashboard --------------------
+from datetime import datetime
+
+@app.route("/tutor/dashboard")
+@login_required
+def tutor_dashboard():
+    """
+    Tutor dashboard
+
+    Shows:
+      - pending_sessions: session requests to approve/deny
+      - upcoming_sessions: future confirmed/approved sessions
+      - next_session: the soonest upcoming session
+      - message_threads: recent message threads (with latest message)
+      - students: distinct students this tutor has met with
+      - availability_blocks: availability from tutor_availability_blocks
+    """
+    # Only allow tutors/admins to access
+    if not getattr(current_user, "is_tutor", False):
+        abort(403)
+
+    now = datetime.utcnow()
+
+    # Default empty values so the page still renders even if there is no Tutor row
+    pending_sessions = []
+    upcoming_sessions = []
+    next_session = None
+    message_threads = []
+    students = []
+    availability_blocks = []
+
+    with SessionLocal() as db:
+        # Find the Tutor row for the logged-in user (may not exist for admins)
+        tutor = (
+            db.query(Tutor)
+            .options(joinedload(Tutor.user))
+            .filter(Tutor.user_id == current_user.id)
+            .first()
+        )
+
+        # If there *is* a Tutor profile, load all the dashboard data
+        if tutor:
+            # --- Pending session requests (Session Requests card) ---
+            pending_sessions = (
+                db.query(Session)
+                .options(joinedload(Session.student))
+                .filter(Session.tutor_id == tutor.id)
+                .filter(Session.status.in_(["pending", "requested"]))
+                .order_by(Session.start_at.asc())
+                .limit(5)
+                .all()
+            )
+
+            # --- Upcoming sessions (Upcoming Tutoring Sessions card) ---
+            upcoming_sessions = (
+                db.query(Session)
+                .options(joinedload(Session.student))
+                .filter(Session.tutor_id == tutor.id)
+                .filter(Session.status.in_(["approved", "confirmed"]))
+                .filter(Session.start_at >= now)
+                .order_by(Session.start_at.asc())
+                .limit(5)
+                .all()
+            )
+
+            # Next Session card
+            next_session = upcoming_sessions[0] if upcoming_sessions else None
+
+            # --- Messages (Messages card) ---
+            message_threads = (
+                db.query(MessageThread)
+                .options(
+                    joinedload(MessageThread.messages),
+                    joinedload(MessageThread.student),
+                )
+                .filter(MessageThread.tutor_id == tutor.id)
+                .order_by(MessageThread.last_message_at.desc())
+                .limit(3)
+                .all()
+            )
+
+            # --- Your Students (Your Students card) ---
+            student_ids_subq = (
+                db.query(Session.student_id)
+                .filter(Session.tutor_id == tutor.id)
+                .distinct()
+                .subquery()
+            )
+
+            students = (
+                db.query(User)
+                .filter(User.id.in_(student_ids_subq))
+                .order_by(User.name.asc())
+                .limit(6)
+                .all()
+            )
+
+            # --- Availability (Availability card) ---
+            availability_blocks = (
+                db.query(TutorAvailabilityBlock)
+                .filter(TutorAvailabilityBlock.tutor_id == tutor.id)
+                .filter(TutorAvailabilityBlock.is_active == 1)
+                .order_by(
+                    TutorAvailabilityBlock.weekday.asc(),
+                    TutorAvailabilityBlock.start_time.asc(),
+                )
+                .all()
+            )
+
+        # If there is no Tutor row (e.g. admin without a tutor_profile),
+        # we just render the dashboard with the default empty data above.
+
+    return render_template(
+        "tutor_dashboard.html",
+        pending_sessions=pending_sessions,
+        upcoming_sessions=upcoming_sessions,
+        next_session=next_session,
+        message_threads=message_threads,
+        students=students,
+        availability_blocks=availability_blocks,
+    )
+
+# -------------------- Tutor Availability --------------------
+@app.route("/tutor/availability", methods=["GET", "POST"])
+@login_required
+def tutor_availability():
+    """
+    Manage tutor availability.
+
+    - Per-day toggle (clear all blocks for that weekday).
+    - Per-block create/update/delete.
+    """
+    if not getattr(current_user, "is_tutor", False):
+        abort(403)
+
+    with SessionLocal() as db:
+        tutor = (
+            db.query(Tutor)
+            .options(joinedload(Tutor.availability_blocks))
+            .filter(Tutor.user_id == current_user.id)
+            .first()
+        )
+        if not tutor:
+            abort(404)
+
+        if request.method == "POST":
+            action = (request.form.get("action") or "save").strip()
+
+            # Common weekday parsing (may be blank for some actions)
+            weekday_raw = (request.form.get("weekday") or "").strip()
+            try:
+                weekday = int(weekday_raw) if weekday_raw != "" else None
+            except ValueError:
+                weekday = None
+
+            # --- Clear all blocks for a given weekday (toggle OFF) ---
+            if action == "clear_day" and weekday is not None:
+                (
+                    db.query(TutorAvailabilityBlock)
+                    .filter(
+                        TutorAvailabilityBlock.tutor_id == tutor.id,
+                        TutorAvailabilityBlock.weekday == weekday,
+                    )
+                    .delete(synchronize_session=False)
+                )
+                db.commit()
+                flash("Day marked as not available.", "success")
+                return redirect(url_for("tutor_availability"))
+
+            # --- Delete a single block ---
+            if action == "delete":
+                block_id_raw = (request.form.get("block_id") or "").strip()
+                try:
+                    block_id = int(block_id_raw)
+                except (TypeError, ValueError):
+                    block_id = None
+
+                if block_id:
+                    block = (
+                        db.query(TutorAvailabilityBlock)
+                        .filter(
+                            TutorAvailabilityBlock.id == block_id,
+                            TutorAvailabilityBlock.tutor_id == tutor.id,
+                        )
+                        .first()
+                    )
+                    if block:
+                        db.delete(block)
+                        db.commit()
+                        flash("Availability block removed.", "success")
+                return redirect(url_for("tutor_availability"))
+
+            # --- Create / update a block (action = "save" or default) ---
+            start_time_str = (request.form.get("start_time") or "").strip()
+            end_time_str = (request.form.get("end_time") or "").strip()
+            meeting_options = (request.form.get("meeting_options") or "").strip()
+            courses = (request.form.get("courses") or "").strip()
+
+            errors: list[str] = []
+
+            if weekday is None or weekday < 0 or weekday > 6:
+                errors.append("Please choose a valid weekday.")
+
+            try:
+                start_time = datetime.strptime(start_time_str, "%H:%M").time()
+                end_time = datetime.strptime(end_time_str, "%H:%M").time()
+            except ValueError:
+                start_time = end_time = None
+                errors.append("Please enter valid times in HH:MM format.")
+            else:
+                if start_time >= end_time:
+                    errors.append("End time must be after start time.")
+
+            if errors:
+                for msg in errors:
+                    flash(msg, "danger")
+                return redirect(url_for("tutor_availability"))
+
+            block_id_raw = (request.form.get("block_id") or "").strip()
+            try:
+                block_id = int(block_id_raw) if block_id_raw else None
+            except ValueError:
+                block_id = None
+
+            if block_id:
+                # Update existing block
+                block = (
+                    db.query(TutorAvailabilityBlock)
+                    .filter(
+                        TutorAvailabilityBlock.id == block_id,
+                        TutorAvailabilityBlock.tutor_id == tutor.id,
+                    )
+                    .first()
+                )
+                if block:
+                    block.weekday = weekday
+                    block.start_time = start_time
+                    block.end_time = end_time
+                    block.meeting_options = meeting_options or None
+                    block.courses = courses or None
+            else:
+                # Create new block (used by "+ Add time block")
+                block = TutorAvailabilityBlock(
+                    tutor_id=tutor.id,
+                    weekday=weekday,
+                    start_time=start_time,
+                    end_time=end_time,
+                    meeting_options=meeting_options or None,
+                    courses=courses or None,
+                    is_active=1,
+                )
+                db.add(block)
+
+            db.commit()
+            flash("Availability saved.", "success")
+            return redirect(url_for("tutor_availability"))
+
+        # --- GET: load all active blocks for this tutor ---
+        availability_blocks = (
+            db.query(TutorAvailabilityBlock)
+            .filter(TutorAvailabilityBlock.tutor_id == tutor.id)
+            .filter(TutorAvailabilityBlock.is_active == 1)
+            .order_by(
+                TutorAvailabilityBlock.weekday.asc(),
+                TutorAvailabilityBlock.start_time.asc(),
+            )
+            .all()
+        )
+
+        # Courses to show in the dropdown (from this tutor's profile)
+        tutor_courses: list[str] = []
+        if getattr(tutor, "courses_csv", None):
+            tutor_courses = [
+                c.strip()
+                for c in (tutor.courses_csv or "").split(";")
+                if c.strip()
+            ]
+
+    return render_template(
+        "tutor_availability.html",
+        tutor=tutor,
+        availability_blocks=availability_blocks,
+        tutor_courses=tutor_courses,
+    )
+
 # -------------------- Errors --------------------
+
+
 @app.errorhandler(404)
 def not_found(_e):
     return render_template("404.html"), 404
@@ -618,10 +999,13 @@ def server_error(_e):
 
 
 # -------------------- Entrypoint --------------------
+
+
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 5001))
     host = os.getenv("HOST", "127.0.0.1")
     app.run(host=host, port=port, debug=os.getenv("FLASK_DEBUG") == "1")
+
 
 # -------------------- Admin commands --------------------
 
@@ -630,7 +1014,11 @@ def admin_required(view_func):
     @wraps(view_func)
     @login_required
     def wrapped(*args, **kwargs):
-        if not current_user.is_authenticated or not getattr(current_user, "role", None) == "admin":
+        if (
+            not current_user.is_authenticated
+            or getattr(current_user, "role", None) != "admin"
+        ):
             abort(403)
         return view_func(*args, **kwargs)
+
     return wrapped
