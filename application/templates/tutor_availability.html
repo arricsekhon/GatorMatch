@@ -622,7 +622,7 @@
         >
           <svg viewBox="0 0 24 24" class="avail-block-trash-icon" aria-hidden="true">
             <path d="M9 3h6a1 1 0 0 1 .99.86L16.5 5H20a1 1 0 1 1 0 2h-1.1l-1.1 11.09A2 2 0 0 1 15.8 20H8.2a2 2 0 0 1-1.99-1.91L5.1 7H4a1 1 0 1 1 0-2h3.5l.51-1.14A1 1 0 0 1 9 3Zm1.17 4a1 1 0 0 0-1 .92l-.5 8.5a1 1 0 1 0 1.99.12l.5-8.5a1 1 0 0 0-.99-1.04Zm3.66 0a1 1 0 0 0-.99 1.04l.5 8.5a1 1 0 1 0 1.99-.12l-.5-8.5a1 1 0 0 0-1-.92Z"/>
-          </svg>
+        </svg>
         </button>
       </div>
 
@@ -678,6 +678,77 @@
       hidden.value = values.join(", ");
     }
 
+    // Wire delete + auto-clean behavior on a single block form
+    function wireBlockForm(form) {
+      if (!form || form.dataset.wired === "1") return;
+      form.dataset.wired = "1";
+
+      const trashBtn = form.querySelector(".avail-block-trash-btn");
+      const blockIdInput = form.querySelector('input[name="block_id"]');
+
+      if (trashBtn) {
+        trashBtn.addEventListener("click", function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+
+          const blockId = blockIdInput ? String(blockIdInput.value || "").trim() : "";
+
+          // If this is a brand-new, unsaved block → just remove it from the DOM.
+          if (!blockId) {
+            form.remove();
+            return;
+          }
+
+          // Saved block: submit a delete without HTML validation blocking it.
+          // Temporarily remove "required" so the browser doesn't complain.
+          const start = form.querySelector('input[name="start_time"]');
+          const end = form.querySelector('input[name="end_time"]');
+          const removedRequired = [];
+
+          [start, end].forEach(function (inp) {
+            if (inp && inp.hasAttribute("required")) {
+              removedRequired.push(inp);
+              inp.removeAttribute("required");
+            }
+          });
+
+          if (typeof form.requestSubmit === "function") {
+            form.requestSubmit(trashBtn);
+          } else {
+            form.submit();
+          }
+          // No need to restore "required"—page will reload after submit.
+        });
+      }
+
+      // For brand-new, unsaved blocks: if user clicks away and the block is empty, remove it.
+      const hasBlockId = blockIdInput && String(blockIdInput.value || "").trim() !== "";
+      if (!hasBlockId) {
+        form.addEventListener("focusout", function () {
+          // Wait a tick so document.activeElement is updated
+          setTimeout(function () {
+            const active = document.activeElement;
+            if (form.contains(active)) return; // still inside this form
+
+            const start = form.querySelector('input[name="start_time"]');
+            const end = form.querySelector('input[name="end_time"]');
+            const courses = form.querySelector('input[name="courses"]');
+            const anyChipChecked = form.querySelector(".js-meeting-chip-input:checked");
+
+            const isEmpty =
+              (!start || !start.value) &&
+              (!end || !end.value) &&
+              (!courses || !courses.value.trim()) &&
+              !anyChipChecked;
+
+            if (isEmpty) {
+              form.remove();
+            }
+          }, 0);
+        });
+      }
+    }
+
     // Initialize meeting chips for existing blocks
     document.querySelectorAll(".avail-meeting-options").forEach(function (container) {
       container.addEventListener("change", function (e) {
@@ -697,6 +768,11 @@
         }
       });
       updateMeetingHidden(container);
+    });
+
+    // Wire existing block forms (from DB) for delete/auto-clean behavior
+    document.querySelectorAll(".avail-block-form").forEach(function (form) {
+      wireBlockForm(form);
     });
 
     // Add time block via template
@@ -727,9 +803,14 @@
               }
               updateMeetingHidden(container);
             });
+            // initialize hidden meeting_options as empty
+            updateMeetingHidden(container);
           }
 
           list.appendChild(clone);
+
+          // Ensure delete + auto-clean are wired for this new form
+          wireBlockForm(clone);
 
           // Ensure day is toggled ON when we add a block
           const toggle = day.querySelector(".js-day-toggle");
