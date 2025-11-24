@@ -10,7 +10,7 @@
     background-color: #F7F7FA !important;
   }
 
-  /* --- Tutor dashboard layout (scoped to this page) --- */
+  /* --- Tutor dashboard layout  --- */
 
   .tutor-shell {
     background-color: #F7F7FA;
@@ -172,6 +172,43 @@
     color: #777777;
   }
 
+  .tutor-filter-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #777777;
+  }
+
+  .tutor-filter-label {
+    font-size: 13px;
+    color: #777777;
+  }
+
+  .tutor-filter-select {
+    border-radius: 999px;
+    border: 1px solid #E1E1E6;
+    background-color: #ffffff;
+    padding: 6px 14px;
+    font-size: 13px;
+    color: #2E0057;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: linear-gradient(45deg, transparent 50%, #999 50%),
+                      linear-gradient(135deg, #999 50%, transparent 50%);
+    background-position: calc(100% - 14px) 50%, calc(100% - 9px) 50%;
+    background-repeat: no-repeat;
+    background-size: 6px 6px, 6px 6px;
+    padding-right: 26px;
+  }
+
+  .tutor-filter-select:focus {
+    outline: 2px solid #FACC4A;
+    outline-offset: 2px;
+  }
+
   .tutor-student-avatar {
     width: 34px;
     height: 34px;
@@ -185,38 +222,137 @@
     flex-shrink: 0;
   }
 
-  .tutor-messages-list {
+  /* ---------- Messages card styles ---------- */
+
+  .tutor-messages-card .tutor-card-body {
     margin-top: 8px;
   }
 
-  .tutor-message-row {
-    padding: 10px 0;
-    border-top: 1px solid #F0F0F4;
+  .tutor-messages-tabs {
     display: flex;
-    justify-content: space-between;
-    gap: 12px;
+    gap: 24px;
+    margin-top: 4px;
+    border-bottom: 1px solid #F0F0F4;
   }
 
-  .tutor-message-row:first-of-type {
-    border-top: none;
+  .tutor-messages-tab {
+    position: relative;
+    padding: 0 0 10px;
+    font-size: 15px;
+    font-weight: 600;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    color: #999999; /* inactive = gray */
+  }
+
+  .tutor-messages-tab.is-active {
+    color: #2E0057; /* active = purple */
+  }
+
+  .tutor-messages-tab.is-active::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -1px;
+    width: 100%;
+    height: 3px;
+    border-radius: 999px;
+    background: #FACC4A; /* gold underline */
+  }
+
+  .tutor-messages-panel {
+    display: none;
+  }
+
+  .tutor-messages-panel.is-active {
+    display: block;
+  }
+
+  .tutor-messages-table-head {
+    display: grid;
+    grid-template-columns: 2.3fr 3fr 2fr 2fr;
+    gap: 16px;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #A0A0B0;
+    padding: 14px 0 6px;
+  }
+
+  .tutor-messages-rows {
+    border-top: 1px solid #F0F0F4;
+  }
+
+  .tutor-message-row {
+    display: grid;
+    grid-template-columns: 2.3fr 3fr 2fr 2fr;
+    gap: 16px;
+    padding: 12px 0;
+    border-bottom: 1px solid #F7F7FA;
+    font-size: 13px;
+    color: #333333;
+  }
+
+  .tutor-message-from {
+    font-weight: 600;
+    color: #2E0057;
   }
 
   .tutor-message-subject {
     font-size: 13px;
     color: #2E0057;
     font-weight: 600;
-    margin-bottom: 2px;
   }
 
-  .tutor-message-preview {
+  .tutor-message-status-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    background: #EEE7FF;
+    color: #5A3BA8;
+  }
+
+  .tutor-message-updated {
     font-size: 12px;
     color: #777777;
   }
 
-  .tutor-message-meta {
-    font-size: 11px;
-    color: #999999;
-    white-space: nowrap;
+  .tutor-messages-empty-row {
+    padding: 20px 0 6px;
+    font-size: 14px;
+    color: #777777;
+  }
+
+  .tutor-messages-pagination {
+    display: flex;
+    gap: 6px;
+    justify-content: flex-end;
+    margin-top: 12px;
+  }
+
+  .tutor-messages-page-btn {
+    min-width: 36px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    border: 1px solid #E0E0E0;
+    background: #FFFFFF;
+    font-size: 13px;
+    cursor: pointer;
+    color: #555555;
+  }
+
+  .tutor-messages-page-btn:is(:disabled) {
+    opacity: 0.6;
+    cursor: default;
+  }
+
+  .tutor-messages-page-btn.is-active {
+    background: #2E0057;
+    border-color: #2E0057;
+    color: #FFFFFF;
   }
 
   .tutor-availability-list {
@@ -227,6 +363,35 @@
 
   .tutor-availability-list strong {
     color: #2E0057;
+  }
+
+  .tutor-quick-links-list {
+    list-style: none;
+    padding: 0;
+    margin: 4px 0 0;
+    font-size: 14px;
+    color: #2E0057;
+  }
+
+  .tutor-quick-links-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 0;
+  }
+
+  .tutor-quick-links-item i {
+    font-size: 18px;
+    color: #2E0057;
+  }
+
+  .tutor-quick-links-link {
+    text-decoration: none;
+    color: #2E0057;
+  }
+
+  .tutor-quick-links-link:hover {
+    text-decoration: underline;
   }
 
   /* Responsive */
@@ -288,6 +453,22 @@
                 Approve or decline new tutoring requests from students.
               </div>
             </div>
+
+            <form method="get"
+                  action="{{ url_for('tutor_dashboard') }}"
+                  class="tutor-filter-row">
+              {# Preserve current upcoming filter when changing status #}
+              <input type="hidden" name="upcoming_range" value="{{ upcoming_range }}">
+              <span class="tutor-filter-label">Status:</span>
+              <select name="req_status"
+                      class="tutor-filter-select"
+                      onchange="this.form.submit()">
+                <option value="pending"  {% if req_status == 'pending'  %}selected{% endif %}>Pending</option>
+                <option value="approved" {% if req_status == 'approved' %}selected{% endif %}>Approved</option>
+                <option value="denied"   {% if req_status == 'denied'   %}selected{% endif %}>Denied</option>
+                <option value="all"      {% if req_status == 'all'      %}selected{% endif %}>All</option>
+              </select>
+            </form>
           </div>
 
           <div class="tutor-card-body">
@@ -340,7 +521,7 @@
               {% endfor %}
             {% else %}
               <p style="font-size:13px;color:#999999;margin-top:4px;">
-                You don’t have any pending session requests right now.
+                You don’t have any session requests matching this filter.
               </p>
             {% endif %}
           </div>
@@ -355,6 +536,21 @@
                 Sessions you have scheduled with your students.
               </div>
             </div>
+
+            <form method="get"
+                  action="{{ url_for('tutor_dashboard') }}"
+                  class="tutor-filter-row">
+              {# Preserve current status filter when changing date range #}
+              <input type="hidden" name="req_status" value="{{ req_status }}">
+              <span class="tutor-filter-label">Showing:</span>
+              <select name="upcoming_range"
+                      class="tutor-filter-select"
+                      onchange="this.form.submit()">
+                <option value="7"   {% if upcoming_range == '7'   %}selected{% endif %}>Next 7 days</option>
+                <option value="30"  {% if upcoming_range == '30'  %}selected{% endif %}>Next 30 days</option>
+                <option value="all" {% if upcoming_range == 'all' %}selected{% endif %}>All upcoming</option>
+              </select>
+            </form>
           </div>
 
           <div class="tutor-card-body">
@@ -401,14 +597,14 @@
               {% endfor %}
             {% else %}
               <p style="font-size:13px;color:#999999;margin-top:4px;">
-                You don’t have any upcoming sessions yet.
+                You don’t have any upcoming sessions for this range.
               </p>
             {% endif %}
           </div>
         </section>
 
         <!-- Messages -->
-        <section class="tutor-card">
+        <section class="tutor-card tutor-messages-card">
           <div class="tutor-card-header">
             <div>
               <div class="tutor-card-title">Messages</div>
@@ -422,40 +618,78 @@
             </a>
           </div>
 
-          <div class="tutor-messages-list">
-            {% if message_threads %}
-              {% for t in message_threads %}
-              <div class="tutor-message-row">
-                <div>
-                  <div class="tutor-message-subject">
-                    {{ t.subject }}
-                  </div>
-                  <div class="tutor-message-preview">
-                    {% set last = t.messages[-1] if t.messages else None %}
-                    {% if last %}
-                      {% if last.body|length > 90 %}
-                        {{ last.body[:90] }}…
-                      {% else %}
-                        {{ last.body }}
-                      {% endif %}
-                    {% else %}
-                      No messages yet.
-                    {% endif %}
-                  </div>
-                </div>
-                <div class="tutor-message-meta">
-                  {% if t.last_message_at %}
-                    {{ t.last_message_at.strftime("%b %d, %Y") }}<br>
-                    {{ t.last_message_at.strftime("%I:%M %p") }}
-                  {% endif %}
-                </div>
+          <div class="tutor-card-body">
+            <!-- Tabs row -->
+            <div class="tutor-messages-tabs">
+              <button type="button"
+                      class="tutor-messages-tab is-active"
+                      data-folder="inbox">
+                Inbox
+              </button>
+              <button type="button"
+                      class="tutor-messages-tab"
+                      data-folder="sent">
+                Sent
+              </button>
+            </div>
+
+            <!-- Inbox panel -->
+            <div class="tutor-messages-panel is-active" data-folder="inbox">
+              <div class="tutor-messages-table-head">
+                <div>From / To</div>
+                <div>Subject</div>
+                <div>Status</div>
+                <div>Last updated</div>
               </div>
-              {% endfor %}
-            {% else %}
-              <p style="font-size:13px;color:#999999;">
-                You don’t have any message threads yet.
-              </p>
-            {% endif %}
+
+              {% if message_threads %}
+                <div class="tutor-messages-rows">
+                  {% for t in message_threads %}
+                  <div class="tutor-message-row">
+                    <div class="tutor-message-from">
+                      Student
+                    </div>
+                    <div class="tutor-message-subject">
+                      {{ t.subject }}
+                    </div>
+                    <div>
+                      <span class="tutor-message-status-pill">
+                        —
+                      </span>
+                    </div>
+                    <div class="tutor-message-updated">
+                      {% if t.last_message_at %}
+                        {{ t.last_message_at.strftime("%b %d, %Y") }}
+                        · {{ t.last_message_at.strftime("%I:%M %p") }}
+                      {% else %}
+                        —
+                      {% endif %}
+                    </div>
+                  </div>
+                  {% endfor %}
+                </div>
+                <div class="tutor-messages-pagination" data-folder="inbox"></div>
+              {% else %}
+                <div class="tutor-messages-empty-row">
+                  You don’t have any message threads yet.
+                </div>
+              {% endif %}
+            </div>
+
+            <!-- Sent panel -->
+            <div class="tutor-messages-panel" data-folder="sent">
+              <div class="tutor-messages-table-head">
+                <div>From / To</div>
+                <div>Subject</div>
+                <div>Status</div>
+                <div>Last updated</div>
+              </div>
+
+              {# No real sent data wired yet; separate empty state #}
+              <div class="tutor-messages-empty-row">
+                You don’t have any sent message threads yet.
+              </div>
+            </div>
           </div>
         </section>
       </div>
@@ -505,15 +739,23 @@
           <div class="tutor-card-header">
             <div class="tutor-card-title">Quick Links</div>
           </div>
-          <ul style="list-style:none;padding:0;margin:4px 0 0;font-size:13px;color:#2E0057;">
-            <li style="padding:6px 0;">
-              <a href="{{ url_for('tutor_availability') }}" style="text-decoration:none;color:#2E0057;">
+          <ul class="tutor-quick-links-list">
+            <li class="tutor-quick-links-item">
+              <i class="fa-regular fa-calendar"></i>
+              <a href="{{ url_for('tutor_availability') }}" class="tutor-quick-links-link">
                 Manage Availability
               </a>
             </li>
-            <li style="padding:6px 0;">
-              <a href="#" style="text-decoration:none;color:#2E0057;">
+            <li class="tutor-quick-links-item">
+              <i class="fa-regular fa-clock"></i>
+              <a href="#" class="tutor-quick-links-link">
                 Session History
+              </a>
+            </li>
+            <li class="tutor-quick-links-item">
+              <i class="fa-regular fa-user"></i>
+              <a href="#" class="tutor-quick-links-link">
+                Edit My Profile
               </a>
             </li>
           </ul>
@@ -597,4 +839,84 @@
     </div>
   </div>
 </div>
+
+<script>
+  // Messages card: tab switching + simple client-side pagination (5 rows per page)
+  document.addEventListener("DOMContentLoaded", function () {
+    const PAGE_SIZE = 5;
+    const card = document.querySelector(".tutor-messages-card");
+    if (!card) return;
+
+    const tabs = card.querySelectorAll(".tutor-messages-tab");
+    const panels = card.querySelectorAll(".tutor-messages-panel");
+
+    // Tab click behavior
+    tabs.forEach(tab => {
+      tab.addEventListener("click", () => {
+        const folder = tab.dataset.folder;
+        tabs.forEach(t => t.classList.toggle("is-active", t === tab));
+        panels.forEach(p => {
+          p.classList.toggle("is-active", p.dataset.folder === folder);
+        });
+      });
+    });
+
+    // Pagination for any panel that has rows
+    panels.forEach(panel => {
+      const rowsContainer = panel.querySelector(".tutor-messages-rows");
+      if (!rowsContainer) return;
+
+      const rows = Array.from(rowsContainer.querySelectorAll(".tutor-message-row"));
+      if (rows.length <= PAGE_SIZE) {
+        // No pagination needed; show all
+        rows.forEach(r => { r.style.display = "grid"; });
+        return;
+      }
+
+      const pager = panel.querySelector(".tutor-messages-pagination");
+      if (!pager) return;
+
+      let currentPage = 1;
+      const totalPages = Math.ceil(rows.length / PAGE_SIZE);
+
+      function renderPage(page) {
+        currentPage = page;
+
+        rows.forEach((row, idx) => {
+          const pageIndex = Math.floor(idx / PAGE_SIZE) + 1;
+          row.style.display = (pageIndex === currentPage) ? "grid" : "none";
+        });
+
+        pager.innerHTML = "";
+
+        function makeBtn(label, pageNum, disabled, isActive) {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.textContent = label;
+          btn.className = "tutor-messages-page-btn";
+          if (isActive) btn.classList.add("is-active");
+          if (disabled) btn.disabled = true;
+
+          btn.addEventListener("click", () => {
+            if (!disabled && pageNum !== currentPage) {
+              renderPage(pageNum);
+            }
+          });
+
+          pager.appendChild(btn);
+        }
+
+        makeBtn("Previous", currentPage - 1, currentPage === 1, false);
+
+        for (let p = 1; p <= totalPages; p++) {
+          makeBtn(String(p), p, false, p === currentPage);
+        }
+
+        makeBtn("Next", currentPage + 1, currentPage === totalPages, false);
+      }
+
+      renderPage(1);
+    });
+  });
+</script>
 {% endblock %}
