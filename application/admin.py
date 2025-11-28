@@ -37,15 +37,30 @@ def dashboard():
 
 @bp.get("/applications")
 def list_apps():
+    # Get filter from query parameters
+    status = (request.args.get("status") or "").strip()
+
     with SessionLocal() as db:
-        q = db.query(TutorApplication).order_by(
-            TutorApplication.created_at.desc())
-        status = (request.args.get("status") or "").strip()
+        query = (
+            db.query(TutorApplication)
+            .order_by(TutorApplication.created_at.desc())
+        )
+
+        # Apply status filter if valid
         if status in {"pending", "approved", "rejected"}:
-            q = q.filter(TutorApplication.status == status)
-        apps = q.all()
+            query = query.filter(TutorApplication.status == status)
+
+        applications = query.all()
+
+    # CSRF form (delete / approve / reject buttons)
     form = CSRFOnlyForm()
-    return render_template("admin/apps.html", apps=apps, form=form)
+
+    return render_template(
+        "admin/apps.html",
+        apps=applications,
+        form=form,
+    )
+
 
 
 @bp.post("/applications/<int:app_id>/approve")
