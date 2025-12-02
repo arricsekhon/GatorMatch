@@ -1,0 +1,805 @@
+{# application/templates/student_dashboard.html #}
+{% extends "base.html" %}
+
+{% block title %}Student Dashboard · SFSU Tutors{% endblock %}
+
+{% block content %}
+<style>
+  /* Ensure the full page background (including below content) is the light gray */
+  html, body {
+    background-color: #F7F7FA !important;
+  }
+
+  /* --- Student dashboard layout (same as tutor) --- */
+
+  .student-shell {
+    background-color: #F7F7FA;
+    padding: 32px 0 64px;
+  }
+
+  .student-container {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  .student-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 2.3fr) minmax(0, 1.3fr);
+    gap: 24px;
+    align-items: flex-start;
+  }
+
+  .student-main-col,
+  .student-side-col {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .student-page-header-title {
+    font-size: 28px;
+    color: #2E0057;
+    margin: 0 0 4px;
+  }
+
+  .student-page-header-subtitle {
+    font-size: 14px;
+    color: #666666;
+    margin: 0 0 24px;
+  }
+
+  .student-card {
+    background-color: #ffffff;
+    border-radius: 20px;
+    padding: 20px 24px;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+  }
+
+  .student-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+
+  .student-card-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #2E0057;
+  }
+
+  .student-card-subtitle {
+    font-size: 12px;
+    color: #777777;
+  }
+
+  .student-card-body {
+    margin-top: 4px;
+  }
+
+  .student-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    line-height: 1.4;
+  }
+
+  .student-tag-status-pending {
+    background-color: #FFEFD7;
+    color: #9A5B00;
+  }
+
+  .student-tag-status-confirmed {
+    background-color: #D4F4DD;
+    color: #0F7A2F;
+  }
+
+  .student-tag-status-cancelled {
+    background-color: #FDE2E2;
+    color: #BA1B1B;
+  }
+
+  .student-tag-status-active {
+    background-color: #D4F4DD;
+    color: #0F7A2F;
+  }
+
+  .student-pill-button {
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-size: 13px;
+    border: 1px solid #E1E1E6;
+    background-color: #ffffff;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+  }
+
+  .student-pill-button-primary {
+    background-color: #2E0057;
+    border-color: #2E0057;
+    color: #ffffff;
+  }
+
+  .student-pill-button-danger {
+    background-color: transparent;
+    border-color: #E57373;
+    color: #C0392B;
+  }
+
+  .student-session-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 0;
+    border-top: 1px solid #F0F0F4;
+    gap: 16px;
+  }
+
+  .student-session-row:first-of-type {
+    border-top: none;
+  }
+
+  .student-session-main {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .student-session-title {
+    font-size: 14px;
+    color: #2E0057;
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+
+  .student-session-course {
+    font-size: 13px;
+    color: #555555;
+    margin-bottom: 2px;
+  }
+
+  .student-session-meta {
+    font-size: 12px;
+    color: #777777;
+  }
+
+  .student-tutor-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 999px;
+    background-color: #EEE7FF;
+    color: #5A3BA8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+
+  /* ---------- Messages card styles ---------- */
+
+  .student-messages-card .student-card-body {
+    margin-top: 8px;
+  }
+
+  .student-messages-tabs {
+    display: flex;
+    gap: 24px;
+    margin-top: 4px;
+    border-bottom: 1px solid #F0F0F4;
+  }
+
+  .student-messages-tab {
+    position: relative;
+    padding: 0 0 10px;
+    font-size: 15px;
+    font-weight: 600;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    color: #999999;
+  }
+
+  .student-messages-tab.is-active {
+    color: #2E0057;
+  }
+
+  .student-messages-tab.is-active::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -1px;
+    width: 100%;
+    height: 3px;
+    border-radius: 999px;
+    background: #FACC4A;
+  }
+
+  .student-messages-panel {
+    display: none;
+  }
+
+  .student-messages-panel.is-active {
+    display: block;
+  }
+
+  .student-messages-table-head {
+    display: grid;
+    grid-template-columns: 2.3fr 3fr 2fr 2fr;
+    gap: 16px;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #A0A0B0;
+    padding: 14px 0 6px;
+  }
+
+  .student-messages-rows {
+    border-top: 1px solid #F0F0F4;
+  }
+
+  .student-message-row {
+    display: grid;
+    grid-template-columns: 2.3fr 3fr 2fr 2fr;
+    gap: 16px;
+    padding: 12px 0;
+    border-bottom: 1px solid #F7F7FA;
+    font-size: 13px;
+    color: #333333;
+  }
+
+  .student-message-from {
+    font-weight: 600;
+    color: #2E0057;
+  }
+
+  .student-message-subject {
+    font-size: 13px;
+    color: #2E0057;
+    font-weight: 600;
+  }
+
+  .student-messages-empty-row {
+    padding: 20px 0 6px;
+    font-size: 14px;
+    color: #777777;
+  }
+
+  .student-messages-pagination {
+    display: flex;
+    gap: 6px;
+    justify-content: flex-end;
+    margin-top: 12px;
+  }
+
+  .student-messages-page-btn {
+    min-width: 36px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    border: 1px solid #E0E0E0;
+    background: #FFFFFF;
+    font-size: 13px;
+    cursor: pointer;
+    color: #555555;
+  }
+
+  .student-messages-page-btn:is(:disabled) {
+    opacity: 0.6;
+    cursor: default;
+  }
+
+  .student-messages-page-btn.is-active {
+    background: #2E0057;
+    border-color: #2E0057;
+    color: #FFFFFF;
+  }
+
+  .student-quick-links-list {
+    list-style: none;
+    padding: 0;
+    margin: 4px 0 0;
+    font-size: 14px;
+    color: #2E0057;
+  }
+
+  .student-quick-links-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 0;
+  }
+
+  .student-quick-links-item i {
+    font-size: 18px;
+    color: #2E0057;
+  }
+
+  .student-quick-links-link {
+    text-decoration: none;
+    color: #2E0057;
+  }
+
+  .student-quick-links-link:hover {
+    text-decoration: underline;
+  }
+
+  /* Responsive */
+  @media (max-width: 960px) {
+    .student-layout {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  @media (max-width: 600px) {
+    .student-shell {
+      padding-top: 20px;
+      padding-bottom: 40px;
+    }
+
+    .student-container {
+      padding: 0 16px;
+    }
+
+    .student-card {
+      padding: 16px 16px 18px;
+      border-radius: 18px;
+    }
+
+    .student-page-header-title {
+      font-size: 22px;
+    }
+  }
+</style>
+
+<div class="student-shell">
+  <div class="student-container">
+    <!-- Page header -->
+    <header style="display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:12px;">
+      <div>
+        <h1 class="student-page-header-title">Student Dashboard</h1>
+        <p class="student-page-header-subtitle">
+          View your tutoring sessions, messages, and find new tutors.
+        </p>
+      </div>
+
+      <a href="{{ url_for('search_page') }}"
+         class="student-pill-button student-pill-button-primary"
+         style="box-shadow:0 8px 20px rgba(46,0,87,0.25);">
+        Find a Tutor
+      </a>
+    </header>
+
+    <div class="student-layout">
+      <!-- LEFT COLUMN -->
+      <div class="student-main-col">
+        <!-- Pending Requests -->
+        <section class="student-card">
+          <div class="student-card-header">
+            <div>
+              <div class="student-card-title">Pending Requests</div>
+              <div class="student-card-subtitle">
+                Session requests waiting for tutor approval.
+              </div>
+            </div>
+          </div>
+
+          <div class="student-card-body">
+            {% if pending_requests %}
+              {% for s in pending_requests %}
+              <div class="student-session-row">
+                <div class="student-session-main">
+                  <div class="student-tutor-avatar">
+                    {% if s.tutor and s.tutor.user and s.tutor.user.name %}
+                      {{ s.tutor.user.name.split()[0][0] }}{{ s.tutor.user.name.split()[-1][0] if s.tutor.user.name.split()|length > 1 else "" }}
+                    {% else %}
+                      TU
+                    {% endif %}
+                  </div>
+                  <div style="flex:1 1 auto;min-width:0;">
+                    <div class="student-session-title">
+                      {{ s.tutor.user.name if s.tutor and s.tutor.user else "Tutor" }}
+                    </div>
+                    <div class="student-session-course">
+                      {{ s.course_code if s.course_code else "" }} {{ "· " + s.course_title if s.course_title else "" }}
+                    </div>
+                    <div class="student-session-meta">
+                      {{ s.location_label if s.location_label else "Location TBD" }}
+                      {% if s.start_at %}
+                        · {{ s.start_at.strftime("%a, %b %d") }}
+                        · {{ s.start_at.strftime("%I:%M %p") }}
+                        {% if s.end_at %}– {{ s.end_at.strftime("%I:%M %p") }}{% endif %}
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+
+                <div style="text-align:right;flex-shrink:0;">
+                  <span class="student-tag student-tag-status-pending">Pending</span>
+                  <div style="margin-top:8px;">
+                    <a href="#"
+                       class="student-pill-button student-pill-button-danger"
+                       style="font-size:12px;">
+                      Cancel request
+                    </a>
+                  </div>
+                </div>
+              </div>
+              {% endfor %}
+            {% else %}
+              <p style="font-size:13px;color:#999999;margin-top:4px;">
+                You don't have any pending session requests.
+              </p>
+            {% endif %}
+          </div>
+        </section>
+
+        <!-- Upcoming Tutoring Sessions -->
+        <section class="student-card">
+          <div class="student-card-header">
+            <div>
+              <div class="student-card-title">My Upcoming Sessions</div>
+              <div class="student-card-subtitle">
+                Confirmed tutoring sessions with your tutors.
+              </div>
+            </div>
+          </div>
+
+          <div class="student-card-body">
+            {% if upcoming_sessions %}
+              {% for s in upcoming_sessions %}
+              <div class="student-session-row">
+                <div class="student-session-main">
+                  <div class="student-tutor-avatar">
+                    {% if s.tutor and s.tutor.user and s.tutor.user.name %}
+                      {{ s.tutor.user.name.split()[0][0] }}{{ s.tutor.user.name.split()[-1][0] if s.tutor.user.name.split()|length > 1 else "" }}
+                    {% else %}
+                      TU
+                    {% endif %}
+                  </div>
+                  <div style="flex:1 1 auto;min-width:0;">
+                    <div class="student-session-title">
+                      {{ s.course_code if s.course_code else "" }} {{ "· " + s.course_title if s.course_title else "" }}
+                    </div>
+                    <div class="student-session-course">
+                      with {{ s.tutor.user.name if s.tutor and s.tutor.user else "Tutor" }}
+                    </div>
+                    <div class="student-session-meta">
+                      {{ s.location_label if s.location_label else "Location TBD" }}
+                      {% if s.start_at %}
+                        · {{ s.start_at.strftime("%a, %b %d") }}
+                        · {{ s.start_at.strftime("%I:%M %p") }}
+                        {% if s.end_at %}– {{ s.end_at.strftime("%I:%M %p") }}{% endif %}
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+                <div style="text-align:right;flex-shrink:0;">
+                  {% if s.status in ("confirmed", "approved") %}
+                    <span class="student-tag student-tag-status-confirmed">Confirmed</span>
+                  {% elif s.status == "pending" %}
+                    <span class="student-tag student-tag-status-pending">Pending</span>
+                  {% elif s.status in ("cancelled", "denied") %}
+                    <span class="student-tag student-tag-status-cancelled">Cancelled</span>
+                  {% endif %}
+                  {% if s.meeting_url %}
+                  <div style="margin-top:8px;">
+                    <a href="{{ s.meeting_url }}" target="_blank" rel="noopener"
+                       class="student-pill-button student-pill-button-primary"
+                       style="font-size:12px;">
+                      Join Meeting
+                    </a>
+                  </div>
+                  {% endif %}
+                </div>
+              </div>
+              {% endfor %}
+            {% else %}
+              <p style="font-size:13px;color:#999999;margin-top:4px;">
+                You don't have any upcoming sessions. <a href="{{ url_for('search_page') }}" style="color:#2E0057;">Find a tutor</a> to get started!
+              </p>
+            {% endif %}
+          </div>
+        </section>
+
+        <!-- Messages -->
+        <section class="student-card student-messages-card">
+          <div class="student-card-header">
+            <div>
+              <div class="student-card-title">Messages</div>
+              <div class="student-card-subtitle">
+                Communicate with your tutors about sessions.
+              </div>
+            </div>
+            <a href="#"
+               style="font-size:12px;color:#2E0057;text-decoration:underline;">
+              View all
+            </a>
+          </div>
+
+          <div class="student-card-body">
+            <!-- Tabs row -->
+            <div class="student-messages-tabs">
+              <button type="button"
+                      class="student-messages-tab is-active"
+                      data-folder="inbox">
+                Inbox
+              </button>
+              <button type="button"
+                      class="student-messages-tab"
+                      data-folder="sent">
+                Sent
+              </button>
+            </div>
+
+            <!-- Inbox panel -->
+            <div class="student-messages-panel is-active" data-folder="inbox">
+              <div class="student-messages-table-head">
+                <div>From / To</div>
+                <div>Subject</div>
+                <div>Status</div>
+                <div>Last updated</div>
+              </div>
+
+              {% if message_threads %}
+                <div class="student-messages-rows">
+                  {% for t in message_threads %}
+                  <div class="student-message-row">
+                    <div class="student-message-from">
+                      {{ t.tutor.user.name if t.tutor and t.tutor.user else "Tutor" }}
+                    </div>
+                    <div class="student-message-subject">
+                      {{ t.subject if t.subject else "No subject" }}
+                    </div>
+                    <div>
+                      <span style="display:inline-flex;align-items:center;padding:4px 10px;border-radius:999px;font-size:12px;background:#EEE7FF;color:#5A3BA8;">
+                        —
+                      </span>
+                    </div>
+                    <div style="font-size:12px;color:#777777;">
+                      {% if t.last_message_at %}
+                        {{ t.last_message_at.strftime("%b %d, %Y") }}
+                        · {{ t.last_message_at.strftime("%I:%M %p") }}
+                      {% else %}
+                        —
+                      {% endif %}
+                    </div>
+                  </div>
+                  {% endfor %}
+                </div>
+                <div class="student-messages-pagination" data-folder="inbox"></div>
+              {% else %}
+                <div class="student-messages-empty-row">
+                  You don't have any messages yet.
+                </div>
+              {% endif %}
+            </div>
+
+            <!-- Sent panel -->
+            <div class="student-messages-panel" data-folder="sent">
+              <div class="student-messages-table-head">
+                <div>From / To</div>
+                <div>Subject</div>
+                <div>Status</div>
+                <div>Last updated</div>
+              </div>
+
+              <div class="student-messages-empty-row">
+                You haven't sent any messages yet.
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- RIGHT COLUMN -->
+      <aside class="student-side-col">
+        <!-- Next Session -->
+        <section class="student-card">
+          <div class="student-card-header">
+            <div class="student-card-title">Next Session</div>
+          </div>
+          <div class="student-card-body">
+            {% if next_session %}
+              <p style="font-size:14px;font-weight:600;color:#2E0057;margin-bottom:4px;">
+                {{ next_session.course_code if next_session.course_code else "" }} {{ "· " + next_session.course_title if next_session.course_title else "" }}
+              </p>
+              <p style="font-size:13px;color:#555555;margin-bottom:4px;">
+                With {{ next_session.tutor.user.name if next_session.tutor and next_session.tutor.user else "Tutor" }}
+              </p>
+              {% if next_session.start_at %}
+              <p style="font-size:12px;color:#777777;margin-bottom:4px;">
+                {{ next_session.start_at.strftime("%a, %b %d") }}
+                · {{ next_session.start_at.strftime("%I:%M %p") }}
+                {% if next_session.end_at %}– {{ next_session.end_at.strftime("%I:%M %p") }}{% endif %}
+              </p>
+              {% endif %}
+              <p style="font-size:12px;color:#777777;margin-bottom:8px;">
+                {{ next_session.location_label if next_session.location_label else "" }}
+              </p>
+              {% if next_session.meeting_url %}
+              <a href="{{ next_session.meeting_url }}" target="_blank" rel="noopener"
+                 class="student-pill-button student-pill-button-primary"
+                 style="margin-top:4px;">
+                Join Meeting
+              </a>
+              {% endif %}
+            {% else %}
+              <p style="font-size:13px;color:#999999;">
+                You don't have any upcoming sessions scheduled.
+              </p>
+              <a href="{{ url_for('search_page') }}"
+                 class="student-pill-button"
+                 style="margin-top:8px;border-color:#2E0057;color:#2E0057;">
+                Find a Tutor
+              </a>
+            {% endif %}
+          </div>
+        </section>
+
+        <!-- Quick Links -->
+        <section class="student-card">
+          <div class="student-card-header">
+            <div class="student-card-title">Quick Links</div>
+          </div>
+          <ul class="student-quick-links-list">
+            <li class="student-quick-links-item">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <a href="{{ url_for('search_page') }}" class="student-quick-links-link">
+                Find a Tutor
+              </a>
+            </li>
+            <li class="student-quick-links-item">
+              <i class="fa-regular fa-clock"></i>
+              <a href="#" class="student-quick-links-link">
+                Session History
+              </a>
+            </li>
+            <li class="student-quick-links-item">
+              <i class="fa-regular fa-user"></i>
+              <a href="#" class="student-quick-links-link">
+                Edit My Profile
+              </a>
+            </li>
+            <li class="student-quick-links-item">
+              <i class="fa-solid fa-chalkboard-user"></i>
+              <a href="{{ url_for('become_tutor') }}" class="student-quick-links-link">
+                Become a Tutor
+              </a>
+            </li>
+          </ul>
+        </section>
+
+        <!-- My Tutors -->
+        <section class="student-card">
+          <div class="student-card-header">
+            <div class="student-card-title">My Tutors</div>
+          </div>
+          <div class="student-card-body">
+            {% if my_tutors %}
+              {% for t in my_tutors %}
+              <div class="student-session-row" style="padding:8px 0;">
+                <div class="student-session-main">
+                  <div class="student-tutor-avatar">
+                    {% if t.user and t.user.name %}
+                      {{ t.user.name.split()[0][0] }}{{ t.user.name.split()[-1][0] if t.user.name.split()|length > 1 else "" }}
+                    {% else %}
+                      TU
+                    {% endif %}
+                  </div>
+                  <div>
+                    <div class="student-session-title">{{ t.user.name if t.user else "Tutor" }}</div>
+                    <div class="student-session-meta">{{ t.headline if t.headline else "" }}</div>
+                  </div>
+                </div>
+                <div style="flex-shrink:0;">
+                  <a href="{{ url_for('tutor_profile', slug=t.slug) }}"
+                     class="student-pill-button"
+                     style="font-size:11px;padding:4px 10px;">
+                    View
+                  </a>
+                </div>
+              </div>
+              {% endfor %}
+            {% else %}
+              <p style="font-size:13px;color:#999999;">
+                You haven't worked with any tutors yet.
+              </p>
+              <a href="{{ url_for('search_page') }}"
+                 class="student-pill-button"
+                 style="margin-top:8px;width:100%;text-align:center;border-color:#2E0057;color:#2E0057;">
+                Find a Tutor
+              </a>
+            {% endif %}
+          </div>
+        </section>
+      </aside>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Messages card: tab switching + simple client-side pagination (5 rows per page)
+  document.addEventListener("DOMContentLoaded", function () {
+    const PAGE_SIZE = 5;
+    const card = document.querySelector(".student-messages-card");
+    if (!card) return;
+
+    const tabs = card.querySelectorAll(".student-messages-tab");
+    const panels = card.querySelectorAll(".student-messages-panel");
+
+    // Tab click behavior
+    tabs.forEach(tab => {
+      tab.addEventListener("click", () => {
+        const folder = tab.dataset.folder;
+        tabs.forEach(t => t.classList.toggle("is-active", t === tab));
+        panels.forEach(p => {
+          p.classList.toggle("is-active", p.dataset.folder === folder);
+        });
+      });
+    });
+
+    // Pagination for any panel that has rows
+    panels.forEach(panel => {
+      const rowsContainer = panel.querySelector(".student-messages-rows");
+      if (!rowsContainer) return;
+
+      const rows = Array.from(rowsContainer.querySelectorAll(".student-message-row"));
+      if (rows.length <= PAGE_SIZE) {
+        rows.forEach(r => { r.style.display = "grid"; });
+        return;
+      }
+
+      const pager = panel.querySelector(".student-messages-pagination");
+      if (!pager) return;
+
+      let currentPage = 1;
+      const totalPages = Math.ceil(rows.length / PAGE_SIZE);
+
+      function renderPage(page) {
+        currentPage = page;
+
+        rows.forEach((row, idx) => {
+          const pageIndex = Math.floor(idx / PAGE_SIZE) + 1;
+          row.style.display = (pageIndex === currentPage) ? "grid" : "none";
+        });
+
+        pager.innerHTML = "";
+
+        function makeBtn(label, pageNum, disabled, isActive) {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.textContent = label;
+          btn.className = "student-messages-page-btn";
+          if (isActive) btn.classList.add("is-active");
+          if (disabled) btn.disabled = true;
+
+          btn.addEventListener("click", () => {
+            if (!disabled && pageNum !== currentPage) {
+              renderPage(pageNum);
+            }
+          });
+
+          pager.appendChild(btn);
+        }
+
+        makeBtn("Previous", currentPage - 1, currentPage === 1, false);
+
+        for (let p = 1; p <= totalPages; p++) {
+          makeBtn(String(p), p, false, p === currentPage);
+        }
+
+        makeBtn("Next", currentPage + 1, currentPage === totalPages, false);
+      }
+
+      renderPage(1);
+    });
+  });
+</script>
+{% endblock %}
+

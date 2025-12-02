@@ -836,6 +836,95 @@ def tutor_dashboard():
     )
 
 
+# -------------------- Student Dashboard --------------------
+
+@app.route("/student/dashboard")
+@login_required
+def student_dashboard():
+    """
+    Student dashboard - shows student's tutoring activity.
+
+    Shows:
+      - pending_requests: session requests waiting for tutor approval
+      - upcoming_sessions: future confirmed/approved sessions
+      - next_session: the soonest upcoming session
+      - message_threads: recent message threads with tutors
+      - my_tutors: distinct tutors this student has worked with
+    """
+    now = datetime.utcnow()
+
+    pending_requests = []
+    upcoming_sessions = []
+    next_session = None
+    message_threads = []
+    my_tutors = []
+
+    with SessionLocal() as db:
+        # --- Pending requests (waiting for tutor approval) ---
+        pending_requests = (
+            db.query(Session)
+            .options(joinedload(Session.tutor).joinedload(Tutor.user))
+            .filter(Session.student_id == current_user.id)
+            .filter(Session.status.in_(["pending", "requested"]))
+            .order_by(Session.start_at.asc())
+            .limit(5)
+            .all()
+        )
+
+        # --- Upcoming sessions (confirmed/approved) ---
+        upcoming_sessions = (
+            db.query(Session)
+            .options(joinedload(Session.tutor).joinedload(Tutor.user))
+            .filter(Session.student_id == current_user.id)
+            .filter(Session.status.in_(["approved", "confirmed"]))
+            .filter(Session.start_at >= now)
+            .order_by(Session.start_at.asc())
+            .limit(5)
+            .all()
+        )
+
+        # Next session
+        next_session = upcoming_sessions[0] if upcoming_sessions else None
+
+        # --- Messages with tutors ---
+        message_threads = (
+            db.query(MessageThread)
+            .options(
+                joinedload(MessageThread.messages),
+                joinedload(MessageThread.tutor).joinedload(Tutor.user),
+            )
+            .filter(MessageThread.student_id == current_user.id)
+            .order_by(MessageThread.last_message_at.desc())
+            .limit(50)
+            .all()
+        )
+
+        # --- My Tutors (tutors I've had sessions with) ---
+        tutor_ids_subq = (
+            db.query(Session.tutor_id)
+            .filter(Session.student_id == current_user.id)
+            .distinct()
+            .subquery()
+        )
+
+        my_tutors = (
+            db.query(Tutor)
+            .options(joinedload(Tutor.user))
+            .filter(Tutor.id.in_(tutor_ids_subq))
+            .limit(6)
+            .all()
+        )
+
+    return render_template(
+        "student_dashboard.html",
+        pending_requests=pending_requests,
+        upcoming_sessions=upcoming_sessions,
+        next_session=next_session,
+        message_threads=message_threads,
+        my_tutors=my_tutors,
+    )
+
+
 # -------------------- Edit Tutor Profile (from Dashboard) --------------------
 
 @app.route("/tutor/profile/edit", methods=["GET", "POST"])
