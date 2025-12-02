@@ -13,9 +13,10 @@
 </section>
 
 {% if request.args.get('submitted') %}
-  <div class="sfsu-card" style="margin:16px 0;padding:12px;background:#d4edda;border:none">
-    <p style="color:#155724;margin:0"><strong>Application submitted.</strong> Status: Pending review (24–48 hours). You'll see your listing after approval.</p>
-  </div>
+<div class="sfsu-card" style="margin:16px 0;padding:12px;background:#d4edda;border:none">
+  <p style="color:#155724;margin:0"><strong>Application submitted.</strong> Status: Pending review (24–48 hours). You'll
+    see your listing after approval.</p>
+</div>
 {% endif %}
 
 <section class="section become-tutor-page" id="application" style="padding-top:40px">
@@ -23,7 +24,7 @@
     <!-- Left column: application form -->
     <div>
       <form id="tutor-form" class="sfsu-card" method="post" action="{{ url_for('become_tutor') }}"
-            enctype="multipart/form-data" style="padding:24px;">
+        enctype="multipart/form-data" style="padding:24px;">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
         <!-- Account & Identity (read-only snapshot from current_user) -->
@@ -32,11 +33,13 @@
         <div class="container" style="padding:0;margin:0">
           <div style="margin:12px 0">
             <label class="label">Name</label>
-            <input class="search-wide" value="{{ current_user.name if current_user.is_authenticated else '' }}" readonly>
+            <input class="search-wide" value="{{ current_user.name if current_user.is_authenticated else '' }}"
+              readonly>
           </div>
           <div style="margin:12px 0">
             <label class="label">Email</label>
-            <input class="search-wide" value="{{ current_user.email if current_user.is_authenticated else '' }}" readonly>
+            <input class="search-wide" value="{{ current_user.email if current_user.is_authenticated else '' }}"
+              readonly>
             <p class="tiny muted">SFSU email required.</p>
           </div>
         </div>
@@ -48,8 +51,8 @@
         <div style="margin:12px 0">
           <label class="label" for="headline">Headline</label>
           <input id="headline" name="headline" class="search-wide" maxlength="80"
-                 placeholder="E.g., 'CSC 340 Tutor — Data Structures & Algorithms'"
-                 value="{{ (request.form.get('headline') or '')|e }}">
+            placeholder="E.g., 'CSC 340 Tutor — Data Structures & Algorithms'"
+            value="{{ (request.form.get('headline') or '')|e }}">
           {% for err in form.headline.errors %}<div class="tiny" style="color:#8A1C1C">{{ err }}</div>{% endfor %}
           <p class="tiny muted"><span id="headline-count">0</span>/80 characters</p>
         </div>
@@ -57,7 +60,7 @@
         <div style="margin:12px 0">
           <label class="label" for="bio">Short Bio</label>
           <textarea id="bio" name="bio" class="search-wide" rows="5"
-                    placeholder="Tell students about your experience and teaching style (3–5 sentences)">{{ (request.form.get('bio') or '')|e }}</textarea>
+            placeholder="Tell students about your experience and teaching style (3–5 sentences)">{{ (request.form.get('bio') or '')|e }}</textarea>
           {% for err in form.bio.errors %}<div class="tiny" style="color:#8A1C1C">{{ err }}</div>{% endfor %}
           <p class="tiny muted"><span id="bio-count">0</span> characters</p>
         </div>
@@ -66,19 +69,20 @@
           <label class="label">Meeting Options</label>
           <div class="chips" style="gap:12px">
             <label class="chip">
-              <input type="checkbox" name="meeting_options" value="library"
-                     {% if 'library' in (form.meeting_options.data or []) %}checked{% endif %}> In-person — SFSU Library
+              <input type="checkbox" name="meeting_options" value="library" {% if 'library' in
+                (form.meeting_options.data or []) %}checked{% endif %}> In-person — SFSU Library
             </label>
             <label class="chip">
-              <input type="checkbox" name="meeting_options" value="mashouf"
-                     {% if 'mashouf' in (form.meeting_options.data or []) %}checked{% endif %}> In-person — Mashouf
+              <input type="checkbox" name="meeting_options" value="mashouf" {% if 'mashouf' in
+                (form.meeting_options.data or []) %}checked{% endif %}> In-person — Mashouf
             </label>
             <label class="chip">
-              <input type="checkbox" name="meeting_options" value="zoom"
-                     {% if 'zoom' in (form.meeting_options.data or []) %}checked{% endif %}> Zoom (remote)
+              <input type="checkbox" name="meeting_options" value="zoom" {% if 'zoom' in (form.meeting_options.data or
+                []) %}checked{% endif %}> Zoom (remote)
             </label>
           </div>
-          {% for err in form.meeting_options.errors %}<div class="tiny" style="color:#8A1C1C">{{ err }}</div>{% endfor %}
+          {% for err in form.meeting_options.errors %}<div class="tiny" style="color:#8A1C1C">{{ err }}</div>{% endfor
+          %}
         </div>
 
         <!-- Courses -->
@@ -89,28 +93,32 @@
           <div style="display:flex;gap:8px;align-items:center;margin:12px 0">
             <select id="course-select" class="select" style="flex:1">
               <option value="">Select a course...</option>
-              <option>CSC 210</option><option>CSC 220</option><option>CSC 230</option>
-              <option>CSC 256</option><option>CSC 300</option><option>CSC 340</option>
-              <option>CSC 413</option><option>CSC 648</option><option>CSC 690</option>
-              <option>CSC 848</option><option>MATH 226</option><option>MATH 227</option>
-              <option>PHYS 220</option><option>PHYS 222</option>
+              <option>CSC 210</option>
+              <option>CSC 220</option>
+              <option>CSC 230</option>
+              <option>CSC 256</option>
+              <option>CSC 300</option>
+              <option>CSC 340</option>
+              <option>CSC 413</option>
+              <option>CSC 648</option>
+              <option>CSC 690</option>
+              <option>CSC 848</option>
+              <option>MATH 226</option>
+              <option>MATH 227</option>
+              <option>PHYS 220</option>
+              <option>PHYS 222</option>
             </select>
             <button type="button" id="btn-add-course" class="btn">Add</button>
           </div>
 
           <div id="course-list" class="chips" style="gap:8px;margin:8px 0"></div>
           <p class="tiny muted">Add each course you've completed with ≥ 90%.</p>
-          <input type="hidden" name="courses_csv" id="courses-csv" value="{{ (request.form.get('courses_csv') or '')|e }}">
+          <input type="hidden" name="courses_csv" id="courses-csv"
+            value="{{ (request.form.get('courses_csv') or '')|e }}">
           {% for err in form.courses_csv.errors %}<div class="tiny" style="color:#8A1C1C">{{ err }}</div>{% endfor %}
         </div>
 
-        <!-- Availability -->
-        <h2 style="margin-top:28px">Availability</h2>
-        <hr class="divider">
-        <div id="availability" class="neum-surface"></div>
-        <p class="tiny muted" style="margin-top:8px">Select 1-hour slots.</p>
-        <input type="hidden" name="availability_json" id="availability-json" value="{{ (request.form.get('availability_json') or '{}')|e }}">
-        {% for err in form.availability_json.errors %}<div class="tiny" style="color:#8A1C1C">{{ err }}</div>{% endfor %}
+
 
         <!-- Verification Documents -->
         <h2 style="margin-top:28px">Verification Documents</h2>
@@ -136,8 +144,8 @@
         <hr class="divider">
 
         <label class="label" style="display:flex;gap:10px;align-items:flex-start">
-          <input id="agree" name="policies" type="checkbox" value="y"
-                 {% if request.form.get('policies') %}checked{% endif %}>
+          <input id="agree" name="policies" type="checkbox" value="y" {% if request.form.get('policies') %}checked{%
+            endif %}>
           <span>I certify that the information provided is accurate and complies with
             <a href="#" class="link">SFSU academic honesty policies</a>.
           </span>
@@ -179,97 +187,166 @@
 <!-- Page-scoped styles -->
 <style>
   /* Base pills + dropzone */
-  .pill{border:1px solid var(--divider);background:#fff;border-radius:999px;padding:6px 12px;font-weight:700;font-size:12px;cursor:pointer}
-  .pill.on{background:var(--purple);color:#fff;border-color:var(--purple)}
-  .dropzone{border:2px dashed var(--divider);border-radius:12px;text-align:center;padding:28px 16px;background:#fff;cursor:pointer}
-  .dropzone.drag{border-color:var(--purple);background:#F7F3FB}
-  .dz-icon{font-size:28px;color:var(--muted);margin-bottom:8px}
-  .hero .btn.outline.gold { color: var(--purple); }
-  .hero .btn.outline.gold:hover { background: var(--gold); color: var(--purple); }
+  .pill {
+    border: 1px solid var(--divider);
+    background: #fff;
+    border-radius: 999px;
+    padding: 6px 12px;
+    font-weight: 700;
+    font-size: 12px;
+    cursor: pointer
+  }
+
+  .pill.on {
+    background: var(--purple);
+    color: #fff;
+    border-color: var(--purple)
+  }
+
+  .dropzone {
+    border: 2px dashed var(--divider);
+    border-radius: 12px;
+    text-align: center;
+    padding: 28px 16px;
+    background: #fff;
+    cursor: pointer
+  }
+
+  .dropzone.drag {
+    border-color: var(--purple);
+    background: #F7F3FB
+  }
+
+  .dz-icon {
+    font-size: 28px;
+    color: var(--muted);
+    margin-bottom: 8px
+  }
+
+  .hero .btn.outline.gold {
+    color: var(--purple);
+  }
+
+  .hero .btn.outline.gold:hover {
+    background: var(--gold);
+    color: var(--purple);
+  }
 
   /* ------- Neumorphic availability (compact) ------- */
-  .become-tutor-page{
-    --neu-bg:#FAFBFC;
-    --neu-dark:#cfd7e3;
-    --neu-light:#ffffff;
-    --neu-text:#2f3a4a;
-    --neu-accent:#4D7CFF;
+  .become-tutor-page {
+    --neu-bg: #FAFBFC;
+    --neu-dark: #cfd7e3;
+    --neu-light: #ffffff;
+    --neu-text: #2f3a4a;
+    --neu-accent: #4D7CFF;
   }
-  .become-tutor-page .neum-surface{
-    background:var(--neu-bg);
-    border-radius:16px;
-    padding:10px 12px;
+
+  .become-tutor-page .neum-surface {
+    background: var(--neu-bg);
+    border-radius: 16px;
+    padding: 10px 12px;
   }
-  .become-tutor-page .avail-row{
-    display:flex;
-    align-items:flex-start;
-    gap:14px;
-    margin:10px 0 16px;
+
+  .become-tutor-page .avail-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    margin: 10px 0 16px;
   }
-  .become-tutor-page .avail-day{
-    width:48px;
-    flex:0 0 48px;
-    font-weight:700;
-    color:var(--neu-text);
-    padding-top:2px;
+
+  .become-tutor-page .avail-day {
+    width: 48px;
+    flex: 0 0 48px;
+    font-weight: 700;
+    color: var(--neu-text);
+    padding-top: 2px;
   }
-  .become-tutor-page .avail-slots{
-    flex:1 1 auto;
-    display:grid;
+
+  .become-tutor-page .avail-slots {
+    flex: 1 1 auto;
+    display: grid;
     grid-template-columns: repeat(5, minmax(88px, 1fr));
-    gap:12px;
+    gap: 12px;
   }
-  .become-tutor-page .pill.hour{
-    display:inline-flex; align-items:center; justify-content:center;
-    height:40px;
-    padding:0 12px;
-    border:0; border-radius:9999px;
-    font-weight:700; font-size:13px; letter-spacing:.01em;
-    color:var(--neu-text);
-    background:var(--neu-bg);
-    box-shadow:6px 6px 12px var(--neu-dark), -6px -6px 12px var(--neu-light);
-    transition:transform .12s ease, box-shadow .12s ease, color .12s ease;
-    cursor:pointer;
+
+  .become-tutor-page .pill.hour {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 40px;
+    padding: 0 12px;
+    border: 0;
+    border-radius: 9999px;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: .01em;
+    color: var(--neu-text);
+    background: var(--neu-bg);
+    box-shadow: 6px 6px 12px var(--neu-dark), -6px -6px 12px var(--neu-light);
+    transition: transform .12s ease, box-shadow .12s ease, color .12s ease;
+    cursor: pointer;
   }
-  .become-tutor-page .pill.hour:hover{
-    transform:translateY(-1px);
-    box-shadow:8px 8px 16px var(--neu-dark), -8px -8px 16px var(--neu-light);
+
+  .become-tutor-page .pill.hour:hover {
+    transform: translateY(-1px);
+    box-shadow: 8px 8px 16px var(--neu-dark), -8px -8px 16px var(--neu-light);
   }
-  .become-tutor-page .pill.hour.on{
-    color:var(--neu-accent);
+
+  .become-tutor-page .pill.hour.on {
+    color: var(--neu-accent);
     box-shadow:
       inset 5px 5px 10px var(--neu-dark),
       inset -5px -5px 10px var(--neu-light),
-      0 0 0 2px rgba(77,124,255,.25);
+      0 0 0 2px rgba(77, 124, 255, .25);
   }
-  .become-tutor-page .pill.hour:active{
-    transform:translateY(0);
-    box-shadow:inset 5px 5px 10px var(--neu-dark), inset -5px -5px 10px var(--neu-light);
-  }
-  .become-tutor-page .pill.hour:focus-visible{ outline:2px solid var(--neu-accent); outline-offset:2px; }
 
-  @media (max-width: 1100px){
-    .become-tutor-page .avail-slots{ grid-template-columns: repeat(4, minmax(90px, 1fr)); }
+  .become-tutor-page .pill.hour:active {
+    transform: translateY(0);
+    box-shadow: inset 5px 5px 10px var(--neu-dark), inset -5px -5px 10px var(--neu-light);
   }
-  @media (max-width: 860px){
-    .become-tutor-page .avail-slots{ grid-template-columns: repeat(3, minmax(90px, 1fr)); }
+
+  .become-tutor-page .pill.hour:focus-visible {
+    outline: 2px solid var(--neu-accent);
+    outline-offset: 2px;
   }
-  @media (max-width: 600px){
-    .become-tutor-page .avail-slots{ grid-template-columns: repeat(2, minmax(90px, 1fr)); }
-    .become-tutor-page .pill.hour{ height:38px; font-size:12.5px; }
+
+  @media (max-width: 1100px) {
+    .become-tutor-page .avail-slots {
+      grid-template-columns: repeat(4, minmax(90px, 1fr));
+    }
+  }
+
+  @media (max-width: 860px) {
+    .become-tutor-page .avail-slots {
+      grid-template-columns: repeat(3, minmax(90px, 1fr));
+    }
+  }
+
+  @media (max-width: 600px) {
+    .become-tutor-page .avail-slots {
+      grid-template-columns: repeat(2, minmax(90px, 1fr));
+    }
+
+    .become-tutor-page .pill.hour {
+      height: 38px;
+      font-size: 12.5px;
+    }
   }
 
   /* ===== Targeted tweak: slightly narrow LEFT column and shrink pills ===== */
   .section.become-tutor-page .member-body {
     max-width: 1180px;
-    grid-template-columns: 670px 360px; /* left a bit narrower; right stays the same */
+    grid-template-columns: 670px 360px;
+    /* left a bit narrower; right stays the same */
     justify-content: center;
   }
+
   @media (max-width: 1200px) {
     .section.become-tutor-page .member-body {
       grid-template-columns: minmax(620px, 1fr) 340px;
     }
   }
+
   @media (max-width: 980px) {
     .section.become-tutor-page .member-body {
       grid-template-columns: 1fr;
@@ -283,16 +360,19 @@
     padding: 0 12px;
     font-size: 12.5px;
   }
+
   .become-tutor-page .avail-slots {
     grid-template-columns: repeat(auto-fill, minmax(108px, 1fr));
     gap: 12px;
   }
+
   @media (max-width: 640px) {
     .become-tutor-page .pill.hour {
       min-width: 100px;
       height: 36px;
       padding: 0 10px;
     }
+
     .become-tutor-page .avail-slots {
       grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
       gap: 10px;
@@ -302,182 +382,182 @@
 
 <!-- Page JS -->
 <script>
-(function () {
-  // --- Simple counters
-  const headline = document.getElementById('headline');
-  const bio = document.getElementById('bio');
-  const setCount = (el, id) => { const n = document.getElementById(id); if (el && n) n.textContent = String(el.value.length); };
-  headline && headline.addEventListener('input', () => setCount(headline, 'headline-count'));
-  bio && bio.addEventListener('input', () => setCount(bio, 'bio-count'));
-  setCount(headline, 'headline-count'); setCount(bio, 'bio-count');
+  (function () {
+    // --- Simple counters
+    const headline = document.getElementById('headline');
+    const bio = document.getElementById('bio');
+    const setCount = (el, id) => { const n = document.getElementById(id); if (el && n) n.textContent = String(el.value.length); };
+    headline && headline.addEventListener('input', () => setCount(headline, 'headline-count'));
+    bio && bio.addEventListener('input', () => setCount(bio, 'bio-count'));
+    setCount(headline, 'headline-count'); setCount(bio, 'bio-count');
 
-  // --- Courses (CSV "CSC 340|A; CSC 210|A-")
-  const courseSelect = document.getElementById('course-select');
-  const addBtn = document.getElementById('btn-add-course');
-  const list = document.getElementById('course-list');
-  const csv = document.getElementById('courses-csv');
-  const picked = new Map();
+    // --- Courses (CSV "CSC 340|A; CSC 210|A-")
+    const courseSelect = document.getElementById('course-select');
+    const addBtn = document.getElementById('btn-add-course');
+    const list = document.getElementById('course-list');
+    const csv = document.getElementById('courses-csv');
+    const picked = new Map();
 
-  function syncCSV() {
-    const parts = [];
-    picked.forEach(v => parts.push(v.code + '|' + (v.grade || 'A')));
-    csv.value = parts.join('; ');
-  }
-  function renderCourses() {
-    list.innerHTML = '';
-    picked.forEach((c) => {
-      const li = document.createElement('span');
-      li.className = 'chip';
-      li.innerHTML = `${c.code}
+    function syncCSV() {
+      const parts = [];
+      picked.forEach(v => parts.push(v.code + '|' + (v.grade || 'A')));
+      csv.value = parts.join('; ');
+    }
+    function renderCourses() {
+      list.innerHTML = '';
+      picked.forEach((c) => {
+        const li = document.createElement('span');
+        li.className = 'chip';
+        li.innerHTML = `${c.code}
         <select class="select tiny" style="height:28px;margin-left:6px">
           <option value="A+">A+</option><option value="A" selected>A</option><option value="A-">A-</option>
         </select>
         <a href="#" class="chip-x" aria-label="Remove">×</a>`;
-      const sel = li.querySelector('select');
-      sel.value = c.grade || 'A';
-      sel.addEventListener('change', (e) => { c.grade = e.target.value; syncCSV(); });
-      li.querySelector('.chip-x').addEventListener('click', (e) => { e.preventDefault(); picked.delete(c.code); renderCourses(); });
-      list.appendChild(li);
-    });
-    syncCSV();
-  }
-  addBtn && addBtn.addEventListener('click', () => {
-    const v = courseSelect.value;
-    if (!v) return;
-    if (!picked.has(v)) { picked.set(v, { code: v, grade: 'A' }); renderCourses(); }
-    courseSelect.value = '';
-  });
-
-  // --- Availability: 1-hour pills (08:00–22:00)
-  const DAYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-  const START_HOUR = 8;
-  const END_HOUR   = 22;  // exclusive
-  const HOURS = Array.from({length: END_HOUR - START_HOUR}, (_, i) => START_HOUR + i);
-
-  const availHost = document.getElementById('availability');
-  const availInput = document.getElementById('availability-json');
-  const avail = {};
-
-  function fmt(h){ return (h < 10 ? '0' + h : '' + h) + ':00'; }
-  function updateAvail(){ availInput.value = JSON.stringify(avail); }
-
-  function addHourRow(day) {
-    const row = document.createElement('div'); row.className = 'avail-row';
-    const label = document.createElement('div'); label.className = 'avail-day'; label.textContent = day;
-    const slots = document.createElement('div'); slots.className = 'avail-slots';
-    row.appendChild(label); row.appendChild(slots);
-
-    HOURS.forEach((hr) => {
-      const key = `${day}-${fmt(hr)}`;
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'pill hour';
-      btn.textContent = fmt(hr);
-      if (avail[key]) btn.classList.add('on');
-      btn.addEventListener('click', () => {
-        avail[key] = !avail[key];
-        btn.classList.toggle('on', !!avail[key]);
-        updateAvail();
+        const sel = li.querySelector('select');
+        sel.value = c.grade || 'A';
+        sel.addEventListener('change', (e) => { c.grade = e.target.value; syncCSV(); });
+        li.querySelector('.chip-x').addEventListener('click', (e) => { e.preventDefault(); picked.delete(c.code); renderCourses(); });
+        list.appendChild(li);
       });
-      slots.appendChild(btn);
+      syncCSV();
+    }
+    addBtn && addBtn.addEventListener('click', () => {
+      const v = courseSelect.value;
+      if (!v) return;
+      if (!picked.has(v)) { picked.set(v, { code: v, grade: 'A' }); renderCourses(); }
+      courseSelect.value = '';
     });
 
-    availHost.appendChild(row);
-  }
+    // --- Availability: 1-hour pills (08:00–22:00)
+    const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const START_HOUR = 8;
+    const END_HOUR = 22;  // exclusive
+    const HOURS = Array.from({ length: END_HOUR - START_HOUR }, (_, i) => START_HOUR + i);
 
-  // --- Restore draft (if any), then render availability
-  const saved = localStorage.getItem('tutor_draft');
-  if (saved) {
-    try {
-      const d = JSON.parse(saved);
-      if (d.headline) headline.value = d.headline;
-      if (d.bio) bio.value = d.bio;
+    const availHost = document.getElementById('availability');
+    const availInput = document.getElementById('availability-json');
+    const avail = {};
 
-      if (Array.isArray(d.meeting)) {
-        document.querySelectorAll('input[name="meeting_options"]').forEach(i => {
-          i.checked = d.meeting.includes(i.value);
+    function fmt(h) { return (h < 10 ? '0' + h : '' + h) + ':00'; }
+    function updateAvail() { availInput.value = JSON.stringify(avail); }
+
+    function addHourRow(day) {
+      const row = document.createElement('div'); row.className = 'avail-row';
+      const label = document.createElement('div'); label.className = 'avail-day'; label.textContent = day;
+      const slots = document.createElement('div'); slots.className = 'avail-slots';
+      row.appendChild(label); row.appendChild(slots);
+
+      HOURS.forEach((hr) => {
+        const key = `${day}-${fmt(hr)}`;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'pill hour';
+        btn.textContent = fmt(hr);
+        if (avail[key]) btn.classList.add('on');
+        btn.addEventListener('click', () => {
+          avail[key] = !avail[key];
+          btn.classList.toggle('on', !!avail[key]);
+          updateAvail();
         });
-      }
+        slots.appendChild(btn);
+      });
 
-      if (d.courses_csv) {
-        d.courses_csv.split(';').map(s => s.trim()).filter(Boolean).forEach(tok => {
-          const [code, grade] = tok.split('|');
-          picked.set(code, { code, grade: grade || 'A' });
-        });
-        renderCourses();
-      }
+      availHost.appendChild(row);
+    }
 
-      if (d.availability_json) {
-        const obj = JSON.parse(d.availability_json);
-        Object.assign(avail, obj || {});
-      }
-    } catch(_e) { /* ignore bad drafts */ }
-  }
+    // --- Restore draft (if any), then render availability
+    const saved = localStorage.getItem('tutor_draft');
+    if (saved) {
+      try {
+        const d = JSON.parse(saved);
+        if (d.headline) headline.value = d.headline;
+        if (d.bio) bio.value = d.bio;
 
-  DAYS.forEach(addHourRow);
-  updateAvail();
+        if (Array.isArray(d.meeting)) {
+          document.querySelectorAll('input[name="meeting_options"]').forEach(i => {
+            i.checked = d.meeting.includes(i.value);
+          });
+        }
 
-  // --- File picker maps to hidden inputs
-  const dz = document.getElementById('dropzone');
-  const listFiles = document.getElementById('file-list');
-  const fileInputs = [
-    document.querySelector('input[name="doc1"]'),
-    document.querySelector('input[name="doc2"]'),
-    document.querySelector('input[name="doc3"]'),
-  ];
-  function showRow(name, sizeText) {
-    const row = document.createElement('div');
-    row.className = 'sfsu-card';
-    row.style.cssText = 'padding:10px;display:flex;align-items:center;gap:10px';
-    row.innerHTML = `<div class="badge">File</div>
+        if (d.courses_csv) {
+          d.courses_csv.split(';').map(s => s.trim()).filter(Boolean).forEach(tok => {
+            const [code, grade] = tok.split('|');
+            picked.set(code, { code, grade: grade || 'A' });
+          });
+          renderCourses();
+        }
+
+        if (d.availability_json) {
+          const obj = JSON.parse(d.availability_json);
+          Object.assign(avail, obj || {});
+        }
+      } catch (_e) { /* ignore bad drafts */ }
+    }
+
+    DAYS.forEach(addHourRow);
+    updateAvail();
+
+    // --- File picker maps to hidden inputs
+    const dz = document.getElementById('dropzone');
+    const listFiles = document.getElementById('file-list');
+    const fileInputs = [
+      document.querySelector('input[name="doc1"]'),
+      document.querySelector('input[name="doc2"]'),
+      document.querySelector('input[name="doc3"]'),
+    ];
+    function showRow(name, sizeText) {
+      const row = document.createElement('div');
+      row.className = 'sfsu-card';
+      row.style.cssText = 'padding:10px;display:flex;align-items:center;gap:10px';
+      row.innerHTML = `<div class="badge">File</div>
       <div style="flex:1 1 auto;min-width:0">
         <div class="small" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${name}</div>
         <div class="tiny muted">${sizeText}</div>
       </div>`;
-    listFiles.appendChild(row);
-  }
-  function formatSize(b){ return b<1024?`${b} B`:b<1048576?`${(b/1024).toFixed(1)} KB`:`${(b/1048576).toFixed(1)} MB`; }
-  function pickFiles() {
-    const picker = document.createElement('input');
-    picker.type = 'file'; picker.accept = '.pdf,.png,.jpg,.jpeg'; picker.multiple = true;
-    picker.onchange = () => {
-      const files = Array.from(picker.files || []);
-      let slot = 0;
-      for (const f of files) {
-        while (slot < fileInputs.length && fileInputs[slot].files?.length) slot++;
-        if (slot >= fileInputs.length) break;
-        try {
-          const dt = new DataTransfer();
-          dt.items.add(f);
-          fileInputs[slot].files = dt.files;
-          showRow(f.name, formatSize(f.size));
-        } catch (_e) { /* ignore */ }
-        slot++;
-      }
-    };
-    picker.click();
-  }
-  dz.addEventListener('click', pickFiles);
-  ['dragenter','dragover'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.add('drag'); }));
-  ['dragleave','drop'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.remove('drag'); }));
-  dz.addEventListener('drop', e => { /* use click-based picker for compatibility */ });
+      listFiles.appendChild(row);
+    }
+    function formatSize(b) { return b < 1024 ? `${b} B` : b < 1048576 ? `${(b / 1024).toFixed(1)} KB` : `${(b / 1048576).toFixed(1)} MB`; }
+    function pickFiles() {
+      const picker = document.createElement('input');
+      picker.type = 'file'; picker.accept = '.pdf,.png,.jpg,.jpeg'; picker.multiple = true;
+      picker.onchange = () => {
+        const files = Array.from(picker.files || []);
+        let slot = 0;
+        for (const f of files) {
+          while (slot < fileInputs.length && fileInputs[slot].files?.length) slot++;
+          if (slot >= fileInputs.length) break;
+          try {
+            const dt = new DataTransfer();
+            dt.items.add(f);
+            fileInputs[slot].files = dt.files;
+            showRow(f.name, formatSize(f.size));
+          } catch (_e) { /* ignore */ }
+          slot++;
+        }
+      };
+      picker.click();
+    }
+    dz.addEventListener('click', pickFiles);
+    ['dragenter', 'dragover'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.add('drag'); }));
+    ['dragleave', 'drop'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.remove('drag'); }));
+    dz.addEventListener('drop', e => { /* use click-based picker for compatibility */ });
 
-  // --- Draft save / clear
-  document.getElementById('btn-draft')?.addEventListener('click', () => {
-    const payload = {
-      headline: headline.value,
-      bio: bio.value,
-      meeting: Array.from(document.querySelectorAll('input[name="meeting_options"]:checked')).map(i => i.value),
-      courses_csv: csv.value,
-      availability_json: availInput.value
-    };
-    localStorage.setItem('tutor_draft', JSON.stringify(payload));
-    alert('Draft saved on this device.');
-  });
-  document.getElementById('btn-clear-draft')?.addEventListener('click', () => {
-    localStorage.removeItem('tutor_draft');
-    alert('Draft cleared on this device.');
-  });
-})();
+    // --- Draft save / clear
+    document.getElementById('btn-draft')?.addEventListener('click', () => {
+      const payload = {
+        headline: headline.value,
+        bio: bio.value,
+        meeting: Array.from(document.querySelectorAll('input[name="meeting_options"]:checked')).map(i => i.value),
+        courses_csv: csv.value,
+        availability_json: availInput.value
+      };
+      localStorage.setItem('tutor_draft', JSON.stringify(payload));
+      alert('Draft saved on this device.');
+    });
+    document.getElementById('btn-clear-draft')?.addEventListener('click', () => {
+      localStorage.removeItem('tutor_draft');
+      alert('Draft cleared on this device.');
+    });
+  })();
 </script>
 {% endblock %}
