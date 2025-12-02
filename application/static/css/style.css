@@ -593,7 +593,7 @@ textarea.form-control {
 
 /* We now rely on the baseline for .search-input/.select.
    Keep any layout-only tweaks here. */
-.sort-wrap { display:flex; align-items:center; gap:8px; }
+.sort-wrap { display:flex; align-items:center; gap:8px; margin-top:8px; }
 .select.full { width:100%; }
 
 .small { font-size:14px; line-height:20px; }
