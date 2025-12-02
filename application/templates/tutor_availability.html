@@ -10,6 +10,15 @@
     background-color: #f7f7fa !important;
   }
 
+  .avail-time-select {
+  /* Optional: make selects look more like your text inputs */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-position: right 10px center;
+  background-repeat: no-repeat;
+}
+
   .avail-shell {
     background: #f7f7fa;
     padding: 32px 0 64px;
@@ -348,6 +357,8 @@
     .avail-page-title {
       font-size: 24px;
     }
+
+    
   }
 </style>
 
@@ -421,26 +432,47 @@
 
                     <div class="avail-time-block">
                       <div>
-                        <div class="avail-field-label">From</div>
-                        <input
-                          type="time"
-                          name="start_time"
-                          class="avail-input"
-                          value="{{ block.start_time.strftime('%H:%M') if block.start_time else '' }}"
-                          required
-                        >
-                      </div>
+  <div class="avail-field-label">From</div>
+  <select
+    name="start_time"
+    class="avail-input avail-time-select"
+    required
+  >
+    {% for h in range(0, 24) %}
+      {% for m in [0, 30] %}
+        {% set value = '%02d:%02d' % (h, m) %}
+        <option
+          value="{{ value }}"
+          {% if block.start_time and block.start_time.strftime('%H:%M') == value %}selected{% endif %}
+        >
+          {{ value }}
+        </option>
+      {% endfor %}
+    {% endfor %}
+  </select>
+</div>
 
-                      <div>
-                        <div class="avail-field-label">To</div>
-                        <input
-                          type="time"
-                          name="end_time"
-                          class="avail-input"
-                          value="{{ block.end_time.strftime('%H:%M') if block.end_time else '' }}"
-                          required
-                        >
-                      </div>
+<div>
+  <div class="avail-field-label">To</div>
+  <select
+    name="end_time"
+    class="avail-input avail-time-select"
+    required
+  >
+    {% for h in range(0, 24) %}
+      {% for m in [0, 30] %}
+        {% set value = '%02d:%02d' % (h, m) %}
+        <option
+          value="{{ value }}"
+          {% if block.end_time and block.end_time.strftime('%H:%M') == value %}selected{% endif %}
+        >
+          {{ value }}
+        </option>
+      {% endfor %}
+    {% endfor %}
+  </select>
+</div>
+
 
                       <div>
                         <div class="avail-field-label">Meeting options</div>
@@ -566,24 +598,37 @@
 
     <div class="avail-time-block">
       <div>
-        <div class="avail-field-label">From</div>
-        <input
-          type="time"
-          name="start_time"
-          class="avail-input"
-          required
-        >
-      </div>
+  <div class="avail-field-label">From</div>
+  <select
+    name="start_time"
+    class="avail-input avail-time-select"
+    required
+  >
+    {% for h in range(0, 24) %}
+      {% for m in [0, 30] %}
+        {% set value = '%02d:%02d' % (h, m) %}
+        <option value="{{ value }}">{{ value }}</option>
+      {% endfor %}
+    {% endfor %}
+  </select>
+</div>
 
-      <div>
-        <div class="avail-field-label">To</div>
-        <input
-          type="time"
-          name="end_time"
-          class="avail-input"
-          required
-        >
-      </div>
+<div>
+  <div class="avail-field-label">To</div>
+  <select
+    name="end_time"
+    class="avail-input avail-time-select"
+    required
+  >
+    {% for h in range(0, 24) %}
+      {% for m in [0, 30] %}
+        {% set value = '%02d:%02d' % (h, m) %}
+        <option value="{{ value }}">{{ value }}</option>
+      {% endfor %}
+    {% endfor %}
+  </select>
+</div>
+
 
       <div>
         <div class="avail-field-label">Meeting options</div>
@@ -701,8 +746,8 @@
 
           // Saved block: submit a delete without HTML validation blocking it.
           // Temporarily remove "required" so the browser doesn't complain.
-          const start = form.querySelector('input[name="start_time"]');
-          const end = form.querySelector('input[name="end_time"]');
+          const start = form.querySelector('select[name="start_time"], input[name="start_time"]');
+          const end = form.querySelector('select[name="end_time"], input[name="end_time"]');
           const removedRequired = [];
 
           [start, end].forEach(function (inp) {
