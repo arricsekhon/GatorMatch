@@ -5,11 +5,6 @@
 <!-- -------------------- Results: header (search + sort) -------------------- -->
 <section class="results-header">
   <form method="get" action="{{ url_for('results_page') }}" class="results-header-row">
-    <!-- Preserve current filters when sorting -->
-    {% if request.args.get('subject') %}<input type="hidden" name="subject" value="{{ request.args.get('subject') }}">{% endif %}
-    {% if request.args.get('course') %}<input type="hidden" name="course" value="{{ request.args.get('course') }}">{% endif %}
-    {% if request.args.get('location') %}<input type="hidden" name="location" value="{{ request.args.get('location') }}">{% endif %}
-    
     <div class="search-wrap" style="position:relative">
       <span class="search-icon" aria-hidden="true">🔎</span>
       <input name="q" value="{{ q }}" type="search" placeholder="software engineering" class="search-input" />
@@ -43,7 +38,7 @@
     <!-- Subject -->
     <div class="filter-section">
       <div class="label small">Subject</div>
-      <select name="subject" id="subject-select" form="filters-form" class="select full" onchange="document.getElementById('filters-form').submit()">
+      <select name="subject" id="subject-select" form="filters-form" class="select full">
         <option value="">All subjects</option>
         {% for subj, cnt in facets.subjects.items() %}
         <option value="{{ subj }}" {{ 'selected' if request.args.get('subject','').upper()==subj }}>
@@ -58,7 +53,7 @@
     <!-- Course Number -->
     <div class="filter-section">
       <div class="label small">Course Number</div>
-      <select name="course" id="course-select" form="filters-form" class="select full" onchange="document.getElementById('filters-form').submit()">
+      <select name="course" id="course-select" form="filters-form" class="select full">
         <option value="">Select course number</option>
         {% for c, cnt in facets.courses.items() %}
         <option value="{{ c }}" data-subject="{{ c.split()[0] }}" {{ 'selected' if request.args.get('course')==c }}>
@@ -88,7 +83,7 @@
           {% endfor %}
         </select>
 
-        <div style="margin-top:16px">
+        <div style="margin-top:8px">
           <button class="btn outline" type="submit">Apply Filters</button>
         </div>
       </form>
@@ -242,8 +237,8 @@
     
     // Add back matching options
     allCourseOptions.forEach(option => {
-      const optionSubject = option.dataset.subject;
-      // Show if no subject selected OR if subject matches
+      const optionSubject = (option.dataset.subject || '').toUpperCase();
+      // Show if no subject selected OR if subject matches (case-insensitive)
       if (!selectedSubject || optionSubject === selectedSubject) {
         const clonedOption = option.cloneNode(true);
         courseSelect.appendChild(clonedOption);
