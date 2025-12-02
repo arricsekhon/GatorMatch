@@ -1,3 +1,4 @@
+# application/app.py
 from __future__ import annotations
 
 import os
@@ -9,7 +10,7 @@ from functools import lru_cache, wraps
 from collections import Counter, OrderedDict
 from math import ceil
 from typing import Iterable
-from datetime import datetime, time, timedelta
+from datetime import datetime, time
 
 from dotenv import load_dotenv
 from flask import (
@@ -42,7 +43,6 @@ from application.models import (
     MessageThread,
     TutorAvailabilityBlock,
 )
-
 Session = TutoringSession
 from application.db import Base, engine, SessionLocal
 from application.admin import bp as admin_bp
@@ -702,7 +702,6 @@ def become_tutor():
 
 # -------------------- Tutor dashboard --------------------
 
-
 @app.route("/tutor/dashboard")
 @login_required
 def tutor_dashboard():
@@ -710,8 +709,8 @@ def tutor_dashboard():
     Tutor dashboard
 
     Shows:
-      - pending_sessions: session requests to approve/deny (with status filter)
-      - upcoming_sessions: future confirmed/approved sessions (with date range filter)
+      - pending_sessions: session requests to approve/deny
+      - upcoming_sessions: future confirmed/approved sessions
       - next_session: the soonest upcoming session
       - message_threads: recent message threads (with latest message)
       - students: distinct students this tutor has met with
@@ -721,27 +720,15 @@ def tutor_dashboard():
     if not getattr(current_user, "is_tutor", False):
         abort(403)
 
-    # ---- Read filters from query string ----
-    req_status = request.args.get("req_status", "pending")
-    upcoming_range = request.args.get("upcoming_range", "7")
-
-    valid_req_status = {"pending", "approved", "denied", "all"}
-    if req_status not in valid_req_status:
-        req_status = "pending"
-
-    valid_ranges = {"7", "30", "all"}
-    if upcoming_range not in valid_ranges:
-        upcoming_range = "7"
-
     now = datetime.utcnow()
 
     # Default empty values so the page still renders even if there is no Tutor row
-    pending_sessions: list[Session] = []
-    upcoming_sessions: list[Session] = []
-    next_session: Session | None = None
-    message_threads: list[MessageThread] = []
-    students: list[User] = []
-    availability_blocks: list[TutorAvailabilityBlock] = []
+    pending_sessions = []
+    upcoming_sessions = []
+    next_session = None
+    message_threads = []
+    students = []
+    availability_blocks = []
 
     with SessionLocal() as db:
         # Find the Tutor row for the logged-in user (may not exist for admins)
@@ -752,48 +739,35 @@ def tutor_dashboard():
             .first()
         )
 
+        # If there *is* a Tutor profile, load all the dashboard data
         if tutor:
-            # Base query for this tutor's sessions
-            base_sessions = (
+            # --- Pending session requests (Session Requests card) ---
+            pending_sessions = (
                 db.query(Session)
                 .options(joinedload(Session.student))
                 .filter(Session.tutor_id == tutor.id)
+                .filter(Session.status.in_(["pending", "requested"]))
+                .order_by(Session.start_at.asc())
+                .limit(5)
+                .all()
             )
 
-            # ---------- Session Requests (filter by status) ----------
-            status_map = {
-                "pending": ["pending", "requested"],
-                "approved": ["approved"],
-                "denied": ["denied"],
-                "all": ["pending", "requested", "approved", "denied"],
-            }
-            requests_q = base_sessions.filter(
-                Session.status.in_(status_map[req_status])
-            )
-
-            pending_sessions = (
-                requests_q.order_by(Session.start_at.asc()).limit(5).all()
-            )
-
-            # ---------- Upcoming sessions (filter by date range) ----------
-            upcoming_q = (
-                base_sessions.filter(
-                    Session.status.in_(["approved", "confirmed"])
-                )
-                .filter(Session.start_at >= now)
-            )
-
-            if upcoming_range in {"7", "30"}:
-                end = now + timedelta(days=int(upcoming_range))
-                upcoming_q = upcoming_q.filter(Session.start_at < end)
-
+            # --- Upcoming sessions (Upcoming Tutoring Sessions card) ---
             upcoming_sessions = (
-                upcoming_q.order_by(Session.start_at.asc()).limit(5).all()
+                db.query(Session)
+                .options(joinedload(Session.student))
+                .filter(Session.tutor_id == tutor.id)
+                .filter(Session.status.in_(["approved", "confirmed"]))
+                .filter(Session.start_at >= now)
+                .order_by(Session.start_at.asc())
+                .limit(5)
+                .all()
             )
 
+            # Next Session card
             next_session = upcoming_sessions[0] if upcoming_sessions else None
 
-            # ---------- Messages (Messages card) ----------
+            # --- Messages (Messages card) ---
             message_threads = (
                 db.query(MessageThread)
                 .options(
@@ -802,11 +776,11 @@ def tutor_dashboard():
                 )
                 .filter(MessageThread.tutor_id == tutor.id)
                 .order_by(MessageThread.last_message_at.desc())
-                .limit(20)  # allow UI to paginate; UI shows 5 per page
+                .limit(50)  # we paginate on the front-end
                 .all()
             )
 
-            # ---------- Your Students (Your Students card) ----------
+            # --- Your Students (Your Students card) ---
             student_ids_subq = (
                 db.query(Session.student_id)
                 .filter(Session.tutor_id == tutor.id)
@@ -822,7 +796,7 @@ def tutor_dashboard():
                 .all()
             )
 
-            # ---------- Availability (Availability card) ----------
+            # --- Availability (Availability card) ---
             availability_blocks = (
                 db.query(TutorAvailabilityBlock)
                 .filter(TutorAvailabilityBlock.tutor_id == tutor.id)
@@ -834,7 +808,7 @@ def tutor_dashboard():
                 .all()
             )
 
-        # If there is no Tutor row (e.g. admin without a tutor profile),
+        # If there is no Tutor row (e.g. admin without a tutor_profile),
         # we just render the dashboard with the default empty data above.
 
     return render_template(
@@ -845,13 +819,75 @@ def tutor_dashboard():
         message_threads=message_threads,
         students=students,
         availability_blocks=availability_blocks,
-        req_status=req_status,
-        upcoming_range=upcoming_range,
     )
 
 
-# -------------------- Tutor Availability --------------------
+# -------------------- Edit Tutor Profile (from Dashboard) --------------------
 
+@app.route("/tutor/profile/edit", methods=["GET", "POST"])
+@login_required
+def edit_tutor_profile():
+    """
+    Allow a tutor to edit *their own* profile (name, headline, bio, avatar).
+
+    Only accessible to logged-in users who are marked as tutors and who have a
+    Tutor row associated with their User account.
+    """
+    if not getattr(current_user, "is_tutor", False):
+        abort(403)
+
+    with SessionLocal() as db:
+        tutor = (
+            db.query(Tutor)
+            .options(joinedload(Tutor.user))
+            .filter(Tutor.user_id == current_user.id)
+            .first()
+        )
+        if not tutor:
+            abort(404)
+
+        if request.method == "POST":
+            name = (request.form.get("name") or "").strip()
+            headline = (request.form.get("headline") or "").strip()
+            bio = (request.form.get("bio") or "").strip()
+
+            # Update basic fields
+            if name and tutor.user:
+                tutor.user.name = name
+            tutor.headline = headline or None
+            tutor.bio = bio or None
+
+            # Avatar upload (optional)
+            avatar_file = request.files.get("avatar")
+            if avatar_file and avatar_file.filename:
+                ext = Path(avatar_file.filename).suffix.lower()
+                if ext in {".png", ".jpg", ".jpeg"}:
+                    avatar_dir = UPLOAD_DIR / "avatars"
+                    ensure_dir(avatar_dir)
+
+                    # Overwrite existing avatar for this tutor
+                    filename = secure_filename(f"tutor-{tutor.id}-avatar{ext}")
+                    avatar_path = avatar_dir / filename
+                    avatar_file.save(str(avatar_path))
+
+                    rel = str(avatar_path.relative_to(STATIC_DIR).as_posix())
+                    # Assumes Tutor has an `avatar_url` string column
+                    tutor.avatar_url = rel
+                else:
+                    flash(
+                        "Please upload a PNG or JPG image for your avatar.",
+                        "danger",
+                    )
+
+            db.commit()
+            flash("Your profile has been updated.", "success")
+            return redirect(url_for("tutor_profile", slug=tutor.slug))
+
+        # GET – render the edit form
+        return render_template("edit_tutor_profile.html", tutor=tutor)
+
+
+# -------------------- Tutor Availability --------------------
 
 @app.route("/tutor/availability", methods=["GET", "POST"])
 @login_required
