@@ -243,11 +243,11 @@
     border: none;
     background: transparent;
     cursor: pointer;
-    color: #999999; /* inactive = gray */
+    color: #999999;
   }
 
   .tutor-messages-tab.is-active {
-    color: #2E0057; /* active = purple */
+    color: #2E0057;
   }
 
   .tutor-messages-tab.is-active::after {
@@ -258,7 +258,7 @@
     width: 100%;
     height: 3px;
     border-radius: 999px;
-    background: #FACC4A; /* gold underline */
+    background: #FACC4A;
   }
 
   .tutor-messages-panel {
@@ -521,7 +521,7 @@
               {% endfor %}
             {% else %}
               <p style="font-size:13px;color:#999999;margin-top:4px;">
-                You don’t have any session requests matching this filter.
+                You don’t have any pending session requests right now.
               </p>
             {% endif %}
           </div>
@@ -537,20 +537,14 @@
               </div>
             </div>
 
-            <form method="get"
-                  action="{{ url_for('tutor_dashboard') }}"
-                  class="tutor-filter-row">
-              {# Preserve current status filter when changing date range #}
-              <input type="hidden" name="req_status" value="{{ req_status }}">
+            <div class="tutor-filter-row">
               <span class="tutor-filter-label">Showing:</span>
-              <select name="upcoming_range"
-                      class="tutor-filter-select"
-                      onchange="this.form.submit()">
-                <option value="7"   {% if upcoming_range == '7'   %}selected{% endif %}>Next 7 days</option>
-                <option value="30"  {% if upcoming_range == '30'  %}selected{% endif %}>Next 30 days</option>
-                <option value="all" {% if upcoming_range == 'all' %}selected{% endif %}>All upcoming</option>
+              <select class="tutor-filter-select" id="upcoming-filter" name="upcoming_filter">
+                <option value="7" selected>Next 7 days</option>
+                <option value="30">Next 30 days</option>
+                <option value="all">All upcoming</option>
               </select>
-            </form>
+            </div>
           </div>
 
           <div class="tutor-card-body">
@@ -597,7 +591,7 @@
               {% endfor %}
             {% else %}
               <p style="font-size:13px;color:#999999;margin-top:4px;">
-                You don’t have any upcoming sessions for this range.
+                You don’t have any upcoming sessions yet.
               </p>
             {% endif %}
           </div>
@@ -685,7 +679,6 @@
                 <div>Last updated</div>
               </div>
 
-              {# No real sent data wired yet; separate empty state #}
               <div class="tutor-messages-empty-row">
                 You don’t have any sent message threads yet.
               </div>
@@ -754,7 +747,7 @@
             </li>
             <li class="tutor-quick-links-item">
               <i class="fa-regular fa-user"></i>
-              <a href="#" class="tutor-quick-links-link">
+              <a href="{{ url_for('edit_tutor_profile') }}" class="tutor-quick-links-link">
                 Edit My Profile
               </a>
             </li>
@@ -868,7 +861,6 @@
 
       const rows = Array.from(rowsContainer.querySelectorAll(".tutor-message-row"));
       if (rows.length <= PAGE_SIZE) {
-        // No pagination needed; show all
         rows.forEach(r => { r.style.display = "grid"; });
         return;
       }
