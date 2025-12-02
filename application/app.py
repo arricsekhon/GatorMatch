@@ -452,17 +452,31 @@ def results_page():
         for c in (t.courses_csv or "").split(";")
         if c.strip()
     )
+    # Filter courses by selected subject (if any)
     course_counts = Counter(
         c.strip()
         for t in tutors
         for c in (t.courses_csv or "").split(";")
-        if c.strip()
+        if c.strip() and (not subject or c.strip().upper().startswith(subject))
     )
+    
+    # Filter locations: only show locations from tutors who match current subject AND course filters
+    def tutor_matches_filters(t, subj, crs):
+        tutor_courses = [c.strip().upper() for c in (t.courses_csv or "").split(";") if c.strip()]
+        # If course is selected, tutor must teach that exact course
+        if crs and crs not in tutor_courses:
+            return False
+        # If only subject is selected, tutor must teach at least one course in that subject
+        if subj and not crs:
+            if not any(c.startswith(subj) for c in tutor_courses):
+                return False
+        return True
+    
     location_counts = Counter(
         m
         for t in tutors
         for m in (t.meeting_options or "").split(",")
-        if m
+        if m and tutor_matches_filters(t, subject, course)
     )
 
     facets = {

@@ -5,6 +5,11 @@
 <!-- -------------------- Results: header (search + sort) -------------------- -->
 <section class="results-header">
   <form method="get" action="{{ url_for('results_page') }}" class="results-header-row">
+    <!-- Preserve current filters when sorting -->
+    {% if request.args.get('subject') %}<input type="hidden" name="subject" value="{{ request.args.get('subject') }}">{% endif %}
+    {% if request.args.get('course') %}<input type="hidden" name="course" value="{{ request.args.get('course') }}">{% endif %}
+    {% if request.args.get('location') %}<input type="hidden" name="location" value="{{ request.args.get('location') }}">{% endif %}
+    
     <div class="search-wrap" style="position:relative">
       <span class="search-icon" aria-hidden="true">🔎</span>
       <input name="q" value="{{ q }}" type="search" placeholder="software engineering" class="search-input" />
@@ -38,7 +43,7 @@
     <!-- Subject -->
     <div class="filter-section">
       <div class="label small">Subject</div>
-      <select name="subject" form="filters-form" class="select full">
+      <select name="subject" id="subject-select" form="filters-form" class="select full" onchange="document.getElementById('filters-form').submit()">
         <option value="">All subjects</option>
         {% for subj, cnt in facets.subjects.items() %}
         <option value="{{ subj }}" {{ 'selected' if request.args.get('subject','').upper()==subj }}>
@@ -53,10 +58,10 @@
     <!-- Course Number -->
     <div class="filter-section">
       <div class="label small">Course Number</div>
-      <select name="course" form="filters-form" class="select full">
+      <select name="course" id="course-select" form="filters-form" class="select full" onchange="document.getElementById('filters-form').submit()">
         <option value="">Select course number</option>
         {% for c, cnt in facets.courses.items() %}
-        <option value="{{ c }}" {{ 'selected' if request.args.get('course')==c }}>
+        <option value="{{ c }}" data-subject="{{ c.split()[0] }}" {{ 'selected' if request.args.get('course')==c }}>
           {{ c }} ({{ cnt }})
         </option>
         {% endfor %}
@@ -83,7 +88,7 @@
           {% endfor %}
         </select>
 
-        <div style="margin-top:8px">
+        <div style="margin-top:16px">
           <button class="btn outline" type="submit">Apply Filters</button>
         </div>
       </form>
@@ -213,5 +218,53 @@
     {% endif %}
   </section>
 </section>
+
+<script>
+(function() {
+  const subjectSelect = document.getElementById('subject-select');
+  const courseSelect = document.getElementById('course-select');
+  
+  if (!subjectSelect || !courseSelect) return;
+  
+  // Store all course options for filtering
+  const allCourseOptions = Array.from(courseSelect.querySelectorAll('option[data-subject]'));
+  const defaultOption = courseSelect.querySelector('option[value=""]');
+  
+  function filterCourses() {
+    const selectedSubject = subjectSelect.value.toUpperCase();
+    const currentCourseValue = courseSelect.value;
+    
+    // Clear all options except the default
+    courseSelect.innerHTML = '';
+    if (defaultOption) {
+      courseSelect.appendChild(defaultOption.cloneNode(true));
+    }
+    
+    // Add back matching options
+    allCourseOptions.forEach(option => {
+      const optionSubject = option.dataset.subject;
+      // Show if no subject selected OR if subject matches
+      if (!selectedSubject || optionSubject === selectedSubject) {
+        const clonedOption = option.cloneNode(true);
+        courseSelect.appendChild(clonedOption);
+      }
+    });
+    
+    // Try to restore previous selection if it's still visible
+    const stillExists = Array.from(courseSelect.options).some(opt => opt.value === currentCourseValue);
+    if (stillExists) {
+      courseSelect.value = currentCourseValue;
+    } else {
+      courseSelect.value = '';
+    }
+  }
+  
+  // Filter on subject change
+  subjectSelect.addEventListener('change', filterCourses);
+  
+  // Apply filter on page load (for when subject is pre-selected)
+  filterCourses();
+})();
+</script>
 
 {% endblock %}

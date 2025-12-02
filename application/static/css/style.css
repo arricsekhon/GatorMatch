@@ -600,11 +600,44 @@ textarea.form-control {
 .tiny { font-size:12px; line-height:18px; }
 .muted { color: var(--muted); }
 
-.results-body { display:grid; grid-template-columns: 280px 1fr; gap:32px; padding: 32px 0 64px; }
-@media (max-width: 900px){ .results-body { grid-template-columns: 1fr; } }
+.results-body { 
+  display: flex; 
+  gap: 32px; 
+  padding: 32px 0 64px;
+  align-items: flex-start;
+}
+@media (max-width: 900px) { 
+  .results-body { 
+    flex-direction: column;
+    align-items: stretch;
+  } 
+}
 
-/* Filter rail */
-.filters { padding:16px; }
+/* Filter rail - fixed width on desktop */
+.filters { 
+  padding: 16px;
+  width: 280px;
+  min-width: 280px;
+  max-width: 280px;
+  flex-shrink: 0;
+  height: fit-content;
+  max-height: calc(100vh - var(--nav-h) - 32px);
+  overflow-y: auto;
+  align-self: flex-start;
+  position: sticky;
+  top: calc(var(--nav-h) + 16px);
+}
+
+@media (max-width: 900px) {
+  .filters {
+    width: 100%;
+    min-width: unset;
+    max-width: 100%;
+    position: static;
+    align-self: stretch;
+    max-height: none;
+  }
+}
 .filters-head { display:flex; align-items:center; justify-content:space-between; }
 .filter-section { margin-top:16px; }
 .label { font-weight:600; color:var(--text); margin-bottom:8px; }
@@ -613,7 +646,10 @@ textarea.form-control {
 .divider { height:1px; background:var(--divider); border:0; margin:16px 0 0; }
 
 /* Summary row + chips */
-.results-col { min-width:0; }
+.results-col { 
+  min-width: 0; 
+  flex: 1;
+}
 .summary-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
 .chips { display:flex; flex-wrap:wrap; gap:8px; }
 .chip {
