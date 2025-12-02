@@ -367,12 +367,83 @@ def tutor_profile(slug: str):
             if m.strip()
         ]
 
+        # Get today's date for the form
+        today = datetime.now().strftime("%Y-%m-%d")
+
         return render_template(
             "tutor_profile.html",
             tutor=tutor,
             courses=courses,
             meeting_options=meeting_options,
+            today=today,
         )
+
+
+@app.route("/tutors/<tutor_slug>/request", methods=["POST"])
+@login_required
+def request_session(tutor_slug: str):
+    """Handle session request from student to tutor."""
+    with SessionLocal() as db:
+        # Find the tutor
+        tutor = (
+            db.query(Tutor)
+            .options(joinedload(Tutor.user))
+            .filter(Tutor.slug == tutor_slug)
+            .filter(Tutor.is_active == 1)
+            .first()
+        )
+
+        if not tutor:
+            abort(404)
+
+        # Get form data
+        course = (request.form.get("course") or "").strip()
+        date_str = (request.form.get("date") or "").strip()
+        start_time_str = (request.form.get("start_time") or "").strip()
+        end_time_str = (request.form.get("end_time") or "").strip()
+        location = (request.form.get("location") or "").strip()
+        message = (request.form.get("message") or "").strip()
+
+        # Validate required fields
+        if not all([course, date_str, start_time_str, end_time_str, location]):
+            flash("Please fill in all required fields.", "danger")
+            return redirect(url_for("tutor_profile", slug=tutor_slug) + "#contact")
+
+        # Parse date and times
+        try:
+            session_date = datetime.strptime(date_str, "%Y-%m-%d").date()
+            start_time = datetime.strptime(start_time_str, "%H:%M").time()
+            end_time = datetime.strptime(end_time_str, "%H:%M").time()
+            
+            start_at = datetime.combine(session_date, start_time)
+            end_at = datetime.combine(session_date, end_time)
+        except ValueError:
+            flash("Invalid date or time format.", "danger")
+            return redirect(url_for("tutor_profile", slug=tutor_slug) + "#contact")
+
+        # Validate times
+        if end_at <= start_at:
+            flash("End time must be after start time.", "danger")
+            return redirect(url_for("tutor_profile", slug=tutor_slug) + "#contact")
+
+        # Create the session request
+        session_request = Session(
+            tutor_id=tutor.id,
+            student_id=current_user.id,
+            course_code=course.split()[0] if " " in course else course,
+            course_title=course,
+            location_type=location.lower().replace("-", "_").replace(" ", "_"),
+            location_label=location,
+            start_at=start_at,
+            end_at=end_at,
+            status="pending",
+            requested_by="student",
+        )
+        db.add(session_request)
+        db.commit()
+
+        flash("Session request sent! The tutor will review your request.", "success")
+        return redirect(url_for("tutor_profile", slug=tutor_slug, requested=1) + "#contact")
 
 
 @app.route("/results")

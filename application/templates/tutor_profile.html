@@ -86,24 +86,90 @@
     </div>
     {% endif %}
 
-    <!-- Contact Section -->
+    <!-- Request Session Section -->
     <div class="tutor-card" id="contact">
-      <h2 class="tutor-section-title">Contact</h2>
+      <h2 class="tutor-section-title">Request a Session</h2>
 
-      {% if request.args.get('sent') %}
+      {% if request.args.get('requested') %}
       <div class="alert-success">
-        ✓ Message sent successfully! The tutor will receive your message.
+        ✓ Session request sent! The tutor will review and respond to your request.
       </div>
       {% endif %}
 
       {% if current_user.is_authenticated %}
-      <p class="tutor-contact-desc">
-        Ready to start your tutoring session? Click the button below to begin chatting.
+      <p class="tutor-contact-desc" style="margin-bottom:16px;">
+        Fill out the form below to request a tutoring session with {{ tutor.user.name.split()[0] }}.
       </p>
-      <a href="#contact" class="btn btn-primary btn-large">Start Chat</a>
+      
+      <form method="post" action="{{ url_for('request_session', tutor_slug=tutor.slug) }}" class="session-request-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        
+        <!-- Course Selection -->
+        <div class="form-group" style="margin-bottom:12px;">
+          <label class="form-label" style="font-size:13px;font-weight:600;color:#2E0057;display:block;margin-bottom:4px;">
+            Course *
+          </label>
+          <select name="course" required class="form-control" style="width:100%;padding:10px 12px;border:1px solid #E0E0E0;border-radius:8px;font-size:14px;">
+            <option value="">Select a course</option>
+            {% for course in courses %}
+            <option value="{{ course }}">{{ course }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- Date Selection -->
+        <div class="form-group" style="margin-bottom:12px;">
+          <label class="form-label" style="font-size:13px;font-weight:600;color:#2E0057;display:block;margin-bottom:4px;">
+            Preferred Date *
+          </label>
+          <input type="date" name="date" required class="form-control" 
+                 min="{{ today }}"
+                 style="width:100%;padding:10px 12px;border:1px solid #E0E0E0;border-radius:8px;font-size:14px;">
+        </div>
+
+        <!-- Time Selection -->
+        <div class="form-group" style="margin-bottom:12px;">
+          <label class="form-label" style="font-size:13px;font-weight:600;color:#2E0057;display:block;margin-bottom:4px;">
+            Preferred Time *
+          </label>
+          <div style="display:flex;gap:8px;">
+            <input type="time" name="start_time" required class="form-control" 
+                   style="flex:1;padding:10px 12px;border:1px solid #E0E0E0;border-radius:8px;font-size:14px;">
+            <span style="align-self:center;color:#666;">to</span>
+            <input type="time" name="end_time" required class="form-control" 
+                   style="flex:1;padding:10px 12px;border:1px solid #E0E0E0;border-radius:8px;font-size:14px;">
+          </div>
+        </div>
+
+        <!-- Location Selection -->
+        <div class="form-group" style="margin-bottom:12px;">
+          <label class="form-label" style="font-size:13px;font-weight:600;color:#2E0057;display:block;margin-bottom:4px;">
+            Location *
+          </label>
+          <select name="location" required class="form-control" style="width:100%;padding:10px 12px;border:1px solid #E0E0E0;border-radius:8px;font-size:14px;">
+            <option value="">Select location</option>
+            {% for option in meeting_options %}
+            <option value="{{ option }}">{{ option }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- Message (Optional) -->
+        <div class="form-group" style="margin-bottom:16px;">
+          <label class="form-label" style="font-size:13px;font-weight:600;color:#2E0057;display:block;margin-bottom:4px;">
+            Message (optional)
+          </label>
+          <textarea name="message" rows="3" class="form-control" placeholder="Any specific topics you'd like to cover?"
+                    style="width:100%;padding:10px 12px;border:1px solid #E0E0E0;border-radius:8px;font-size:14px;resize:vertical;"></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-large" style="width:100%;">
+          Send Request
+        </button>
+      </form>
       {% else %}
       <div class="alert-info">
-        Please <a href="{{ url_for('login', next=request.path) }}">log in</a> to contact this tutor.
+        Please <a href="{{ url_for('login', next=request.path) }}">log in</a> to request a session with this tutor.
       </div>
       {% endif %}
     </div>
@@ -114,7 +180,7 @@
 <section class="tutor-bottom-actions">
   <div class="tutor-actions-centered">
     <a href="{{ url_for('results_page') }}" class="btn btn-outline btn-action">← Back to Search</a>
-    <a href="#contact" class="btn btn-primary btn-action">Chat Now</a>
+    <a href="#contact" class="btn btn-primary btn-action">Request Session</a>
   </div>
 </section>
 
