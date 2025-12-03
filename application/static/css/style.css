@@ -270,9 +270,10 @@ textarea.form-control {
     padding: 0 16px;
   }
   
-  body {
+  /* Old fixed nav padding - disabled for new navbar */
+  /* body {
     padding-top: calc(var(--banner-h) + var(--nav-h));
-  }
+  } */
   
   .mobile-menu-btn {
     display: flex;

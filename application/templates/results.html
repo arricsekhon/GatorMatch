@@ -15,6 +15,7 @@
     min-height: 100vh;
     background: linear-gradient(180deg, #f8f9ff 0%, #ffffff 100%);
     width: 100%;
+    overflow-x: hidden;
   }
 
   /* Hero Search Header */
@@ -604,8 +605,25 @@
   .results-pagination {
     display: flex;
     justify-content: center;
+    align-items: center;
     gap: 8px;
     margin-top: 32px;
+  }
+
+  .page-numbers-desktop {
+    display: flex;
+    gap: 8px;
+  }
+
+  .page-numbers-mobile {
+    display: none;
+  }
+
+  .page-indicator {
+    font-size: 16px;
+    font-weight: 700;
+    color: #2E0854;
+    padding: 0 16px;
   }
 
   .page-link {
@@ -622,6 +640,11 @@
     font-weight: 600;
     text-decoration: none;
     transition: all 0.2s;
+  }
+
+  .page-link.page-arrow {
+    min-width: 48px;
+    font-size: 18px;
   }
 
   .page-link:hover {
@@ -726,34 +749,190 @@
 
   @media (max-width: 640px) {
     .results-hero {
-      padding: 32px 20px 40px;
+      padding: 24px 16px 32px;
+    }
+
+    .results-hero-content {
+      padding: 0;
     }
 
     .results-hero h1 {
-      font-size: 24px;
+      font-size: 22px;
+    }
+
+    .results-hero-subtitle {
+      font-size: 14px;
+    }
+
+    .search-form-row {
+      flex-direction: column;
+      gap: 12px;
     }
 
     .search-input-wrap {
       min-width: 100%;
+      width: 100%;
+    }
+
+    .sort-select-wrap {
+      width: 100%;
+      justify-content: space-between;
+    }
+
+    .results-main {
+      padding: 20px 12px 40px;
+    }
+
+    .results-column {
+      width: 100%;
+    }
+
+    .tutor-result-card {
+      padding: 16px;
+      border-radius: 16px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .tutor-card-header {
+      flex-direction: column;
+      gap: 12px;
     }
 
     .tutor-avatar {
       width: 60px;
       height: 60px;
+      border-radius: 12px;
+    }
+
+    .tutor-avatar-fallback {
+      font-size: 22px;
+    }
+
+    .tutor-info {
+      width: 100%;
+    }
+
+    .tutor-name-row {
+      gap: 8px;
     }
 
     .tutor-result-name {
       font-size: 18px;
     }
 
-    .tutor-actions {
+    .verified-badge {
+      font-size: 10px;
+      padding: 3px 8px;
+    }
+
+    .tutor-headline-text {
+      font-size: 14px;
+    }
+
+    .tutor-bio {
+      font-size: 13px;
+    }
+
+    .tutor-rating-box {
+      width: 100%;
+      min-width: unset;
+      display: flex;
       flex-wrap: wrap;
+      align-items: center;
+      gap: 8px 16px;
+      text-align: left;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid #f0f0f5;
+    }
+
+    .rating-display {
+      justify-content: flex-start;
+      margin-bottom: 0;
+    }
+
+    .rating-count {
+      font-size: 13px;
+    }
+
+    .tutoring-hours {
+      justify-content: flex-start;
+    }
+
+    .tutor-tags {
+      margin: 12px 0;
+      padding-top: 12px;
+      gap: 6px;
+    }
+
+    .course-tag,
+    .location-tag {
+      font-size: 12px;
+      padding: 5px 10px;
+    }
+
+    .tutor-actions {
+      flex-direction: column;
+      gap: 10px;
     }
 
     .view-profile-btn,
     .contact-btn {
-      flex: 1;
-      min-width: 140px;
+      width: 100%;
+      padding: 12px 20px;
+      font-size: 14px;
+    }
+
+    .results-pagination {
+      gap: 12px;
+    }
+
+    .page-numbers-desktop {
+      display: none;
+    }
+
+    .page-numbers-mobile {
+      display: block;
+    }
+
+    .page-indicator {
+      font-size: 15px;
+      padding: 0 12px;
+    }
+
+    .page-link {
+      min-width: 44px;
+      height: 44px;
+      padding: 0;
+      font-size: 16px;
+    }
+
+    .page-link.page-arrow {
+      min-width: 44px;
+      font-size: 20px;
+      background: linear-gradient(135deg, #2E0854 0%, #4a1a7a 100%);
+      color: #fff;
+      border-color: #2E0854;
+    }
+
+    .page-link.page-arrow.disabled {
+      background: #f0f0f5;
+      color: #999;
+      border-color: #e8e8f0;
+      opacity: 1; /* Override base .page-link.disabled opacity */
+    }
+
+    .empty-state {
+      padding: 40px 20px;
+    }
+
+    .empty-state h3 {
+      font-size: 18px;
+    }
+
+    .empty-state p {
+      font-size: 14px;
     }
   }
 </style>
@@ -935,19 +1114,27 @@
       {% set _ = base.pop('page', None) %}
       {% set qs = base|urlencode %}
       <nav class="results-pagination" aria-label="pagination">
-        <a class="page-link {{ 'disabled' if page==1 }}"
+        <a class="page-link page-arrow {{ 'disabled' if page==1 }}"
            href="{% if page>1 %}{{ url_for('results_page') }}{% if qs %}?{{ qs }}&{% else %}?{% endif %}page={{ page-1 }}{% else %}#{% endif %}">
-          ← Previous
+          ←
         </a>
 
-        {% for p in range(1, pages+1) %}
-        <a class="page-link {{ 'active' if p==page }}"
-           href="{{ url_for('results_page') }}{% if qs %}?{{ qs }}&{% else %}?{% endif %}page={{ p }}">{{ p }}</a>
-        {% endfor %}
+        <!-- Desktop: show all page numbers -->
+        <div class="page-numbers-desktop">
+          {% for p in range(1, pages+1) %}
+          <a class="page-link {{ 'active' if p==page }}"
+             href="{{ url_for('results_page') }}{% if qs %}?{{ qs }}&{% else %}?{% endif %}page={{ p }}">{{ p }}</a>
+          {% endfor %}
+        </div>
 
-        <a class="page-link {{ 'disabled' if page==pages }}"
+        <!-- Mobile: show current/total -->
+        <div class="page-numbers-mobile">
+          <span class="page-indicator">{{ page }} / {{ pages }}</span>
+        </div>
+
+        <a class="page-link page-arrow {{ 'disabled' if page==pages }}"
            href="{% if page<pages %}{{ url_for('results_page') }}{% if qs %}?{{ qs }}&{% else %}?{% endif %}page={{ page+1 }}{% else %}#{% endif %}">
-          Next →
+          →
         </a>
       </nav>
       {% endif %}
