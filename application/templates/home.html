@@ -1,72 +1,902 @@
 {% extends "base.html" %}
-{% block title %}Home{% endblock %}
+{% block title %}SFSU Tutors - Find Your Perfect Tutor{% endblock %}
 {% block content %}
 
-<!-- Hero -->
-<section class="hero">
-  <h1>Start Strong with the Right Tutor</h1>
-  <h2>Search, connect, and learn from fellow Gators.</h2>
-  <div class="hero-buttons">
-    <a class="btn hero-btn" href="{{ url_for('become_tutor') }}">Become a Tutor</a>
-    <a class="btn outline hero-btn" href="{{ url_for('search_page') }}">Search Tutors</a>
-  </div>
-</section>
+<style>
+  /* Override base container */
+  main.container:has(.home-page) {
+    max-width: 100% !important;
+    padding: 0 !important;
+    width: 100% !important;
+  }
 
-<!-- How It Works -->
-<section class="section">
-  <div class="howitworks">
-    <h2 style="text-align:center;margin-bottom: 24px;">How It Works</h2>
-    <div class="howitworks-grid">
-      <!-- Search -->
-      <article>
-        <div class="howitworks-icon" aria-hidden="true">
-          <!-- Simple magnifier icon (brand colors) -->
-          <svg width="48" height="48" viewBox="0 0 64 64" fill="none">
-            <circle cx="28" cy="28" r="18" stroke="#2E0854" stroke-width="4" fill="none"/>
-            <line x1="41" y1="41" x2="58" y2="58" stroke="#FFD700" stroke-width="6" stroke-linecap="round"/>
-          </svg>
-        </div>
-        <h3 class="howitworks-title">Search</h3>
-        <p class="howitworks-desc">Browse tutors by subject or course.</p>
-      </article>
+  .home-page {
+    background: #fff;
+  }
 
-      <!-- Message -->
-      <article>
-        <div class="howitworks-icon" aria-hidden="true">
-          <!-- Chat bubble -->
-          <svg width="48" height="48" viewBox="0 0 64 64" fill="none">
-            <rect x="8" y="12" width="48" height="34" rx="8" fill="#FFD700" stroke="#2E0854" stroke-width="3"/>
-            <path d="M32 46 L24 56 L40 56 Z" fill="#FFD700" stroke="#2E0854" stroke-width="3"/>
-          </svg>
-        </div>
-        <h3 class="howitworks-title">Message</h3>
-        <p class="howitworks-desc">Contact tutors directly through our site.</p>
-      </article>
+  /* ========== Hero Section ========== */
+  .home-hero {
+    background: 
+      linear-gradient(135deg, rgba(46, 8, 84, 0.92) 0%, rgba(74, 26, 122, 0.88) 50%, rgba(107, 45, 158, 0.85) 100%),
+      url("/static/images/sfsu-quad.jpg");
+    background-size: cover;
+    background-position: center;
+    padding: 100px 40px 120px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
 
-      <!-- Meet -->
-      <article>
-        <div class="howitworks-icon" aria-hidden="true">
-          <!-- Handshake motif in brand colors -->
-          <svg width="48" height="48" viewBox="0 0 64 64" fill="none">
-            <path d="M12 36 h12 v-6 c0-2 1-4 3-5 l9-4" fill="#2E0854"/>
-            <path d="M52 36 h-12 v-6 c0-2-1-4-3-5 l-9-4" fill="#FFD700"/>
-            <circle cx="32" cy="22" r="3" stroke="#2E0854" stroke-width="2" fill="none"/>
-          </svg>
-        </div>
-        <h3 class="howitworks-title">Meet</h3>
-        <p class="howitworks-desc">Arrange sessions on-campus or online.</p>
-      </article>
+  .home-hero::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: 
+      radial-gradient(circle at 20% 80%, rgba(197, 164, 63, 0.2) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 40%);
+    pointer-events: none;
+  }
+
+  .home-hero::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    pointer-events: none;
+  }
+
+  .home-hero-content {
+    position: relative;
+    z-index: 1;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(197, 164, 63, 0.2);
+    border: 1px solid rgba(197, 164, 63, 0.4);
+    padding: 10px 20px;
+    border-radius: 30px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #C5A43F;
+    margin-bottom: 24px;
+    animation: fadeInDown 0.6s ease;
+  }
+
+  .home-hero h1 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 56px;
+    font-weight: 700;
+    color: #fff;
+    margin: 0 0 20px;
+    line-height: 1.2;
+    animation: fadeInUp 0.6s ease;
+  }
+
+  .home-hero h1 span {
+    color: #C5A43F;
+  }
+
+  .hero-subtitle {
+    font-size: 22px;
+    color: rgba(255, 255, 255, 0.9);
+    margin: 0 0 40px;
+    animation: fadeInUp 0.6s ease 0.1s both;
+  }
+
+  /* Hero Search */
+  .hero-search {
+    max-width: 650px;
+    margin: 0 auto 32px;
+    animation: fadeInUp 0.6s ease 0.2s both;
+  }
+
+  .hero-search-box {
+    display: flex;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 10px 50px rgba(0, 0, 0, 0.25);
+    overflow: hidden;
+  }
+
+  .hero-search-box input {
+    flex: 1;
+    border: none;
+    padding: 20px 24px;
+    font-size: 18px;
+    background: transparent;
+  }
+
+  .hero-search-box input:focus {
+    outline: none;
+  }
+
+  .hero-search-btn {
+    background: linear-gradient(135deg, #2E0854 0%, #4a1a7a 100%);
+    color: #fff;
+    border: none;
+    padding: 20px 32px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.2s;
+  }
+
+  .hero-search-btn:hover {
+    background: linear-gradient(135deg, #3a0a68 0%, #5a2a8a 100%);
+  }
+
+  .hero-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    animation: fadeInUp 0.6s ease 0.3s both;
+  }
+
+  .hero-btn-primary {
+    background: #C5A43F;
+    color: #fff;
+    padding: 16px 32px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.2s;
+  }
+
+  .hero-btn-primary:hover {
+    background: #d4b44e;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(197, 164, 63, 0.4);
+  }
+
+  .hero-btn-secondary {
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+    padding: 16px 32px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    text-decoration: none;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.2s;
+    backdrop-filter: blur(10px);
+  }
+
+  .hero-btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: translateY(-2px);
+  }
+
+  /* ========== Stats Section ========== */
+  .stats-section {
+    background: #fff;
+    padding: 0;
+    margin-top: -50px;
+    position: relative;
+    z-index: 2;
+  }
+
+  .stats-container {
+    max-width: 900px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 10px 50px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+  }
+
+  .stat-item {
+    padding: 32px 20px;
+    text-align: center;
+    border-right: 1px solid #f0f0f5;
+  }
+
+  .stat-item:last-child {
+    border-right: none;
+  }
+
+  .stat-icon {
+    font-size: 32px;
+    margin-bottom: 12px;
+  }
+
+  .stat-number {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 36px;
+    font-weight: 700;
+    color: #2E0854;
+  }
+
+  .stat-label {
+    font-size: 14px;
+    color: #666;
+    margin-top: 4px;
+  }
+
+  /* ========== How It Works ========== */
+  .how-section {
+    padding: 80px 40px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .section-header {
+    text-align: center;
+    margin-bottom: 60px;
+  }
+
+  .section-tag {
+    display: inline-block;
+    background: linear-gradient(135deg, rgba(46, 8, 84, 0.1) 0%, rgba(106, 45, 158, 0.1) 100%);
+    color: #2E0854;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 16px;
+  }
+
+  .section-title {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 40px;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin: 0 0 16px;
+  }
+
+  .section-subtitle {
+    font-size: 18px;
+    color: #666;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .how-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 40px;
+  }
+
+  .how-step {
+    text-align: center;
+    padding: 40px 24px;
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    position: relative;
+    transition: all 0.3s ease;
+  }
+
+  .how-step:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 16px 48px rgba(46, 8, 84, 0.12);
+  }
+
+  .how-step-number {
+    position: absolute;
+    top: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 44px;
+    height: 44px;
+    background: linear-gradient(135deg, #2E0854 0%, #4a1a7a 100%);
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 700;
+    box-shadow: 0 4px 15px rgba(46, 8, 84, 0.3);
+  }
+
+  .how-step-icon {
+    width: 80px;
+    height: 80px;
+    margin: 20px auto 24px;
+    background: linear-gradient(135deg, #f8f9ff 0%, #f0f0f8 100%);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+  }
+
+  .how-step-title {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin-bottom: 12px;
+  }
+
+  .how-step-desc {
+    font-size: 15px;
+    color: #666;
+    line-height: 1.6;
+  }
+
+  /* ========== Subjects Section ========== */
+  .subjects-section {
+    background: linear-gradient(180deg, #f8f9ff 0%, #f0f0f8 100%);
+    padding: 80px 40px;
+  }
+
+  .subjects-container {
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .subjects-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 20px;
+  }
+
+  .subject-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 28px 16px;
+    text-align: center;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+  }
+
+  .subject-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 40px rgba(46, 8, 84, 0.15);
+  }
+
+  .subject-icon {
+    width: 56px;
+    height: 56px;
+    margin: 0 auto 14px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+  }
+
+  .subject-icon.csc { background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); }
+  .subject-icon.math { background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); }
+  .subject-icon.phys { background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%); }
+  .subject-icon.chem { background: linear-gradient(135deg, #fce4ec 0%, #f8bbd9 100%); }
+  .subject-icon.eng { background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%); }
+  .subject-icon.bio { background: linear-gradient(135deg, #e8f5e9 0%, #a5d6a7 100%); }
+
+  .subject-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1a1a2e;
+  }
+
+  /* ========== Why Choose Us ========== */
+  .why-section {
+    padding: 80px 40px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .why-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 32px;
+  }
+
+  .why-card {
+    background: #fff;
+    border-radius: 20px;
+    padding: 36px 28px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+  }
+
+  .why-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 40px rgba(46, 8, 84, 0.1);
+  }
+
+  .why-icon {
+    width: 64px;
+    height: 64px;
+    background: linear-gradient(135deg, #2E0854 0%, #4a1a7a 100%);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    margin-bottom: 20px;
+  }
+
+  .why-title {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin-bottom: 12px;
+  }
+
+  .why-desc {
+    font-size: 15px;
+    color: #666;
+    line-height: 1.6;
+  }
+
+  /* ========== Testimonials ========== */
+  .testimonials-section {
+    background: linear-gradient(135deg, #2E0854 0%, #4a1a7a 100%);
+    padding: 80px 40px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .testimonials-section::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    pointer-events: none;
+  }
+
+  .testimonials-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+
+  .testimonials-header {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+
+  .testimonials-header .section-tag {
+    background: rgba(197, 164, 63, 0.2);
+    color: #C5A43F;
+  }
+
+  .testimonials-header .section-title {
+    color: #fff;
+  }
+
+  .testimonials-header .section-subtitle {
+    color: rgba(255, 255, 255, 0.8);
+  }
+
+  .testimonials-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+  }
+
+  .testimonial-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 32px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .testimonial-quote {
+    font-size: 16px;
+    color: rgba(255, 255, 255, 0.95);
+    line-height: 1.7;
+    margin-bottom: 24px;
+    font-style: italic;
+  }
+
+  .testimonial-quote::before {
+    content: '"';
+    font-size: 48px;
+    color: #C5A43F;
+    line-height: 0;
+    display: block;
+    margin-bottom: 8px;
+  }
+
+  .testimonial-author {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .testimonial-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #C5A43F 0%, #d4b44e 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 700;
+    color: #fff;
+  }
+
+  .testimonial-info h4 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+    margin: 0 0 4px;
+  }
+
+  .testimonial-info p {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.7);
+    margin: 0;
+  }
+
+  /* ========== CTA Section ========== */
+  .cta-section {
+    padding: 80px 40px;
+    text-align: center;
+    background: linear-gradient(180deg, #fff 0%, #f8f9ff 100%);
+  }
+
+  .cta-container {
+    max-width: 700px;
+    margin: 0 auto;
+  }
+
+  .cta-title {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 36px;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin: 0 0 16px;
+  }
+
+  .cta-subtitle {
+    font-size: 18px;
+    color: #666;
+    margin-bottom: 32px;
+  }
+
+  .cta-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+  }
+
+  .cta-btn-primary {
+    background: linear-gradient(135deg, #2E0854 0%, #4a1a7a 100%);
+    color: #fff;
+    padding: 18px 36px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.2s;
+  }
+
+  .cta-btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(46, 8, 84, 0.3);
+  }
+
+  .cta-btn-secondary {
+    background: #fff;
+    color: #2E0854;
+    padding: 18px 36px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    text-decoration: none;
+    border: 2px solid #2E0854;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.2s;
+  }
+
+  .cta-btn-secondary:hover {
+    background: rgba(46, 8, 84, 0.05);
+    transform: translateY(-2px);
+  }
+
+  /* ========== Animations ========== */
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ========== Responsive ========== */
+  @media (max-width: 1024px) {
+    .subjects-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .home-hero {
+      padding: 60px 20px 80px;
+    }
+
+    .home-hero h1 {
+      font-size: 36px;
+    }
+
+    .hero-subtitle {
+      font-size: 18px;
+    }
+
+    .hero-search-box {
+      flex-direction: column;
+    }
+
+    .hero-search-btn {
+      justify-content: center;
+    }
+
+    .hero-buttons {
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .stats-container {
+      grid-template-columns: repeat(2, 1fr);
+      margin: 0 20px;
+    }
+
+    .stat-item {
+      border-bottom: 1px solid #f0f0f5;
+    }
+
+    .stat-item:nth-child(2), .stat-item:nth-child(4) {
+      border-right: none;
+    }
+
+    .how-grid, .why-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .subjects-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .testimonials-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .cta-buttons {
+      flex-direction: column;
+      align-items: center;
+    }
+  }
+</style>
+
+<div class="home-page">
+  <!-- Hero Section -->
+  <section class="home-hero">
+    <div class="home-hero-content">
+      <div class="hero-badge">
+        ⭐ Trusted by SFSU Students
+      </div>
+      <h1>Start Strong with the <span>Right Tutor</span></h1>
+      <p class="hero-subtitle">Search, connect, and learn from fellow Gators who've mastered your courses.</p>
+      
+      <div class="hero-search">
+        <form action="{{ url_for('results_page') }}" method="get" class="hero-search-box">
+          <input type="search" name="q" placeholder="Search by subject, course, or tutor name..." />
+          <button type="submit" class="hero-search-btn">
+            🔍 Search Tutors
+          </button>
+        </form>
+      </div>
+
+      <div class="hero-buttons">
+        <a href="{{ url_for('become_tutor') }}" class="hero-btn-primary">
+          🎓 Become a Tutor
+        </a>
+        <a href="{{ url_for('search_page') }}" class="hero-btn-secondary">
+          Browse All Tutors
+        </a>
+      </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- CTA band -->
-<section class="section cta-band" style="text-align:center">
-  <h2 class="howitworks-title" style="margin-bottom:12px">Ready to get started?</h2>
-  <div class="hero-buttons">
-    <a class="btn outline hero-btn" href="{{ url_for('search_page') }}">Search Tutors</a>
-    <a class="btn hero-btn" href="{{ url_for('become_tutor') }}">Become a Tutor</a>
-  </div>
-</section>
+  <!-- Stats Section -->
+  <section class="stats-section">
+    <div class="stats-container">
+      <div class="stat-item">
+        <div class="stat-icon">👨‍🏫</div>
+        <div class="stat-number">21+</div>
+        <div class="stat-label">Verified Tutors</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-icon">📚</div>
+        <div class="stat-number">5+</div>
+        <div class="stat-label">Subjects</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-icon">⭐</div>
+        <div class="stat-number">4.8</div>
+        <div class="stat-label">Avg Rating</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-icon">🎯</div>
+        <div class="stat-number">100%</div>
+        <div class="stat-label">SFSU Students</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section class="how-section">
+    <div class="section-header">
+      <div class="section-tag">Simple Process</div>
+      <h2 class="section-title">How It Works</h2>
+      <p class="section-subtitle">Get the help you need in three easy steps</p>
+    </div>
+
+    <div class="how-grid">
+      <div class="how-step">
+        <div class="how-step-number">1</div>
+        <div class="how-step-icon">🔍</div>
+        <h3 class="how-step-title">Search</h3>
+        <p class="how-step-desc">Browse tutors by subject, course number, or search for specific topics you need help with.</p>
+      </div>
+      <div class="how-step">
+        <div class="how-step-number">2</div>
+        <div class="how-step-icon">💬</div>
+        <h3 class="how-step-title">Connect</h3>
+        <p class="how-step-desc">View profiles, read reviews, and message tutors directly to schedule your session.</p>
+      </div>
+      <div class="how-step">
+        <div class="how-step-number">3</div>
+        <div class="how-step-icon">🚀</div>
+        <h3 class="how-step-title">Learn</h3>
+        <p class="how-step-desc">Meet online or on-campus and get personalized help to ace your classes!</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Browse by Subject -->
+  <section class="subjects-section">
+    <div class="subjects-container">
+      <div class="section-header">
+        <div class="section-tag">Popular Subjects</div>
+        <h2 class="section-title">Browse by Subject</h2>
+        <p class="section-subtitle">Find tutors in your area of study</p>
+      </div>
+
+      <div class="subjects-grid">
+        <a href="{{ url_for('results_page') }}?subject=CSC" class="subject-card">
+          <div class="subject-icon csc">💻</div>
+          <div class="subject-name">Computer Science</div>
+        </a>
+        <a href="{{ url_for('results_page') }}?subject=MATH" class="subject-card">
+          <div class="subject-icon math">📊</div>
+          <div class="subject-name">Mathematics</div>
+        </a>
+        <a href="{{ url_for('results_page') }}?subject=PHYS" class="subject-card">
+          <div class="subject-icon phys">⚡</div>
+          <div class="subject-name">Physics</div>
+        </a>
+        <a href="{{ url_for('results_page') }}?subject=CHEM" class="subject-card">
+          <div class="subject-icon chem">🧪</div>
+          <div class="subject-name">Chemistry</div>
+        </a>
+        <a href="{{ url_for('results_page') }}?subject=ENG" class="subject-card">
+          <div class="subject-icon eng">📝</div>
+          <div class="subject-name">English</div>
+        </a>
+        <a href="{{ url_for('results_page') }}?subject=BIO" class="subject-card">
+          <div class="subject-icon bio">🧬</div>
+          <div class="subject-name">Biology</div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Why Choose Us -->
+  <section class="why-section">
+    <div class="section-header">
+      <div class="section-tag">Our Benefits</div>
+      <h2 class="section-title">Why Choose SFSU Tutors?</h2>
+      <p class="section-subtitle">We make finding the right tutor easy and effective</p>
+    </div>
+
+    <div class="why-grid">
+      <div class="why-card">
+        <div class="why-icon">✓</div>
+        <h3 class="why-title">Verified Tutors</h3>
+        <p class="why-desc">All tutors are verified SFSU students who have excelled in the courses they teach.</p>
+      </div>
+      <div class="why-card">
+        <div class="why-icon">📅</div>
+        <h3 class="why-title">Flexible Scheduling</h3>
+        <p class="why-desc">Book sessions that fit your schedule. Meet on-campus or online, whenever works for you.</p>
+      </div>
+      <div class="why-card">
+        <div class="why-icon">💰</div>
+        <h3 class="why-title">Affordable Rates</h3>
+        <p class="why-desc">Peer tutoring at student-friendly prices. Quality help without breaking the bank.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Testimonials -->
+  <section class="testimonials-section">
+    <div class="testimonials-container">
+      <div class="testimonials-header">
+        <div class="section-tag">Student Stories</div>
+        <h2 class="section-title">What Students Say</h2>
+        <p class="section-subtitle">Hear from students who found success with our tutors</p>
+      </div>
+
+      <div class="testimonials-grid">
+        <div class="testimonial-card">
+          <p class="testimonial-quote">My tutor helped me understand data structures in a way my professor couldn't. Went from a C to an A in CSC 340!</p>
+          <div class="testimonial-author">
+            <div class="testimonial-avatar">M</div>
+            <div class="testimonial-info">
+              <h4>Maria S.</h4>
+              <p>Computer Science Major</p>
+            </div>
+          </div>
+        </div>
+        <div class="testimonial-card">
+          <p class="testimonial-quote">Found an amazing calculus tutor within minutes. The platform is super easy to use and the tutors are great!</p>
+          <div class="testimonial-author">
+            <div class="testimonial-avatar">J</div>
+            <div class="testimonial-info">
+              <h4>James K.</h4>
+              <p>Engineering Major</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="cta-section">
+    <div class="cta-container">
+      <h2 class="cta-title">Ready to Get Started?</h2>
+      <p class="cta-subtitle">Join hundreds of SFSU students finding academic success through peer tutoring.</p>
+      <div class="cta-buttons">
+        <a href="{{ url_for('search_page') }}" class="cta-btn-primary">
+          🔍 Find a Tutor
+        </a>
+        <a href="{{ url_for('become_tutor') }}" class="cta-btn-secondary">
+          🎓 Become a Tutor
+        </a>
+      </div>
+    </div>
+  </section>
+</div>
 
 {% endblock %}
