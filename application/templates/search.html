@@ -1,50 +1,633 @@
 {% extends "base.html" %}
 {% block title %}Search Tutors{% endblock %}
 {% block content %}
-<section class="hero">
-  <h1>Search Tutors</h1>
-  <h2>Find a tutor by subject, course, or keyword</h2>
-</section>
 
-<div class="search-center" style="padding: 24px 0 64px;">
-  <form method="get" action="{{ url_for('results_page') }}" class="search-form" id="search-form">
-    <input
-      name="q"
-      type="search"
-      placeholder="e.g., CSC 340, Calculus, Python"
-      class="search-wide"
-      aria-label="Search tutors"
-      id="search-input"
-    />
+<style>
+  /* Override base container */
+  main.container:has(.search-page) {
+    max-width: 100% !important;
+    padding: 0 !important;
+    width: 100% !important;
+  }
 
-    <div class="tiny muted" style="text-align:center; margin-top:8px;">
-      Press Enter to search
+  .search-page {
+    min-height: 100vh;
+    background: linear-gradient(180deg, #f8f9ff 0%, #ffffff 100%);
+  }
+
+  /* Hero Section */
+  .search-hero {
+    background: 
+      linear-gradient(135deg, rgba(46, 8, 84, 0.88) 0%, rgba(74, 26, 122, 0.82) 50%, rgba(107, 45, 158, 0.78) 100%),
+      url("/static/images/sfsu-quad.jpg");
+    background-size: cover;
+    background-position: center;
+    padding: 80px 40px 100px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .search-hero::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: 
+      radial-gradient(circle at 30% 70%, rgba(197, 164, 63, 0.15) 0%, transparent 50%),
+      radial-gradient(circle at 70% 30%, rgba(255, 255, 255, 0.08) 0%, transparent 40%);
+    pointer-events: none;
+  }
+
+  .search-hero::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    pointer-events: none;
+  }
+
+  .search-hero-content {
+    position: relative;
+    z-index: 1;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .search-hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(197, 164, 63, 0.2);
+    border: 1px solid rgba(197, 164, 63, 0.4);
+    padding: 8px 16px;
+    border-radius: 30px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #C5A43F;
+    margin-bottom: 24px;
+    animation: fadeInDown 0.6s ease;
+  }
+
+  .search-hero h1 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 48px;
+    font-weight: 700;
+    color: #fff;
+    margin: 0 0 16px;
+    animation: fadeInUp 0.6s ease;
+  }
+
+  .search-hero-subtitle {
+    font-size: 20px;
+    color: rgba(255, 255, 255, 0.9);
+    margin: 0 0 40px;
+    animation: fadeInUp 0.6s ease 0.1s both;
+  }
+
+  /* Search Box */
+  .search-box-container {
+    animation: fadeInUp 0.6s ease 0.2s both;
+  }
+
+  .search-box {
+    display: flex;
+    align-items: center;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.2);
+    padding: 8px;
+    max-width: 700px;
+    margin: 0 auto;
+  }
+
+  .search-box input {
+    flex: 1;
+    border: none;
+    padding: 18px 24px;
+    font-size: 18px;
+    background: transparent;
+    color: #333;
+  }
+
+  .search-box input::placeholder {
+    color: #999;
+  }
+
+  .search-box input:focus {
+    outline: none;
+  }
+
+  .search-box-btn {
+    background: linear-gradient(135deg, #2E0854 0%, #4a1a7a 100%);
+    color: #fff;
+    border: none;
+    padding: 18px 32px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.2s;
+  }
+
+  .search-box-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(46, 8, 84, 0.4);
+  }
+
+  .search-hint {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 14px;
+    margin-top: 16px;
+    animation: fadeInUp 0.6s ease 0.3s both;
+  }
+
+  /* Quick Tags */
+  .quick-tags {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 24px;
+    animation: fadeInUp 0.6s ease 0.4s both;
+  }
+
+  .quick-tag {
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 30px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    backdrop-filter: blur(10px);
+  }
+
+  .quick-tag:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: translateY(-2px);
+  }
+
+  /* Stats Section */
+  .stats-section {
+    background: #fff;
+    padding: 0;
+    margin-top: -40px;
+    position: relative;
+    z-index: 2;
+  }
+
+  .stats-container {
+    max-width: 900px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+  }
+
+  .stat-item {
+    padding: 32px 24px;
+    text-align: center;
+    border-right: 1px solid #f0f0f5;
+  }
+
+  .stat-item:last-child {
+    border-right: none;
+  }
+
+  .stat-number {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 42px;
+    font-weight: 700;
+    color: #2E0854;
+    margin-bottom: 4px;
+  }
+
+  .stat-label {
+    font-size: 14px;
+    color: #666;
+    font-weight: 500;
+  }
+
+  /* Categories Section */
+  .categories-section {
+    padding: 60px 40px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .section-header {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+
+  .section-title {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 32px;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin: 0 0 12px;
+  }
+
+  .section-subtitle {
+    font-size: 16px;
+    color: #666;
+  }
+
+  .categories-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 20px;
+  }
+
+  .category-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 28px 20px;
+    text-align: center;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+  }
+
+  .category-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 40px rgba(46, 8, 84, 0.15);
+    border-color: rgba(46, 8, 84, 0.2);
+  }
+
+  .category-icon {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 16px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+  }
+
+  .category-icon.csc { background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); }
+  .category-icon.math { background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); }
+  .category-icon.phys { background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%); }
+  .category-icon.chem { background: linear-gradient(135deg, #fce4ec 0%, #f8bbd9 100%); }
+  .category-icon.eng { background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%); }
+  .category-icon.bio { background: linear-gradient(135deg, #e8f5e9 0%, #a5d6a7 100%); }
+
+  .category-name {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin-bottom: 4px;
+  }
+
+  .category-count {
+    font-size: 13px;
+    color: #888;
+  }
+
+  /* How it Works Section */
+  .how-section {
+    background: linear-gradient(180deg, #f8f9ff 0%, #f0f0f8 100%);
+    padding: 60px 40px;
+  }
+
+  .how-container {
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+
+  .how-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 32px;
+    margin-top: 40px;
+  }
+
+  .how-step {
+    text-align: center;
+    padding: 24px;
+  }
+
+  .how-step-number {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #2E0854 0%, #4a1a7a 100%);
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: 700;
+    margin: 0 auto 20px;
+  }
+
+  .how-step-title {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin-bottom: 10px;
+  }
+
+  .how-step-desc {
+    font-size: 14px;
+    color: #666;
+    line-height: 1.6;
+  }
+
+  /* CTA Section */
+  .cta-section {
+    background: linear-gradient(135deg, #2E0854 0%, #4a1a7a 100%);
+    padding: 60px 40px;
+    text-align: center;
+  }
+
+  .cta-content {
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .cta-title {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: #fff;
+    margin: 0 0 12px;
+  }
+
+  .cta-subtitle {
+    font-size: 16px;
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 24px;
+  }
+
+  .cta-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: #C5A43F;
+    color: #fff;
+    padding: 16px 32px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+
+  .cta-btn:hover {
+    background: #d4b44e;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(197, 164, 63, 0.4);
+  }
+
+  /* Animations */
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes fadeInDown {
+    from {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .search-hero {
+      padding: 60px 20px 80px;
+    }
+
+    .search-hero h1 {
+      font-size: 32px;
+    }
+
+    .search-hero-subtitle {
+      font-size: 16px;
+    }
+
+    .search-box {
+      flex-direction: column;
+      padding: 12px;
+    }
+
+    .search-box input {
+      width: 100%;
+      text-align: center;
+    }
+
+    .search-box-btn {
+      width: 100%;
+      justify-content: center;
+    }
+
+    .stats-container {
+      grid-template-columns: 1fr;
+      margin: 0 20px;
+    }
+
+    .stat-item {
+      border-right: none;
+      border-bottom: 1px solid #f0f0f5;
+    }
+
+    .stat-item:last-child {
+      border-bottom: none;
+    }
+
+    .categories-section {
+      padding: 40px 20px;
+    }
+
+    .how-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<div class="search-page">
+  <!-- Hero Section -->
+  <section class="search-hero">
+    <div class="search-hero-content">
+      <div class="search-hero-badge">
+        ⭐ Trusted by SFSU Students
+      </div>
+      <h1>Find Your Perfect Tutor</h1>
+      <p class="search-hero-subtitle">Connect with expert tutors who can help you ace your courses</p>
+      
+      <div class="search-box-container">
+        <form method="get" action="{{ url_for('results_page') }}" id="search-form">
+          <div class="search-box">
+            <input
+              name="q"
+              type="search"
+              placeholder="Search by subject, course, or tutor name..."
+              id="search-input"
+              autocomplete="off"
+            />
+            <button type="submit" class="search-box-btn">
+              🔍 Search
+            </button>
+          </div>
+        </form>
+      </div>
+      
+      <p class="search-hint">Try searching for "Python", "Calculus", or "CSC 340"</p>
+      
+      <div class="quick-tags">
+        <span class="quick-tag" data-q="Python">🐍 Python</span>
+        <span class="quick-tag" data-q="Calculus">📐 Calculus</span>
+        <span class="quick-tag" data-q="CSC 340">💻 CSC 340</span>
+        <span class="quick-tag" data-q="Physics">⚡ Physics</span>
+        <span class="quick-tag" data-q="Chemistry">🧪 Chemistry</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats Section -->
+  <section class="stats-section">
+    <div class="stats-container">
+      <div class="stat-item">
+        <div class="stat-number">21+</div>
+        <div class="stat-label">Verified Tutors</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number">5</div>
+        <div class="stat-label">Subjects Covered</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number">100+</div>
+        <div class="stat-label">Happy Students</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Categories Section -->
+  <section class="categories-section">
+    <div class="section-header">
+      <h2 class="section-title">Browse by Subject</h2>
+      <p class="section-subtitle">Find tutors in your area of study</p>
     </div>
 
-    <ul class="chips example-chips" aria-label="Examples" style="margin-top:12px; display:flex;">
-      <li class="chip" data-q="Python">Python</li>
-      <li class="chip" data-q="CSC 340">CSC 340</li>
-      <li class="chip" data-q="Calculus">Calculus</li>
-    </ul>
-
-    <div style="margin-top:12px; text-align:center;">
-      <button class="btn" type="submit">Search</button>
+    <div class="categories-grid">
+      <a href="{{ url_for('results_page') }}?subject=CSC" class="category-card">
+        <div class="category-icon csc">💻</div>
+        <div class="category-name">Computer Science</div>
+        <div class="category-count">CSC Courses</div>
+      </a>
+      <a href="{{ url_for('results_page') }}?subject=MATH" class="category-card">
+        <div class="category-icon math">📊</div>
+        <div class="category-name">Mathematics</div>
+        <div class="category-count">MATH Courses</div>
+      </a>
+      <a href="{{ url_for('results_page') }}?subject=PHYS" class="category-card">
+        <div class="category-icon phys">⚡</div>
+        <div class="category-name">Physics</div>
+        <div class="category-count">PHYS Courses</div>
+      </a>
+      <a href="{{ url_for('results_page') }}?subject=CHEM" class="category-card">
+        <div class="category-icon chem">🧪</div>
+        <div class="category-name">Chemistry</div>
+        <div class="category-count">CHEM Courses</div>
+      </a>
+      <a href="{{ url_for('results_page') }}?subject=ENG" class="category-card">
+        <div class="category-icon eng">📝</div>
+        <div class="category-name">English</div>
+        <div class="category-count">ENG Courses</div>
+      </a>
+      <a href="{{ url_for('results_page') }}?subject=BIO" class="category-card">
+        <div class="category-icon bio">🧬</div>
+        <div class="category-name">Biology</div>
+        <div class="category-count">BIO Courses</div>
+      </a>
     </div>
-  </form>
+  </section>
+
+  <!-- How it Works Section -->
+  <section class="how-section">
+    <div class="how-container">
+      <div class="section-header">
+        <h2 class="section-title">How It Works</h2>
+        <p class="section-subtitle">Get help in three simple steps</p>
+      </div>
+
+      <div class="how-grid">
+        <div class="how-step">
+          <div class="how-step-number">1</div>
+          <h3 class="how-step-title">Search</h3>
+          <p class="how-step-desc">Find tutors by subject, course number, or specific topics you need help with.</p>
+        </div>
+        <div class="how-step">
+          <div class="how-step-number">2</div>
+          <h3 class="how-step-title">Connect</h3>
+          <p class="how-step-desc">View tutor profiles, read reviews, and send a message to schedule a session.</p>
+        </div>
+        <div class="how-step">
+          <div class="how-step-number">3</div>
+          <h3 class="how-step-title">Learn</h3>
+          <p class="how-step-desc">Meet online or in-person and get the personalized help you need to succeed.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="cta-section">
+    <div class="cta-content">
+      <h2 class="cta-title">Ready to Share Your Knowledge?</h2>
+      <p class="cta-subtitle">Join our community of tutors and help fellow SFSU students succeed</p>
+      <a href="{{ url_for('become_tutor') }}" class="cta-btn">
+        🎓 Become a Tutor
+      </a>
+    </div>
+  </section>
 </div>
 
 <script>
-  (function () {
-    var form = document.getElementById('search-form');
-    var input = document.getElementById('search-input');
-    var chips = document.querySelectorAll('.example-chips .chip');
+(function() {
+  const form = document.getElementById('search-form');
+  const input = document.getElementById('search-input');
+  const quickTags = document.querySelectorAll('.quick-tag');
 
-    chips.forEach(function (chip) {
-      chip.addEventListener('click', function () {
-        input.value = this.getAttribute('data-q') || '';
-        form.submit();
-      });
+  quickTags.forEach(tag => {
+    tag.addEventListener('click', function() {
+      input.value = this.getAttribute('data-q') || '';
+      form.submit();
     });
-  })();
+  });
+
+  // Focus animation
+  input.addEventListener('focus', function() {
+    this.parentElement.style.boxShadow = '0 8px 40px rgba(197, 164, 63, 0.3)';
+  });
+
+  input.addEventListener('blur', function() {
+    this.parentElement.style.boxShadow = '0 8px 40px rgba(0, 0, 0, 0.2)';
+  });
+})();
 </script>
+
 {% endblock %}
