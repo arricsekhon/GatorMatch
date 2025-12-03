@@ -239,6 +239,72 @@ main.container {
   cursor: default;
 }
 
+/* ===== AVAILABILITY SECTION ===== */
+.availability-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 16px;
+}
+
+.availability-day {
+  background: #FAFBFC;
+  border-radius: 12px;
+  padding: 14px 16px;
+  border: 1px solid #E8E8EE;
+}
+
+.availability-day-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #2E0057;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.availability-slots {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.availability-slot {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: linear-gradient(135deg, #EEE7FF 0%, #E0D6F6 100%);
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #5A3BA8;
+}
+
+.availability-slot svg {
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+.availability-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 24px;
+  background: #FAFBFC;
+  border-radius: 12px;
+  color: #888;
+  font-size: 14px;
+  margin: 0;
+}
+
+@media (max-width: 640px) {
+  .availability-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .tutor-tag.location-tag {
   background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%);
   color: #2E7D32;
