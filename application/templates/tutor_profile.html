@@ -12,36 +12,36 @@
         <img src="{{ url_for('static', filename=tutor.avatar_url) }}" alt="{{ tutor.user.name }}'s photo">
       {% else %}
         <svg width="80" height="80" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M12 12c2.21 0 4-1.79 4-4S14.21 4 12 4 8 5.79 8 8s1.79 4 4 4zm0 2c-2.67 
-                   0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-        </svg>
+        <path d="M12 12c2.21 0 4-1.79 4-4S14.21 4 12 4 8 5.79 8 8s1.79 4 4 4zm0 2c-2.67 
+                 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+      </svg>
       {% endif %}
     </div>
 
     <div class="tutor-hero-info">
-      <h1 class="tutor-profile-name">{{ tutor.user.name }}</h1>
-      <p class="tutor-profile-headline">{{ tutor.headline }}</p>
+    <h1 class="tutor-profile-name">{{ tutor.user.name }}</h1>
+    <p class="tutor-profile-headline">{{ tutor.headline }}</p>
 
-      <!-- Rating Display -->
-      <div class="tutor-rating-section">
-        <div class="stars">
-          {% set rating_display = (tutor.rating_avg / 10) if tutor.rating_avg else 0 %}
-          {% set full = rating_display|round(0, 'floor')|int %}
-          {% for i in range(1,6) %}
-          <svg class="star {{ 'on' if i<=full else 'off' }}" viewBox="0 0 24 24">
+    <!-- Rating Display -->
+    <div class="tutor-rating-section">
+      <div class="stars">
+        {% set rating_display = (tutor.rating_avg / 10) if tutor.rating_avg else 0 %}
+        {% set full = rating_display|round(0, 'floor')|int %}
+        {% for i in range(1,6) %}
+        <svg class="star {{ 'on' if i<=full else 'off' }}" viewBox="0 0 24 24">
             <path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.786 1.402 8.168L12 18.897 4.664 23.164l1.402-8.168L.132 9.21l8.2-1.192z" />
-          </svg>
-          {% endfor %}
-        </div>
+        </svg>
+        {% endfor %}
+      </div>
         <span class="rating-text">{{ '%.1f'|format(rating_display) if tutor.rating_avg else 'New' }}</span>
         <span class="rating-count">({{ tutor.rating_count }} review{{ 's' if tutor.rating_count != 1 else '' }})</span>
-      </div>
+    </div>
 
-      <div class="tutor-experience">
+    <div class="tutor-experience">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
           <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z" />
-        </svg>
-        <span>{{ tutor.hours_total_min }} hours of tutoring experience</span>
+      </svg>
+      <span>{{ tutor.hours_total_min }} hours of tutoring experience</span>
       </div>
 
       <!-- Quick Stats -->
@@ -110,6 +110,53 @@
       </div>
     </div>
     {% endif %}
+
+    <!-- Availability Section -->
+    <div class="tutor-card">
+      <h2 class="tutor-section-title">Availability</h2>
+      {% set weekday_labels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] %}
+      
+      {% set grouped = {} %}
+      {% for block in availability_blocks %}
+        {% if block.weekday is not none and block.start_time and block.end_time %}
+          {% set _ = grouped.update({block.weekday: grouped.get(block.weekday, []) + [block]}) %}
+        {% endif %}
+      {% endfor %}
+
+      {% if grouped %}
+      <div class="availability-grid">
+        {% for day_idx in range(7) %}
+          {% if day_idx in grouped %}
+          <div class="availability-day">
+            <div class="availability-day-name">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="#4CAF50">
+                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+              </svg>
+              {{ weekday_labels[day_idx] }}
+            </div>
+            <div class="availability-slots">
+              {% for b in grouped[day_idx] %}
+              <span class="availability-slot">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>
+                </svg>
+                {{ b.start_time.strftime("%I:%M %p").lstrip("0") }} – {{ b.end_time.strftime("%I:%M %p").lstrip("0") }}
+              </span>
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
+        {% endfor %}
+      </div>
+      {% else %}
+      <p class="availability-empty">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="#999">
+          <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20a2 2 0 002 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11zM9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm-8 4H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2z"/>
+        </svg>
+        Contact the tutor for availability
+      </p>
+      {% endif %}
+    </div>
   </div>
 
   <!-- Right Column -->
@@ -139,13 +186,13 @@
           margin-bottom: 0;
         }
         .form-step.visible {
-          max-height: 200px;
+          max-height: 500px;
           opacity: 1;
           transform: translateY(0);
           margin-bottom: 16px;
         }
         .form-step.visible-large {
-          max-height: 300px;
+          max-height: 500px;
           opacity: 1;
           transform: translateY(0);
           margin-bottom: 16px;
@@ -201,16 +248,178 @@
         <!-- Step 2: Date Selection -->
         <div class="form-step" id="step2">
           <label class="form-label">Preferred Date *</label>
-          <input type="date" name="date" class="form-control" min="{{ today }}" id="dateInput">
+          <input type="hidden" name="date" id="dateInput">
+          
+          <style>
+            .custom-calendar {
+              background: #fff;
+              border: 1px solid #E8E8EE;
+              border-radius: 10px;
+              padding: 12px;
+              width: 252px;
+            }
+            .cal-header {
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin-bottom: 8px;
+            }
+            .cal-month-year {
+              font-size: 13px;
+              font-weight: 600;
+              color: #2E0057;
+            }
+            .cal-nav {
+              display: flex;
+              gap: 4px;
+            }
+            .cal-nav-btn {
+              width: 24px;
+              height: 24px;
+              border: none;
+              background: #F5F5F8;
+              border-radius: 4px;
+              cursor: pointer;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              transition: all 0.2s;
+            }
+            .cal-nav-btn:hover {
+              background: #E8E8EE;
+            }
+            .cal-nav-btn svg {
+              fill: #666;
+              width: 12px;
+              height: 12px;
+            }
+            .cal-grid {
+              display: grid;
+              grid-template-columns: repeat(7, 32px);
+              grid-auto-rows: 32px;
+              gap: 0;
+            }
+            .cal-weekday {
+              width: 32px;
+              height: 32px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-size: 11px;
+              font-weight: 600;
+              color: #999;
+              box-sizing: border-box;
+            }
+            .cal-weekday.available-day {
+              color: #2E7D32;
+            }
+            .cal-day {
+              width: 32px;
+              height: 32px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-size: 12px;
+              border-radius: 6px;
+              cursor: pointer;
+              transition: all 0.15s;
+              border: 1px solid transparent;
+              box-sizing: border-box;
+            }
+            .cal-day.empty {
+              cursor: default;
+            }
+            .cal-day.past {
+              color: #D0D0D0;
+              cursor: not-allowed;
+            }
+            .cal-day.unavailable {
+              color: #B0B0B0;
+              background: #F5F5F8;
+              cursor: not-allowed;
+            }
+            .cal-day.available {
+              color: #2E0057;
+              font-weight: 600;
+              background: #EDE7FF;
+            }
+            .cal-day.available:hover {
+              background: #DDD0FF;
+            }
+            .cal-day.selected {
+              background: #2E0057;
+              color: #fff !important;
+              border-color: #FACC4A;
+            }
+            .cal-day.today {
+              border-color: #2E0057;
+            }
+            .cal-legend {
+              display: flex;
+              gap: 12px;
+              margin-top: 8px;
+              padding-top: 8px;
+              border-top: 1px solid #F0F0F5;
+              font-size: 9px;
+              color: #888;
+            }
+            .cal-legend-item {
+              display: flex;
+              align-items: center;
+              gap: 4px;
+            }
+            .cal-legend-dot {
+              width: 8px;
+              height: 8px;
+              border-radius: 2px;
+            }
+            .cal-legend-dot.available {
+              background: #EDE7FF;
+            }
+            .cal-legend-dot.unavailable {
+              background: #F5F5F8;
+            }
+          </style>
+          
+          <div class="custom-calendar" id="customCalendar">
+            <div class="cal-header">
+              <span class="cal-month-year" id="calMonthYear"></span>
+              <div class="cal-nav">
+                <button type="button" class="cal-nav-btn" id="calPrev">
+                  <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+                </button>
+                <button type="button" class="cal-nav-btn" id="calNext">
+                  <svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+                </button>
+              </div>
+            </div>
+            <div class="cal-grid" id="calGrid"></div>
+            <div class="cal-legend">
+              <div class="cal-legend-item">
+                <div class="cal-legend-dot available"></div>
+                <span>Available</span>
+              </div>
+              <div class="cal-legend-item">
+                <div class="cal-legend-dot unavailable"></div>
+                <span>Unavailable</span>
+              </div>
+            </div>
+          </div>
+          <div id="dateError" style="color:#DC3545;font-size:12px;margin-top:8px;display:none;"></div>
         </div>
 
         <!-- Step 3: Time Selection -->
         <div class="form-step" id="step3">
           <label class="form-label">Preferred Time *</label>
+          <div id="availableTimesHint" style="font-size:12px;color:#666;margin-bottom:8px;"></div>
           <div style="display:flex;gap:10px;align-items:center;">
-            <input type="time" name="start_time" class="form-control" style="flex:1;" id="startTime">
+            <select name="start_time" class="form-control" style="flex:1;" id="startTime">
+              <option value="">Start time</option>
+            </select>
             <span style="color:#666;font-size:14px;">to</span>
-            <input type="time" name="end_time" class="form-control" style="flex:1;" id="endTime">
+            <select name="end_time" class="form-control" style="flex:1;" id="endTime">
+              <option value="">End time</option>
+            </select>
           </div>
         </div>
 
@@ -244,11 +453,27 @@
       
       <script>
         (function() {
+          // Tutor availability data from server
+          const availabilityBlocks = [
+            {% for block in availability_blocks %}
+            {
+              weekday: {{ block.weekday }},
+              start: "{{ block.start_time.strftime('%H:%M') }}",
+              end: "{{ block.end_time.strftime('%H:%M') }}"
+            }{% if not loop.last %},{% endif %}
+            {% endfor %}
+          ];
+          
+          // Get unique available weekdays (0=Mon, 6=Sun in our data)
+          const availableWeekdays = [...new Set(availabilityBlocks.map(b => b.weekday))];
+          
           const courseSelect = document.getElementById('courseSelect');
           const dateInput = document.getElementById('dateInput');
+          const dateError = document.getElementById('dateError');
           const startTime = document.getElementById('startTime');
           const endTime = document.getElementById('endTime');
           const locationSelect = document.getElementById('locationSelect');
+          const timesHint = document.getElementById('availableTimesHint');
           
           const step2 = document.getElementById('step2');
           const step3 = document.getElementById('step3');
@@ -264,6 +489,16 @@
             document.getElementById('dot5')
           ];
           
+          // Calendar state
+          let currentMonth = new Date().getMonth();
+          let currentYear = new Date().getFullYear();
+          let selectedDate = null;
+          
+          const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                              'July', 'August', 'September', 'October', 'November', 'December'];
+          const dayNames = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+          const fullDayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+          
           function updateDots(currentStep) {
             dots.forEach((dot, index) => {
               dot.classList.remove('active', 'completed');
@@ -275,13 +510,212 @@
             });
           }
           
+          // Convert JS weekday (0=Sun) to our weekday (0=Mon)
+          function jsToDbWeekday(jsDay) {
+            return jsDay === 0 ? 6 : jsDay - 1;
+          }
+          
+          // Check if a weekday (JS format) is available
+          function isWeekdayAvailable(jsDay) {
+            if (availableWeekdays.length === 0) return true;
+            const dbWeekday = jsToDbWeekday(jsDay);
+            return availableWeekdays.includes(dbWeekday);
+          }
+          
+          // Render the custom calendar
+          function renderCalendar() {
+            const monthYearEl = document.getElementById('calMonthYear');
+            const gridEl = document.getElementById('calGrid');
+            
+            monthYearEl.textContent = `${monthNames[currentMonth]} ${currentYear}`;
+            
+            gridEl.innerHTML = '';
+            
+            // Render weekday headers
+            for (let i = 0; i < 7; i++) {
+              const div = document.createElement('div');
+              div.className = 'cal-weekday';
+              div.textContent = dayNames[i];
+              if (isWeekdayAvailable(i)) {
+                div.classList.add('available-day');
+              }
+              gridEl.appendChild(div);
+            }
+            
+            // Get first day of month and number of days
+            const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            // Empty cells before first day
+            for (let i = 0; i < firstDay; i++) {
+              const div = document.createElement('div');
+              div.className = 'cal-day empty';
+              gridEl.appendChild(div);
+            }
+            
+            // Days of month
+            for (let day = 1; day <= daysInMonth; day++) {
+              const date = new Date(currentYear, currentMonth, day);
+              const jsWeekday = date.getDay();
+              const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+              
+              const div = document.createElement('div');
+              div.className = 'cal-day';
+              div.textContent = day;
+              div.dataset.date = dateStr;
+              
+              // Check if past
+              if (date < today) {
+                div.classList.add('past');
+              }
+              // Check if today
+              else if (date.getTime() === today.getTime()) {
+                div.classList.add('today');
+                if (isWeekdayAvailable(jsWeekday)) {
+                  div.classList.add('available');
+                } else {
+                  div.classList.add('unavailable');
+                }
+              }
+              // Check availability
+              else if (isWeekdayAvailable(jsWeekday)) {
+                div.classList.add('available');
+              } else {
+                div.classList.add('unavailable');
+              }
+              
+              // Check if selected
+              if (selectedDate === dateStr) {
+                div.classList.add('selected');
+              }
+              
+              // Click handler
+              if (!div.classList.contains('past') && !div.classList.contains('unavailable')) {
+                div.addEventListener('click', () => selectDate(dateStr, div));
+              }
+              
+              gridEl.appendChild(div);
+            }
+          }
+          
+          // Select a date
+          function selectDate(dateStr, element) {
+            // Remove previous selection
+            document.querySelectorAll('.cal-day.selected').forEach(el => el.classList.remove('selected'));
+            
+            // Add selection
+            element.classList.add('selected');
+            selectedDate = dateStr;
+            dateInput.value = dateStr;
+            
+            // Trigger the form flow
+            dateError.style.display = 'none';
+            populateTimeSlots(dateStr);
+            step3.classList.add('visible');
+            startTime.required = true;
+            endTime.required = true;
+            updateDots(3);
+            setTimeout(() => startTime.focus(), 300);
+          }
+          
+          // Navigation
+          document.getElementById('calPrev').addEventListener('click', () => {
+            currentMonth--;
+            if (currentMonth < 0) {
+              currentMonth = 11;
+              currentYear--;
+            }
+            renderCalendar();
+          });
+          
+          document.getElementById('calNext').addEventListener('click', () => {
+            currentMonth++;
+            if (currentMonth > 11) {
+              currentMonth = 0;
+              currentYear++;
+            }
+            renderCalendar();
+          });
+          
+          // Initial render
+          renderCalendar();
+          
+          // Get time slots for a specific weekday
+          function getTimeSlotsForWeekday(dbWeekday) {
+            return availabilityBlocks.filter(b => b.weekday === dbWeekday);
+          }
+          
+          // Populate time dropdowns based on selected date
+          function populateTimeSlots(dateStr) {
+            const date = new Date(dateStr + 'T12:00:00');
+            const dbWeekday = jsToDbWeekday(date.getDay());
+            const slots = getTimeSlotsForWeekday(dbWeekday);
+            
+            // Clear existing options
+            startTime.innerHTML = '<option value="">Start time</option>';
+            endTime.innerHTML = '<option value="">End time</option>';
+            
+            if (slots.length === 0) {
+              timesHint.textContent = 'No specific times set for this day';
+              // Add generic time options
+              for (let h = 8; h <= 20; h++) {
+                for (let m of [0, 30]) {
+                  const val = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+                  const label = formatTime(val);
+                  startTime.innerHTML += `<option value="${val}">${label}</option>`;
+                  endTime.innerHTML += `<option value="${val}">${label}</option>`;
+                }
+              }
+            } else {
+              // Show available time ranges
+              const ranges = slots.map(s => `${formatTime(s.start)} – ${formatTime(s.end)}`).join(', ');
+              timesHint.innerHTML = `<span style="color:#4CAF50;">✓</span> Available: ${ranges}`;
+              
+              // Populate with available times
+              slots.forEach(slot => {
+                const startH = parseInt(slot.start.split(':')[0]);
+                const startM = parseInt(slot.start.split(':')[1]);
+                const endH = parseInt(slot.end.split(':')[0]);
+                const endM = parseInt(slot.end.split(':')[1]);
+                
+                // Generate 30-min intervals within the slot
+                for (let h = startH; h <= endH; h++) {
+                  for (let m of [0, 30]) {
+                    const totalMins = h * 60 + m;
+                    const slotStartMins = startH * 60 + startM;
+                    const slotEndMins = endH * 60 + endM;
+                    
+                    if (totalMins >= slotStartMins && totalMins < slotEndMins) {
+                      const val = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+                      const label = formatTime(val);
+                      startTime.innerHTML += `<option value="${val}">${label}</option>`;
+                    }
+                    if (totalMins > slotStartMins && totalMins <= slotEndMins) {
+                      const val = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+                      const label = formatTime(val);
+                      endTime.innerHTML += `<option value="${val}">${label}</option>`;
+                    }
+                  }
+                }
+              });
+            }
+          }
+          
+          // Format time for display
+          function formatTime(timeStr) {
+            const [h, m] = timeStr.split(':').map(Number);
+            const suffix = h >= 12 ? 'PM' : 'AM';
+            const hour = h % 12 || 12;
+            return `${hour}:${String(m).padStart(2,'0')} ${suffix}`;
+          }
+          
           // Step 1 -> Step 2: Course selected
           courseSelect.addEventListener('change', function() {
             if (this.value) {
               step2.classList.add('visible');
-              dateInput.required = true;
               updateDots(2);
-              setTimeout(() => dateInput.focus(), 300);
             } else {
               step2.classList.remove('visible');
               step3.classList.remove('visible');
@@ -289,17 +723,6 @@
               step5.classList.remove('visible', 'visible-large');
               submitStep.classList.remove('visible');
               updateDots(1);
-            }
-          });
-          
-          // Step 2 -> Step 3: Date selected
-          dateInput.addEventListener('change', function() {
-            if (this.value) {
-              step3.classList.add('visible');
-              startTime.required = true;
-              endTime.required = true;
-              updateDots(3);
-              setTimeout(() => startTime.focus(), 300);
             }
           });
           
