@@ -2,35 +2,602 @@
 {% block title %}Meet the Team{% endblock %}
 {% block content %}
 
-<section class="hero">
-  <h1>Meet the Team</h1>
-  <h2>Section 4 · Team 1 · Fall 2025</h2>
-  <hr class="divider">
-</section>
+<style>
+  /* Override base container */
+  main.container:has(.team-page) {
+    max-width: 100% !important;
+    padding: 0 !important;
+    width: 100% !important;
+  }
 
-<section class="team-grid">
-  {% for m in members %}
-  <article class="card">
-    <div class="avatar">
-      {% if m.avatar %}
-      <img src="{{ url_for('static', filename=m.avatar) }}" alt="{{ m.name }} avatar" />
-      {% else %}
-      <svg width="50" height="50" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 
-                 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 
-                 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-      </svg>
-      {% endif %}
+  .team-page {
+    min-height: 100vh;
+    background: linear-gradient(180deg, #f8f9ff 0%, #ffffff 100%);
+  }
+
+  /* Hero Section */
+  .team-hero {
+    background: 
+      linear-gradient(135deg, rgba(46, 8, 84, 0.9) 0%, rgba(74, 26, 122, 0.85) 50%, rgba(107, 45, 158, 0.8) 100%),
+      url("/static/images/sfsu-quad.jpg");
+    background-size: cover;
+    background-position: center;
+    padding: 80px 40px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .team-hero::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: 
+      radial-gradient(circle at 30% 70%, rgba(197, 164, 63, 0.15) 0%, transparent 50%),
+      radial-gradient(circle at 70% 30%, rgba(255, 255, 255, 0.08) 0%, transparent 40%);
+    pointer-events: none;
+  }
+
+  .team-hero-content {
+    position: relative;
+    z-index: 1;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .team-hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(197, 164, 63, 0.2);
+    border: 1px solid rgba(197, 164, 63, 0.4);
+    padding: 8px 16px;
+    border-radius: 30px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #C5A43F;
+    margin-bottom: 20px;
+  }
+
+  .team-hero h1 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 48px;
+    font-weight: 700;
+    color: #fff;
+    margin: 0 0 16px;
+  }
+
+  .team-hero-subtitle {
+    font-size: 20px;
+    color: rgba(255, 255, 255, 0.9);
+    margin: 0 0 8px;
+  }
+
+  .team-hero-info {
+    font-size: 16px;
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  /* Team Stats */
+  .team-stats {
+    background: #fff;
+    padding: 0;
+    margin-top: -30px;
+    position: relative;
+    z-index: 2;
+  }
+
+  .team-stats-container {
+    max-width: 700px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+  }
+
+  .team-stat {
+    padding: 24px 20px;
+    text-align: center;
+    border-right: 1px solid #f0f0f5;
+  }
+
+  .team-stat:last-child {
+    border-right: none;
+  }
+
+  .team-stat-number {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 32px;
+    font-weight: 700;
+    color: #2E0854;
+  }
+
+  .team-stat-label {
+    font-size: 13px;
+    color: #666;
+    margin-top: 4px;
+  }
+
+  /* Team Grid Section */
+  .team-section {
+    padding: 60px 40px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .section-header {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+
+  .section-title {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 32px;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin: 0 0 12px;
+  }
+
+  .section-subtitle {
+    font-size: 16px;
+    color: #666;
+  }
+
+  /* Team Grid */
+  .team-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 24px;
+  }
+
+  /* Member Card */
+  .member-card {
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    transition: all 0.3s ease;
+  }
+
+  .member-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 16px 48px rgba(46, 8, 84, 0.15);
+  }
+
+  .member-card-header {
+    background: linear-gradient(135deg, #2E0854 0%, #4a1a7a 100%);
+    padding: 32px 24px 48px;
+    text-align: center;
+    position: relative;
+  }
+
+  .member-card-header::after {
+    content: '';
+    position: absolute;
+    bottom: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100px;
+    height: 40px;
+    background: #fff;
+    border-radius: 50% 50% 0 0;
+  }
+
+  .member-avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    margin: 0 auto;
+    overflow: hidden;
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    position: relative;
+    z-index: 1;
+  }
+
+  .member-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .member-avatar-fallback {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #C5A43F 0%, #d4b44e 100%);
+    font-size: 36px;
+    font-weight: 700;
+    color: #fff;
+    font-family: 'Montserrat', sans-serif;
+  }
+
+  .member-card-body {
+    padding: 32px 24px 24px;
+    text-align: center;
+  }
+
+  .member-name {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin: 0 0 8px;
+  }
+
+  .member-role {
+    display: inline-block;
+    background: linear-gradient(135deg, rgba(46, 8, 84, 0.1) 0%, rgba(106, 45, 158, 0.1) 100%);
+    color: #2E0854;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 16px;
+  }
+
+  .member-subtitle {
+    font-size: 14px;
+    color: #666;
+    line-height: 1.5;
+    margin-bottom: 20px;
+  }
+
+  .member-skills {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  .skill-tag {
+    background: #f5f5f7;
+    color: #555;
+    padding: 5px 12px;
+    border-radius: 15px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  .member-links {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .member-link {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #f5f5f7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #666;
+    text-decoration: none;
+    transition: all 0.2s;
+    font-size: 18px;
+  }
+
+  .member-link:hover {
+    background: #2E0854;
+    color: #fff;
+    transform: translateY(-2px);
+  }
+
+  .member-link.github:hover { background: #333; }
+  .member-link.linkedin:hover { background: #0077b5; }
+  .member-link.email:hover { background: #C5A43F; }
+
+  .view-profile-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, #2E0854 0%, #4a1a7a 100%);
+    color: #fff;
+    padding: 12px 24px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+
+  .view-profile-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(46, 8, 84, 0.3);
+  }
+
+  /* Project Info Section */
+  .project-section {
+    background: linear-gradient(180deg, #f8f9ff 0%, #f0f0f8 100%);
+    padding: 60px 40px;
+  }
+
+  .project-container {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .project-card {
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+    padding: 40px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    align-items: center;
+  }
+
+  .project-info h3 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 24px;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin: 0 0 16px;
+  }
+
+  .project-info p {
+    font-size: 15px;
+    color: #666;
+    line-height: 1.7;
+    margin: 0 0 20px;
+  }
+
+  .project-details {
+    display: grid;
+    gap: 12px;
+  }
+
+  .project-detail {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: #f8f9ff;
+    border-radius: 10px;
+  }
+
+  .project-detail-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #2E0854 0%, #4a1a7a 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+  }
+
+  .project-detail-text {
+    flex: 1;
+  }
+
+  .project-detail-label {
+    font-size: 12px;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .project-detail-value {
+    font-size: 15px;
+    font-weight: 600;
+    color: #1a1a2e;
+  }
+
+  /* Back Link */
+  .back-section {
+    text-align: center;
+    padding: 40px;
+  }
+
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #2E0854;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.2s;
+  }
+
+  .back-link:hover {
+    color: #C5A43F;
+    transform: translateX(-4px);
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .team-hero {
+      padding: 60px 20px;
+    }
+
+    .team-hero h1 {
+      font-size: 32px;
+    }
+
+    .team-stats-container {
+      grid-template-columns: 1fr;
+      margin: 0 20px;
+    }
+
+    .team-stat {
+      border-right: none;
+      border-bottom: 1px solid #f0f0f5;
+    }
+
+    .team-stat:last-child {
+      border-bottom: none;
+    }
+
+    .team-section {
+      padding: 40px 20px;
+    }
+
+    .team-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .project-card {
+      grid-template-columns: 1fr;
+      padding: 24px;
+    }
+  }
+</style>
+
+<div class="team-page">
+  <!-- Hero Section -->
+  <section class="team-hero">
+    <div class="team-hero-content">
+      <div class="team-hero-badge">
+        🎓 CSC 648-848 · Fall 2025
+      </div>
+      <h1>Meet Our Team</h1>
+      <p class="team-hero-subtitle">The passionate developers behind SFSU Tutors</p>
+      <p class="team-hero-info">Section 4 · Team 1</p>
     </div>
-    <h3 class="name">{{ m.name }}</h3>
-    <p class="role">{{ m.role }}</p>
-    <a class="btn" href="{{ url_for('member_page', slug=m.slug) }}">View Profile</a>
-  </article>
-  {% endfor %}
-</section>
+  </section>
 
-<div class="back">
-  <a href="{{ url_for('home_page') }}">← Back to Home</a>
+  <!-- Stats -->
+  <section class="team-stats">
+    <div class="team-stats-container">
+      <div class="team-stat">
+        <div class="team-stat-number">{{ members|length }}</div>
+        <div class="team-stat-label">Team Members</div>
+      </div>
+      <div class="team-stat">
+        <div class="team-stat-number">1</div>
+        <div class="team-stat-label">Semester</div>
+      </div>
+      <div class="team-stat">
+        <div class="team-stat-number">∞</div>
+        <div class="team-stat-label">Lines of Code</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Team Grid -->
+  <section class="team-section">
+    <div class="section-header">
+      <h2 class="section-title">Our Talented Team</h2>
+      <p class="section-subtitle">Meet the SFSU students building this platform</p>
+    </div>
+
+    <div class="team-grid">
+      {% for m in members %}
+      <article class="member-card">
+        <div class="member-card-header">
+          <div class="member-avatar">
+            {% if m.avatar %}
+            <img src="{{ url_for('static', filename=m.avatar) }}" alt="{{ m.name }}" />
+            {% else %}
+            <div class="member-avatar-fallback">{{ m.name[0] }}</div>
+            {% endif %}
+          </div>
+        </div>
+        <div class="member-card-body">
+          <h3 class="member-name">{{ m.name }}</h3>
+          <div class="member-role">{{ m.role }}</div>
+          <p class="member-subtitle">{{ m.subtitle }}</p>
+          
+          <div class="member-skills">
+            {% for skill in m.skills[:4] %}
+            <span class="skill-tag">{{ skill }}</span>
+            {% endfor %}
+          </div>
+
+          <div class="member-links">
+            {% if m.github %}
+            <a href="{{ m.github }}" class="member-link github" target="_blank" title="GitHub">
+              <i class="fab fa-github"></i>
+            </a>
+            {% endif %}
+            {% if m.linkedin %}
+            <a href="{{ m.linkedin }}" class="member-link linkedin" target="_blank" title="LinkedIn">
+              <i class="fab fa-linkedin-in"></i>
+            </a>
+            {% endif %}
+            {% if m.email %}
+            <a href="mailto:{{ m.email }}" class="member-link email" title="Email">
+              <i class="fas fa-envelope"></i>
+            </a>
+            {% endif %}
+          </div>
+
+          <a href="{{ url_for('member_page', slug=m.slug) }}" class="view-profile-btn">
+            View Full Profile →
+          </a>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- Project Info -->
+  <section class="project-section">
+    <div class="project-container">
+      <div class="project-card">
+        <div class="project-info">
+          <h3>About This Project</h3>
+          <p>
+            SFSU Tutors is a peer tutoring platform built as part of our Software Engineering course. 
+            Our goal is to connect SFSU students with qualified peer tutors to help them succeed in their studies.
+          </p>
+          <p>
+            This project demonstrates our ability to work as a team, apply software engineering principles, 
+            and deliver a functional web application from concept to deployment.
+          </p>
+        </div>
+        <div class="project-details">
+          <div class="project-detail">
+            <div class="project-detail-icon">📚</div>
+            <div class="project-detail-text">
+              <div class="project-detail-label">Course</div>
+              <div class="project-detail-value">CSC 648-848</div>
+            </div>
+          </div>
+          <div class="project-detail">
+            <div class="project-detail-icon">🏫</div>
+            <div class="project-detail-text">
+              <div class="project-detail-label">University</div>
+              <div class="project-detail-value">San Francisco State</div>
+            </div>
+          </div>
+          <div class="project-detail">
+            <div class="project-detail-icon">📅</div>
+            <div class="project-detail-text">
+              <div class="project-detail-label">Semester</div>
+              <div class="project-detail-value">Fall 2025</div>
+            </div>
+          </div>
+          <div class="project-detail">
+            <div class="project-detail-icon">⚡</div>
+            <div class="project-detail-text">
+              <div class="project-detail-label">Tech Stack</div>
+              <div class="project-detail-value">Flask, Python, MySQL</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Back Link -->
+  <section class="back-section">
+    <a href="{{ url_for('home_page') }}" class="back-link">
+      ← Back to Home
+    </a>
+  </section>
 </div>
 
 {% endblock %}
