@@ -368,6 +368,18 @@ def tutor_profile(slug: str):
             if m.strip()
         ]
 
+        # Get availability blocks for this tutor
+        availability_blocks = (
+            db.query(TutorAvailabilityBlock)
+            .filter(TutorAvailabilityBlock.tutor_id == tutor.id)
+            .filter(TutorAvailabilityBlock.is_active == 1)
+            .order_by(
+                TutorAvailabilityBlock.weekday.asc(),
+                TutorAvailabilityBlock.start_time.asc(),
+            )
+            .all()
+        )
+
         # Get today's date for the form
         today = datetime.now().strftime("%Y-%m-%d")
 
@@ -376,6 +388,7 @@ def tutor_profile(slug: str):
             tutor=tutor,
             courses=courses,
             meeting_options=meeting_options,
+            availability_blocks=availability_blocks,
             today=today,
         )
 
@@ -1349,6 +1362,35 @@ def student_dashboard():
         my_tutors=my_tutors,
         now=now,
     )
+
+
+# -------------------- Edit Student Profile --------------------
+
+
+@app.route("/profile/edit", methods=["GET", "POST"])
+@login_required
+def edit_profile():
+    """
+    Allow any logged-in user to edit their basic profile (name).
+    """
+    with SessionLocal() as db:
+        user = db.query(User).filter(User.id == current_user.id).first()
+        if not user:
+            abort(404)
+
+        if request.method == "POST":
+            name = (request.form.get("name") or "").strip()
+
+            if name:
+                user.name = name
+                db.commit()
+                flash("Your profile has been updated.", "success")
+            else:
+                flash("Name cannot be empty.", "danger")
+
+            return redirect(url_for("edit_profile"))
+
+        return render_template("edit_profile.html", user=user)
 
 
 # -------------------- Edit Tutor Profile (from Dashboard) --------------------
