@@ -1389,6 +1389,7 @@ def edit_profile():
 
             return redirect(url_for("edit_profile"))
 
+        # show edit page
         return render_template("edit_profile.html", user=user)
 
 
