@@ -12,6 +12,296 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css', v='20251016') }}">
 
+  <style>
+    /* ========== Modern Navbar Styles ========== */
+    .top-banner {
+      background: linear-gradient(90deg, #1a0a2e 0%, #2E0854 100%);
+      padding: 8px 20px;
+      text-align: center;
+    }
+
+    .top-banner p {
+      color: #C5A43F;
+      font-size: 13px;
+      font-weight: 600;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .top-banner p::before {
+      content: '🎓';
+    }
+
+    .main-nav {
+      background: linear-gradient(135deg, #2E0854 0%, #3a1068 100%);
+      padding: 0 32px;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      box-shadow: 0 4px 20px rgba(46, 8, 84, 0.3);
+    }
+
+    .nav-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 70px;
+      gap: 32px;
+    }
+
+    .nav-menu {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      flex: 1;
+      justify-content: flex-end;
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+    }
+
+    .nav-logo {
+      width: 42px;
+      height: 42px;
+      background: linear-gradient(135deg, #C5A43F 0%, #d4b44e 100%);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      font-size: 14px;
+      color: #2E0854;
+    }
+
+    .nav-brand-text {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      font-size: 20px;
+      color: #fff;
+    }
+
+    .nav-brand-text span {
+      color: #C5A43F;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    .nav-links a {
+      color: rgba(255, 255, 255, 0.85);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 15px;
+      padding: 10px 18px;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .nav-links a:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
+
+    .nav-links a.active {
+      background: rgba(197, 164, 63, 0.2);
+      color: #C5A43F;
+    }
+
+    .nav-links a i {
+      font-size: 14px;
+      opacity: 0.8;
+    }
+
+    .nav-auth {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .nav-login {
+      color: #fff;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 15px;
+      padding: 10px 20px;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .nav-login:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .nav-signup {
+      background: linear-gradient(135deg, #C5A43F 0%, #d4b44e 100%);
+      color: #2E0854;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 14px;
+      padding: 12px 24px;
+      border-radius: 10px;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 15px rgba(197, 164, 63, 0.3);
+    }
+
+    .nav-signup:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(197, 164, 63, 0.4);
+    }
+
+    .nav-logout-btn {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      font-weight: 600;
+      font-size: 14px;
+      padding: 10px 20px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .nav-logout-btn:hover {
+      background: rgba(255, 255, 255, 0.15);
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    /* Mobile Menu Button */
+    .nav-mobile-btn {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 10px;
+      border-radius: 8px;
+      transition: background 0.2s;
+    }
+
+    .nav-mobile-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .nav-mobile-btn span {
+      display: block;
+      width: 24px;
+      height: 3px;
+      background: #fff;
+      border-radius: 2px;
+      transition: all 0.3s ease;
+    }
+
+    .nav-mobile-btn.active span:nth-child(1) {
+      transform: rotate(45deg) translate(6px, 6px);
+    }
+
+    .nav-mobile-btn.active span:nth-child(2) {
+      opacity: 0;
+    }
+
+    .nav-mobile-btn.active span:nth-child(3) {
+      transform: rotate(-45deg) translate(6px, -6px);
+    }
+
+    /* Mobile Styles */
+    @media (max-width: 1100px) {
+      .main-nav {
+        padding: 0 16px;
+      }
+
+      .nav-container {
+        height: 64px;
+      }
+
+      .nav-mobile-btn {
+        display: flex;
+      }
+
+      .nav-menu {
+        position: fixed;
+        top: 64px;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(180deg, #2E0854 0%, #1a0a2e 100%);
+        padding: 24px;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+        overflow-y: auto;
+        flex-direction: column;
+        gap: 24px;
+        justify-content: flex-start;
+      }
+
+      .nav-menu.active {
+        transform: translateX(0);
+      }
+
+      .nav-links {
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .nav-links a {
+        padding: 16px 20px;
+        font-size: 16px;
+        border-radius: 12px;
+      }
+
+      .nav-auth {
+        flex-direction: column;
+        gap: 12px;
+        padding-top: 16px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .nav-login, .nav-signup, .nav-logout-btn {
+        width: 100%;
+        text-align: center;
+        padding: 16px 24px;
+      }
+
+      .nav-auth form {
+        width: 100%;
+      }
+
+      .nav-auth form button {
+        width: 100%;
+      }
+
+      .top-banner {
+        position: relative;
+      }
+
+      .top-banner p {
+        font-size: 11px;
+      }
+    }
+
+    /* Hide old nav styles */
+    .banner, .nav { display: none !important; }
+  </style>
+
   {% if GA_ID %}
   <script async src="https://www.googletagmanager.com/gtag/js?id={{ GA_ID }}"></script>
   <script>
@@ -24,78 +314,85 @@
 </head>
 
 <body>
-  <!-- Top banner -->
-  <div class="banner">
-    <p>SFSU Software Engineering Project CSC 648-848, Fall 2025. For Demonstration Only</p>
+  <!-- Top Banner -->
+  <div class="top-banner">
+    <p>SFSU Software Engineering Project CSC 648-848, Fall 2025 — For Demonstration Only</p>
   </div>
 
-  <!-- Main navigation -->
-  <nav class="nav">
-    <div class="nav-inner">
-      <a class="logo" href="{{ url_for('home_page') }}">SFSU</a>
+  <!-- Main Navigation -->
+  <nav class="main-nav">
+    <div class="nav-container">
+      <!-- Brand -->
+      <a href="{{ url_for('home_page') }}" class="nav-brand">
+        <div class="nav-logo">SF</div>
+        <span class="nav-brand-text">SFSU <span>Tutors</span></span>
+      </a>
 
-      <!-- Mobile menu button -->
-      <button class="mobile-menu-btn" aria-label="Toggle menu" onclick="toggleMobileMenu()">
+      <!-- Mobile Menu Button -->
+      <button class="nav-mobile-btn" aria-label="Toggle menu" onclick="toggleNav()">
         <span></span>
         <span></span>
         <span></span>
       </button>
 
-      <!-- Nav items (desktop + mobile) -->
-      <div class="nav-items" id="navItems">
-        <ul class="links">
+      <!-- Nav Menu -->
+      <div class="nav-menu" id="navMenu">
+        <ul class="nav-links">
           <li>
             <a href="{{ url_for('home_page') }}" class="{% if request.path == url_for('home_page') %}active{% endif %}">
-              Home
-            </a>
-          </li>
-          <li>
-            <a href="{{ url_for('team_page') }}" class="{% if request.path.startswith('/about') %}active{% endif %}">
-              About
-            </a>
-          </li>
-          <li>
-            <a href="{{ url_for('search_page') }}"
-              class="{% if request.path == url_for('search_page') %}active{% endif %}">
-              Search
+              <i class="fas fa-home"></i> Home
             </a>
           </li>
 
           {% if current_user.is_authenticated %}
           <li>
-            <a href="{{ url_for('student_dashboard') }}"
-              class="{% if request.path.startswith('/student') %}active{% endif %}">
-              Dashboard
+            <a href="{{ url_for('student_dashboard') }}" class="{% if request.path.startswith('/student') %}active{% endif %}">
+              <i class="fas fa-th-large"></i> Dashboard
             </a>
           </li>
           {% endif %}
+
+          <li>
+            <a href="{{ url_for('search_page') }}" class="{% if request.path == url_for('search_page') or request.path.startswith('/results') %}active{% endif %}">
+              <i class="fas fa-search"></i> Find Tutors
+            </a>
+          </li>
 
           {% if current_user.is_authenticated and (current_user.is_tutor or current_user.role == 'tutor') %}
           <li>
-            <a href="{{ url_for('tutor_dashboard') }}"
-              class="{% if request.path.startswith('/tutor') %}active{% endif %}">
-              Tutor
+            <a href="{{ url_for('tutor_dashboard') }}" class="{% if request.path.startswith('/tutor') %}active{% endif %}">
+              <i class="fas fa-chalkboard-teacher"></i> Tutor Portal
             </a>
           </li>
           {% endif %}
 
+          <li>
+            <a href="{{ url_for('team_page') }}" class="{% if request.path.startswith('/about') %}active{% endif %}">
+              <i class="fas fa-users"></i> About
+            </a>
+          </li>
+
           {% if current_user.is_authenticated and current_user.role == 'admin' %}
           <li>
-            <a class="nav-link" href="{{ url_for('admin.dashboard') }}">Admin</a>
+            <a href="{{ url_for('admin.dashboard') }}" class="{% if request.path.startswith('/admin') %}active{% endif %}">
+              <i class="fas fa-cog"></i> Admin
+            </a>
           </li>
           {% endif %}
         </ul>
 
-        <!-- Auth actions (right side) -->
-        <div class="auth">
+        <!-- Auth Actions -->
+        <div class="nav-auth">
           {% if current_user.is_authenticated %}
           <form method="post" action="{{ url_for('logout') }}">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button class="btn outline gold" type="submit">Log out</button>
+            <button class="nav-logout-btn" type="submit">
+              <i class="fas fa-sign-out-alt"></i> Log Out
+            </button>
           </form>
           {% else %}
-          <a href="{{ url_for('login') }}" class="login-link">Log in</a>
-          <a href="{{ url_for('signup') }}" class="btn outline gold">Sign Up</a>
+          <a href="{{ url_for('login') }}" class="nav-login">Log In</a>
+          <a href="{{ url_for('signup') }}" class="nav-signup">Sign Up Free</a>
           {% endif %}
         </div>
       </div>
@@ -103,18 +400,18 @@
   </nav>
 
   <script>
-    function toggleMobileMenu() {
-      const navItems = document.getElementById('navItems');
-      const menuBtn = document.querySelector('.mobile-menu-btn');
-      navItems.classList.toggle('active');
+    function toggleNav() {
+      const navMenu = document.getElementById('navMenu');
+      const menuBtn = document.querySelector('.nav-mobile-btn');
+      navMenu.classList.toggle('active');
       menuBtn.classList.toggle('active');
     }
 
     // Close menu when clicking on a link
-    document.querySelectorAll('.nav-items a').forEach(link => {
+    document.querySelectorAll('.nav-links a').forEach(link => {
       link.addEventListener('click', () => {
-        document.getElementById('navItems').classList.remove('active');
-        document.querySelector('.mobile-menu-btn').classList.remove('active');
+        document.getElementById('navMenu').classList.remove('active');
+        document.querySelector('.nav-mobile-btn').classList.remove('active');
       });
     });
   </script>
@@ -123,9 +420,281 @@
     {% block content %}{% endblock %}
   </main>
 
-  <footer class="footer">
-    <p>© 2025 SFSU · For demonstration only.</p>
+  <!-- Modern Footer -->
+  <footer class="site-footer">
+    <div class="footer-main">
+      <div class="footer-container">
+        <!-- Brand Column -->
+        <div class="footer-brand">
+          <div class="footer-logo">
+            <div class="footer-logo-icon">SF</div>
+            <span>SFSU <span>Tutors</span></span>
+          </div>
+          <p class="footer-tagline">Connecting SFSU students with peer tutors to help everyone succeed academically.</p>
+          <div class="footer-social">
+            <a href="#" class="social-link" title="GitHub"><i class="fab fa-github"></i></a>
+            <a href="#" class="social-link" title="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+            <a href="#" class="social-link" title="Twitter"><i class="fab fa-twitter"></i></a>
+          </div>
+        </div>
+
+        <!-- Quick Links -->
+        <div class="footer-column">
+          <h4>Quick Links</h4>
+          <ul>
+            <li><a href="{{ url_for('home_page') }}">Home</a></li>
+            <li><a href="{{ url_for('search_page') }}">Find Tutors</a></li>
+            <li><a href="{{ url_for('become_tutor') }}">Become a Tutor</a></li>
+            <li><a href="{{ url_for('team_page') }}">About Us</a></li>
+          </ul>
+        </div>
+
+        <!-- Resources -->
+        <div class="footer-column">
+          <h4>Resources</h4>
+          <ul>
+            <li><a href="{{ url_for('search_page') }}">Browse Subjects</a></li>
+            <li><a href="{{ url_for('login') }}">Student Login</a></li>
+            <li><a href="{{ url_for('signup') }}">Create Account</a></li>
+            <li><a href="{{ url_for('team_page') }}">Meet the Team</a></li>
+          </ul>
+        </div>
+
+        <!-- Contact -->
+        <div class="footer-column">
+          <h4>Contact</h4>
+          <ul class="footer-contact">
+            <li><i class="fas fa-university"></i> San Francisco State University</li>
+            <li><i class="fas fa-map-marker-alt"></i> 1600 Holloway Ave, SF, CA</li>
+            <li><i class="fas fa-envelope"></i> csc648@sfsu.edu</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer Bottom -->
+    <div class="footer-bottom">
+      <div class="footer-bottom-container">
+        <p>© 2025 SFSU Tutors · CSC 648-848 Software Engineering Project · For Demonstration Only</p>
+        <p class="footer-team">Built with ❤️ by Section 4, Team 1</p>
+      </div>
+    </div>
   </footer>
+
+  <style>
+    /* ========== Modern Footer Styles ========== */
+    .site-footer {
+      background: linear-gradient(180deg, #1a0a2e 0%, #0f0618 100%);
+      color: #fff;
+      margin-top: auto;
+    }
+
+    .footer-main {
+      padding: 60px 40px 40px;
+    }
+
+    .footer-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1.5fr 1fr 1fr 1fr;
+      gap: 48px;
+    }
+
+    /* Brand Column */
+    .footer-brand {
+      padding-right: 24px;
+    }
+
+    .footer-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .footer-logo-icon {
+      width: 42px;
+      height: 42px;
+      background: linear-gradient(135deg, #C5A43F 0%, #d4b44e 100%);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      font-size: 14px;
+      color: #2E0854;
+    }
+
+    .footer-logo span {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      font-size: 20px;
+      color: #fff;
+    }
+
+    .footer-logo span span {
+      color: #C5A43F;
+    }
+
+    .footer-tagline {
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 14px;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+
+    .footer-social {
+      display: flex;
+      gap: 12px;
+    }
+
+    .social-link {
+      width: 40px;
+      height: 40px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+
+    .social-link:hover {
+      background: #C5A43F;
+      transform: translateY(-3px);
+    }
+
+    /* Footer Columns */
+    .footer-column h4 {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+      margin: 0 0 20px;
+      position: relative;
+      padding-bottom: 12px;
+    }
+
+    .footer-column h4::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 30px;
+      height: 3px;
+      background: linear-gradient(90deg, #C5A43F 0%, transparent 100%);
+      border-radius: 2px;
+    }
+
+    .footer-column ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .footer-column ul li {
+      margin-bottom: 12px;
+    }
+
+    .footer-column ul a {
+      color: rgba(255, 255, 255, 0.7);
+      text-decoration: none;
+      font-size: 14px;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .footer-column ul a:hover {
+      color: #C5A43F;
+      transform: translateX(4px);
+    }
+
+    .footer-contact li {
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 14px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .footer-contact li i {
+      color: #C5A43F;
+      width: 16px;
+      margin-top: 3px;
+    }
+
+    /* Footer Bottom */
+    .footer-bottom {
+      background: rgba(0, 0, 0, 0.3);
+      padding: 20px 40px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .footer-bottom-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .footer-bottom p {
+      color: rgba(255, 255, 255, 0.6);
+      font-size: 13px;
+      margin: 0;
+    }
+
+    .footer-team {
+      color: rgba(255, 255, 255, 0.5) !important;
+    }
+
+    /* Hide old footer */
+    footer.footer { display: none !important; }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .footer-main {
+        padding: 40px 24px 32px;
+      }
+
+      .footer-container {
+        grid-template-columns: 1fr 1fr;
+        gap: 32px;
+      }
+
+      .footer-brand {
+        grid-column: span 2;
+        padding-right: 0;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .footer-container {
+        grid-template-columns: 1fr;
+      }
+
+      .footer-brand {
+        grid-column: span 1;
+      }
+
+      .footer-bottom {
+        padding: 16px 24px;
+      }
+
+      .footer-bottom-container {
+        flex-direction: column;
+        text-align: center;
+      }
+    }
+  </style>
 </body>
 
 </html>
