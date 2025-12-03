@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+{% block title %}Messages · SFSU Tutors{% endblock %}
+
+{% block content %}
+<style>
+  /* Override parent container */
+  main.container {
+    max-width: 100% !important;
+    padding: 0 !important;
+    width: 100% !important;
+  }
+  
+  .messages-page {
+    background: #F7F7FA;
+    min-height: calc(100vh - 80px);
+    padding: 24px 40px;
+  }
+  
+  .messages-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    color: #2E0057;
+    text-decoration: none;
+    margin-bottom: 16px;
+  }
+  
+  .messages-back:hover {
+    text-decoration: underline;
+  }
+  
+  .messages-page-title {
+    font-size: 32px;
+    font-weight: 700;
+    color: #2E0057;
+    margin: 0 0 24px;
+  }
+  
+  .messages-layout {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 24px;
+    align-items: start;
+  }
+  
+  /* Left sidebar - Conversations list */
+  .conversations-panel {
+    background: #fff;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 2px 12px rgba(46,0,87,0.06);
+  }
+  
+  .conversations-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #2E0057;
+    margin: 0 0 16px;
+  }
+  
+  .conversations-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  
+  .conversation-item {
+    display: block;
+    padding: 12px 14px;
+    border-radius: 12px;
+    text-decoration: none;
+    transition: background 0.2s;
+    border-left: 3px solid transparent;
+  }
+  
+  .conversation-item:hover {
+    background: #F7F7FA;
+  }
+  
+  .conversation-item.active {
+    background: #F7F3FB;
+    border-left-color: #2E0057;
+  }
+  
+  .conversation-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #2E0057;
+    margin-bottom: 4px;
+  }
+  
+  .conversation-subject {
+    font-size: 13px;
+    color: #666;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  /* Right panel - Chat area */
+  .chat-panel {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 2px 12px rgba(46,0,87,0.06);
+    display: flex;
+    flex-direction: column;
+    min-height: calc(100vh - 200px);
+  }
+  
+  .no-chat-selected {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #999;
+    font-size: 14px;
+  }
+  
+  .empty-conversations {
+    text-align: center;
+    padding: 32px 16px;
+    color: #666;
+    font-size: 14px;
+  }
+  
+  /* Mobile responsive */
+  @media (max-width: 900px) {
+    .messages-page {
+      padding: 16px;
+    }
+    
+    .messages-layout {
+      grid-template-columns: 1fr;
+    }
+    
+    .chat-panel {
+      display: none;
+    }
+    
+    .conversations-panel {
+      min-height: calc(100vh - 200px);
+    }
+  }
+  
+  @media (max-width: 640px) {
+    .messages-page-title {
+      font-size: 24px;
+    }
+    
+    .conversations-panel {
+      padding: 16px;
+    }
+  }
+</style>
+
+<div class="messages-page">
+  <a href="{% if is_tutor %}{{ url_for('tutor_dashboard') }}{% else %}{{ url_for('student_dashboard') }}{% endif %}" class="messages-back">
+    ← Back to Dashboard
+  </a>
+  
+  <h1 class="messages-page-title">Messages</h1>
+  
+  <div class="messages-layout">
+    <!-- Left: Conversations List -->
+    <div class="conversations-panel">
+      <h2 class="conversations-title">Conversations</h2>
+      
+      {% if threads %}
+      <div class="conversations-list">
+        {% for t in threads %}
+        <a href="{{ url_for('view_thread', thread_id=t.id) }}" class="conversation-item">
+          <div class="conversation-name">
+            {% if is_tutor %}
+              {{ t.student.name if t.student else "Student" }}
+            {% else %}
+              {{ t.tutor.user.name if t.tutor and t.tutor.user else "Tutor" }}
+            {% endif %}
+          </div>
+          <div class="conversation-subject">{{ t.subject }}</div>
+        </a>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="empty-conversations">
+        <p>No conversations yet.</p>
+        {% if not is_tutor %}
+        <a href="{{ url_for('search_page') }}" class="btn btn-primary" style="margin-top:12px;">Find a Tutor</a>
+        {% endif %}
+      </div>
+      {% endif %}
+    </div>
+    
+    <!-- Right: Chat Panel (empty state when no thread selected) -->
+    <div class="chat-panel">
+      <div class="no-chat-selected">
+        Select a conversation to view messages
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

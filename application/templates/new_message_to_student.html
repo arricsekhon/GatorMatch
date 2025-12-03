@@ -1,0 +1,341 @@
+{% extends "base.html" %}
+{% block title %}New Message to {{ student.name if student else "Student" }} · SFSU Tutors{% endblock %}
+
+{% block content %}
+<style>
+  main.container {
+    max-width: 100% !important;
+    padding: 0 !important;
+    width: 100% !important;
+  }
+  
+  .new-msg-shell {
+    background: linear-gradient(180deg, #F7F7FA 0%, #EEEEF4 100%);
+    min-height: calc(100vh - 80px);
+    padding: 40px 40px 64px;
+  }
+  
+  .new-msg-container {
+    max-width: 100%;
+    margin: 0;
+    width: 100%;
+  }
+  
+  .new-msg-back {
+    font-size: 14px;
+    color: #2E0057;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 24px;
+    transition: color 0.2s;
+  }
+  
+  .new-msg-back:hover {
+    color: #5A3BA8;
+  }
+  
+  .new-msg-card {
+    background: #fff;
+    border-radius: 24px;
+    box-shadow: 0 4px 24px rgba(46,0,87,0.08), 0 1px 3px rgba(0,0,0,0.04);
+    overflow: hidden;
+  }
+  
+  /* Header with student info */
+  .new-msg-header {
+    background: linear-gradient(135deg, #27AE60 0%, #2ECC71 100%);
+    padding: 28px 32px;
+    color: #fff;
+  }
+  
+  .new-msg-title {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0 0 20px;
+    letter-spacing: -0.3px;
+  }
+  
+  .student-recipient {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  
+  .student-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: 600;
+    border: 2px solid rgba(255,255,255,0.3);
+  }
+  
+  .student-details {
+    flex: 1;
+  }
+  
+  .student-name {
+    font-size: 20px;
+    font-weight: 700;
+    margin: 0 0 6px;
+    color: #fff;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  }
+  
+  .student-role {
+    font-size: 14px;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    opacity: 0.9;
+  }
+  
+  /* Form section */
+  .new-msg-form {
+    padding: 32px;
+  }
+  
+  .form-group {
+    margin-bottom: 24px;
+  }
+  
+  .form-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: #2E0057;
+    margin-bottom: 8px;
+  }
+  
+  .form-label span {
+    color: #C0392B;
+  }
+  
+  .form-input {
+    width: 100%;
+    border: 2px solid #E8E8EE;
+    border-radius: 12px;
+    padding: 14px 16px;
+    font-size: 15px;
+    font-family: inherit;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    box-sizing: border-box;
+  }
+  
+  .form-input:focus {
+    outline: none;
+    border-color: #27AE60;
+    box-shadow: 0 0 0 4px rgba(39,174,96,0.1);
+  }
+  
+  .form-input::placeholder {
+    color: #999;
+  }
+  
+  .form-textarea {
+    width: 100%;
+    border: 2px solid #E8E8EE;
+    border-radius: 12px;
+    padding: 14px 16px;
+    font-size: 15px;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 160px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    box-sizing: border-box;
+  }
+  
+  .form-textarea:focus {
+    outline: none;
+    border-color: #27AE60;
+    box-shadow: 0 0 0 4px rgba(39,174,96,0.1);
+  }
+  
+  .form-textarea::placeholder {
+    color: #999;
+  }
+  
+  .form-hint {
+    font-size: 12px;
+    color: #888;
+    margin-top: 6px;
+  }
+  
+  /* Quick suggestions */
+  .quick-subjects {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  
+  .quick-subject {
+    background: #F7F7FA;
+    border: 1px solid #E8E8EE;
+    color: #555;
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  
+  .quick-subject:hover {
+    background: #E8F8ED;
+    border-color: #B8E8C8;
+    color: #1B8B3D;
+  }
+  
+  /* Actions */
+  .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 28px;
+    padding-top: 24px;
+    border-top: 1px solid #F0F0F4;
+  }
+  
+  .btn-cancel {
+    background: #fff;
+    color: #666;
+    border: 2px solid #E0E0E0;
+    padding: 14px 28px;
+    border-radius: 999px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    transition: all 0.2s;
+  }
+  
+  .btn-cancel:hover {
+    background: #F8F8FA;
+    border-color: #D0D0D8;
+    color: #333;
+  }
+  
+  .btn-send {
+    background: linear-gradient(135deg, #27AE60 0%, #2ECC71 100%);
+    color: #fff;
+    border: none;
+    padding: 14px 32px;
+    border-radius: 999px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+    box-shadow: 0 4px 16px rgba(39,174,96,0.3);
+  }
+  
+  .btn-send:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(39,174,96,0.4);
+  }
+  
+  /* Mobile */
+  @media (max-width: 640px) {
+    .new-msg-shell {
+      padding: 24px 16px 48px;
+    }
+    
+    .new-msg-header {
+      padding: 24px 20px;
+    }
+    
+    .new-msg-title {
+      font-size: 20px;
+    }
+    
+    .student-avatar {
+      width: 48px;
+      height: 48px;
+      font-size: 18px;
+    }
+    
+    .new-msg-form {
+      padding: 24px 20px;
+    }
+    
+    .form-actions {
+      flex-direction: column;
+    }
+    
+    .btn-cancel, .btn-send {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+</style>
+
+<div class="new-msg-shell">
+  <div class="new-msg-container">
+    <a href="{{ url_for('tutor_dashboard') }}" class="new-msg-back">
+      ← Back to Dashboard
+    </a>
+    
+    <div class="new-msg-card">
+      <div class="new-msg-header">
+        <h1 class="new-msg-title">✉️ New Message</h1>
+        
+        <div class="student-recipient">
+          <div class="student-avatar">
+            {% if student and student.name %}
+              {{ student.name.split()[0][0] }}{{ student.name.split()[-1][0] if student.name.split()|length > 1 else "" }}
+            {% else %}
+              ST
+            {% endif %}
+          </div>
+          <div class="student-details">
+            <div class="student-name">{{ student.name if student else "Student" }}</div>
+            <div class="student-role">
+              <span>🎓</span> Student
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <form method="post" class="new-msg-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        
+        <div class="form-group">
+          <label class="form-label">Subject <span>*</span></label>
+          <input type="text" name="subject" class="form-input" placeholder="What's this about?" required>
+          <div class="quick-subjects">
+            <button type="button" class="quick-subject" onclick="document.querySelector('input[name=subject]').value = 'About your session request'">About your session request</button>
+            <button type="button" class="quick-subject" onclick="document.querySelector('input[name=subject]').value = 'Session reminder'">Session reminder</button>
+            <button type="button" class="quick-subject" onclick="document.querySelector('input[name=subject]').value = 'Follow-up'">Follow-up</button>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Message <span>*</span></label>
+          <textarea name="body" class="form-textarea" placeholder="Hi {{ student.name.split()[0] if student and student.name else 'there' }}, I wanted to reach out about..." required></textarea>
+          <div class="form-hint">Be clear and helpful in your message.</div>
+        </div>
+        
+        <div class="form-actions">
+          <a href="{{ url_for('tutor_dashboard') }}" class="btn-cancel">Cancel</a>
+          <button type="submit" class="btn-send">
+            <span>Send Message</span>
+            <span>→</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -172,12 +172,13 @@
         <div>
           <div class="profile-edit-field-label">Profile photo</div>
           <div class="profile-edit-avatar-row">
-            <div class="profile-edit-avatar-circle">
+            <div class="profile-edit-avatar-circle" id="avatarPreview">
               {% if tutor.avatar_url %}
                 <img src="{{ url_for('static', filename=tutor.avatar_url) }}"
-                     alt="Current avatar">
+                     alt="Current avatar"
+                     id="avatarImg">
               {% else %}
-                <div class="profile-edit-avatar-placeholder">
+                <div class="profile-edit-avatar-placeholder" id="avatarPlaceholder">
                   <i class="fa-regular fa-user"></i>
                 </div>
               {% endif %}
@@ -185,14 +186,41 @@
             <div>
               <input type="file"
                      name="avatar"
+                     id="avatarInput"
                      accept="image/png,image/jpeg"
-                     class="profile-edit-input">
+                     class="profile-edit-input"
+                     onchange="previewAvatar(this)">
               <div class="profile-edit-avatar-help">
-                PNG or JPG, up to 5MB.
+                PNG or JPG, up to 5MB. Image will update after saving.
               </div>
             </div>
           </div>
         </div>
+        
+        <script>
+          function previewAvatar(input) {
+            if (input.files && input.files[0]) {
+              const reader = new FileReader();
+              reader.onload = function(e) {
+                const preview = document.getElementById('avatarPreview');
+                const placeholder = document.getElementById('avatarPlaceholder');
+                let img = document.getElementById('avatarImg');
+                
+                if (!img) {
+                  img = document.createElement('img');
+                  img.id = 'avatarImg';
+                  img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:50%;';
+                  preview.innerHTML = '';
+                  preview.appendChild(img);
+                }
+                
+                img.src = e.target.result;
+                img.alt = 'New avatar preview';
+              };
+              reader.readAsDataURL(input.files[0]);
+            }
+          }
+        </script>
 
         <!-- Name -->
         <div>

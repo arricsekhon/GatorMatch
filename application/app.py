@@ -41,6 +41,7 @@ from application.models import (
     Tutor,
     TutoringSession,
     MessageThread,
+    Message,
     TutorAvailabilityBlock,
 )
 Session = TutoringSession
@@ -438,12 +439,329 @@ def request_session(tutor_slug: str):
             end_at=end_at,
             status="pending",
             requested_by="student",
+            notes=message if message else None,
         )
         db.add(session_request)
         db.commit()
 
         flash("Session request sent! The tutor will review your request.", "success")
         return redirect(url_for("tutor_profile", slug=tutor_slug, requested=1) + "#contact")
+
+
+@app.route("/tutor/sessions/<int:session_id>/approve", methods=["POST"])
+@login_required
+def approve_session(session_id: int):
+    """Tutor approves a session request."""
+    with SessionLocal() as db:
+        # Get the session
+        session_obj = db.query(Session).filter(Session.id == session_id).first()
+        
+        if not session_obj:
+            flash("Session not found.", "danger")
+            return redirect(url_for("tutor_dashboard"))
+        
+        # Verify the current user is the tutor for this session
+        tutor = db.query(Tutor).filter(Tutor.user_id == current_user.id).first()
+        if not tutor or session_obj.tutor_id != tutor.id:
+            flash("You don't have permission to approve this session.", "danger")
+            return redirect(url_for("tutor_dashboard"))
+        
+        # Approve the session
+        session_obj.status = "approved"
+        db.commit()
+        
+        flash("Session approved! The student will be notified.", "success")
+        return redirect(url_for("tutor_dashboard"))
+
+
+@app.route("/tutor/sessions/<int:session_id>/deny", methods=["POST"])
+@login_required
+def deny_session(session_id: int):
+    """Tutor denies a session request."""
+    with SessionLocal() as db:
+        # Get the session
+        session_obj = db.query(Session).filter(Session.id == session_id).first()
+        
+        if not session_obj:
+            flash("Session not found.", "danger")
+            return redirect(url_for("tutor_dashboard"))
+        
+        # Verify the current user is the tutor for this session
+        tutor = db.query(Tutor).filter(Tutor.user_id == current_user.id).first()
+        if not tutor or session_obj.tutor_id != tutor.id:
+            flash("You don't have permission to deny this session.", "danger")
+            return redirect(url_for("tutor_dashboard"))
+        
+        # Deny the session
+        session_obj.status = "denied"
+        db.commit()
+        
+        flash("Session request denied.", "info")
+        return redirect(url_for("tutor_dashboard"))
+
+
+@app.route("/sessions/<int:session_id>/cancel", methods=["POST"])
+@login_required
+def cancel_session(session_id: int):
+    """Cancel a session - works for both students and tutors."""
+    with SessionLocal() as db:
+        # Get the session
+        session_obj = db.query(Session).filter(Session.id == session_id).first()
+        
+        if not session_obj:
+            flash("Session not found.", "danger")
+            return redirect(url_for("student_dashboard"))
+        
+        # Check if user is the student OR the tutor for this session
+        is_student = session_obj.student_id == current_user.id
+        tutor = db.query(Tutor).filter(Tutor.user_id == current_user.id).first()
+        is_tutor = tutor and session_obj.tutor_id == tutor.id
+        
+        if not is_student and not is_tutor:
+            flash("You don't have permission to cancel this session.", "danger")
+            return redirect(url_for("student_dashboard"))
+        
+        # Cancel the session
+        session_obj.status = "cancelled"
+        db.commit()
+        
+        flash("Session cancelled successfully.", "info")
+        
+        # Redirect back to appropriate dashboard
+        if is_tutor:
+            return redirect(url_for("tutor_dashboard"))
+        return redirect(url_for("student_dashboard"))
+
+
+# -------------------- Messaging --------------------
+
+@app.route("/messages")
+@login_required
+def messages_list():
+    """View all message threads for the current user."""
+    with SessionLocal() as db:
+        # Check if user is a tutor
+        tutor = db.query(Tutor).filter(Tutor.user_id == current_user.id).first()
+        
+        if tutor:
+            # Tutor sees threads where they're the tutor
+            threads = (
+                db.query(MessageThread)
+                .options(
+                    joinedload(MessageThread.messages),
+                    joinedload(MessageThread.student),
+                )
+                .filter(MessageThread.tutor_id == tutor.id)
+                .order_by(MessageThread.last_message_at.desc())
+                .all()
+            )
+        else:
+            # Student sees threads where they're the student
+            threads = (
+                db.query(MessageThread)
+                .options(
+                    joinedload(MessageThread.messages),
+                    joinedload(MessageThread.tutor).joinedload(Tutor.user),
+                )
+                .filter(MessageThread.student_id == current_user.id)
+                .order_by(MessageThread.last_message_at.desc())
+                .all()
+            )
+        
+        return render_template("messages.html", threads=threads, is_tutor=bool(tutor))
+
+
+@app.route("/messages/<int:thread_id>")
+@login_required  
+def view_thread(thread_id: int):
+    """View a specific message thread."""
+    with SessionLocal() as db:
+        thread = (
+            db.query(MessageThread)
+            .options(
+                joinedload(MessageThread.messages).joinedload(Message.sender),
+                joinedload(MessageThread.tutor).joinedload(Tutor.user),
+                joinedload(MessageThread.student),
+            )
+            .filter(MessageThread.id == thread_id)
+            .first()
+        )
+        
+        if not thread:
+            abort(404)
+        
+        # Check permission - must be tutor or student in thread
+        tutor = db.query(Tutor).filter(Tutor.user_id == current_user.id).first()
+        is_tutor = tutor and thread.tutor_id == tutor.id
+        is_student = thread.student_id == current_user.id
+        
+        if not is_tutor and not is_student:
+            abort(403)
+        
+        # Fetch all threads for sidebar
+        if is_tutor:
+            all_threads = (
+                db.query(MessageThread)
+                .options(
+                    joinedload(MessageThread.student),
+                )
+                .filter(MessageThread.tutor_id == tutor.id)
+                .order_by(MessageThread.last_message_at.desc())
+                .all()
+            )
+        else:
+            all_threads = (
+                db.query(MessageThread)
+                .options(
+                    joinedload(MessageThread.tutor).joinedload(Tutor.user),
+                )
+                .filter(MessageThread.student_id == current_user.id)
+                .order_by(MessageThread.last_message_at.desc())
+                .all()
+            )
+        
+        return render_template("thread.html", thread=thread, is_tutor=is_tutor, all_threads=all_threads)
+
+
+@app.route("/messages/<int:thread_id>/reply", methods=["POST"])
+@login_required
+def reply_to_thread(thread_id: int):
+    """Reply to a message thread."""
+    with SessionLocal() as db:
+        thread = db.query(MessageThread).filter(MessageThread.id == thread_id).first()
+        
+        if not thread:
+            flash("Thread not found.", "danger")
+            return redirect(url_for("messages_list"))
+        
+        # Check permission
+        tutor = db.query(Tutor).filter(Tutor.user_id == current_user.id).first()
+        is_tutor = tutor and thread.tutor_id == tutor.id
+        is_student = thread.student_id == current_user.id
+        
+        if not is_tutor and not is_student:
+            flash("You don't have permission to reply to this thread.", "danger")
+            return redirect(url_for("messages_list"))
+        
+        body = (request.form.get("body") or "").strip()
+        if not body:
+            flash("Message cannot be empty.", "danger")
+            return redirect(url_for("view_thread", thread_id=thread_id))
+        
+        # Create the message
+        msg = Message(
+            thread_id=thread_id,
+            sender_id=current_user.id,
+            body=body,
+        )
+        db.add(msg)
+        
+        # Update thread's last_message_at
+        thread.last_message_at = datetime.utcnow()
+        
+        db.commit()
+        
+        flash("Message sent!", "success")
+        return redirect(url_for("view_thread", thread_id=thread_id))
+
+
+@app.route("/messages/new/<int:tutor_id>", methods=["GET", "POST"])
+@login_required
+def new_message(tutor_id: int):
+    """Start a new message thread with a tutor (student initiates)."""
+    with SessionLocal() as db:
+        tutor = (
+            db.query(Tutor)
+            .options(joinedload(Tutor.user))
+            .filter(Tutor.id == tutor_id)
+            .first()
+        )
+        
+        if not tutor:
+            abort(404)
+        
+        if request.method == "POST":
+            subject = (request.form.get("subject") or "").strip()
+            body = (request.form.get("body") or "").strip()
+            
+            if not subject or not body:
+                flash("Subject and message are required.", "danger")
+                return render_template("new_message.html", tutor=tutor)
+            
+            # Create thread
+            thread = MessageThread(
+                tutor_id=tutor.id,
+                student_id=current_user.id,
+                subject=subject,
+                started_by="student",
+                last_message_at=datetime.utcnow(),
+            )
+            db.add(thread)
+            db.flush()  # Get the thread ID
+            
+            # Create first message
+            msg = Message(
+                thread_id=thread.id,
+                sender_id=current_user.id,
+                body=body,
+            )
+            db.add(msg)
+            db.commit()
+            
+            flash("Message sent!", "success")
+            return redirect(url_for("view_thread", thread_id=thread.id))
+        
+        return render_template("new_message.html", tutor=tutor)
+
+
+@app.route("/messages/new/student/<int:student_id>", methods=["GET", "POST"])
+@login_required
+def new_message_to_student(student_id: int):
+    """Start a new message thread with a student (tutor initiates)."""
+    with SessionLocal() as db:
+        # Verify current user is a tutor
+        tutor = db.query(Tutor).filter(Tutor.user_id == current_user.id).first()
+        if not tutor:
+            flash("Only tutors can initiate messages to students.", "danger")
+            return redirect(url_for("tutor_dashboard"))
+        
+        student = db.query(User).filter(User.id == student_id).first()
+        
+        if not student:
+            abort(404)
+        
+        if request.method == "POST":
+            subject = (request.form.get("subject") or "").strip()
+            body = (request.form.get("body") or "").strip()
+            
+            if not subject or not body:
+                flash("Subject and message are required.", "danger")
+                return render_template("new_message_to_student.html", student=student)
+            
+            # Create thread
+            thread = MessageThread(
+                tutor_id=tutor.id,
+                student_id=student.id,
+                subject=subject,
+                started_by="tutor",
+                last_message_at=datetime.utcnow(),
+            )
+            db.add(thread)
+            db.flush()  # Get the thread ID
+            
+            # Create first message
+            msg = Message(
+                thread_id=thread.id,
+                sender_id=current_user.id,
+                body=body,
+            )
+            db.add(msg)
+            db.commit()
+            
+            flash("Message sent!", "success")
+            return redirect(url_for("view_thread", thread_id=thread.id))
+        
+        return render_template("new_message_to_student.html", student=student)
 
 
 @app.route("/results")
@@ -811,7 +1129,8 @@ def tutor_dashboard():
     pending_sessions = []
     upcoming_sessions = []
     next_session = None
-    message_threads = []
+    inbox_threads = []
+    sent_threads = []
     students = []
     availability_blocks = []
 
@@ -853,15 +1172,31 @@ def tutor_dashboard():
             next_session = upcoming_sessions[0] if upcoming_sessions else None
 
             # --- Messages (Messages card) ---
-            message_threads = (
+            # Inbox: threads started by students
+            inbox_threads = (
                 db.query(MessageThread)
                 .options(
                     joinedload(MessageThread.messages),
                     joinedload(MessageThread.student),
                 )
                 .filter(MessageThread.tutor_id == tutor.id)
+                .filter(MessageThread.started_by == "student")
                 .order_by(MessageThread.last_message_at.desc())
-                .limit(50)  # we paginate on the front-end
+                .limit(50)
+                .all()
+            )
+            
+            # Sent: threads started by tutor
+            sent_threads = (
+                db.query(MessageThread)
+                .options(
+                    joinedload(MessageThread.messages),
+                    joinedload(MessageThread.student),
+                )
+                .filter(MessageThread.tutor_id == tutor.id)
+                .filter(MessageThread.started_by == "tutor")
+                .order_by(MessageThread.last_message_at.desc())
+                .limit(50)
                 .all()
             )
 
@@ -901,9 +1236,11 @@ def tutor_dashboard():
         pending_sessions=pending_sessions,
         upcoming_sessions=upcoming_sessions,
         next_session=next_session,
-        message_threads=message_threads,
+        inbox_threads=inbox_threads,
+        sent_threads=sent_threads,
         students=students,
         availability_blocks=availability_blocks,
+        now=now,
     )
 
 
@@ -927,7 +1264,8 @@ def student_dashboard():
     pending_requests = []
     upcoming_sessions = []
     next_session = None
-    message_threads = []
+    inbox_threads = []
+    sent_threads = []
     my_tutors = []
 
     with SessionLocal() as db:
@@ -957,14 +1295,29 @@ def student_dashboard():
         # Next session
         next_session = upcoming_sessions[0] if upcoming_sessions else None
 
-        # --- Messages with tutors ---
-        message_threads = (
+        # --- Messages with tutors (Inbox - from tutors) ---
+        inbox_threads = (
             db.query(MessageThread)
             .options(
                 joinedload(MessageThread.messages),
                 joinedload(MessageThread.tutor).joinedload(Tutor.user),
             )
             .filter(MessageThread.student_id == current_user.id)
+            .filter(MessageThread.started_by == "tutor")
+            .order_by(MessageThread.last_message_at.desc())
+            .limit(50)
+            .all()
+        )
+        
+        # --- Sent messages (started by student) ---
+        sent_threads = (
+            db.query(MessageThread)
+            .options(
+                joinedload(MessageThread.messages),
+                joinedload(MessageThread.tutor).joinedload(Tutor.user),
+            )
+            .filter(MessageThread.student_id == current_user.id)
+            .filter(MessageThread.started_by == "student")
             .order_by(MessageThread.last_message_at.desc())
             .limit(50)
             .all()
@@ -991,8 +1344,10 @@ def student_dashboard():
         pending_requests=pending_requests,
         upcoming_sessions=upcoming_sessions,
         next_session=next_session,
-        message_threads=message_threads,
+        inbox_threads=inbox_threads,
+        sent_threads=sent_threads,
         my_tutors=my_tutors,
+        now=now,
     )
 
 

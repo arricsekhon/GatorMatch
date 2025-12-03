@@ -5,6 +5,13 @@
 
 {% block content %}
 <style>
+  /* Override parent container constraints for dashboard */
+  main.container {
+    max-width: 100% !important;
+    padding: 0 !important;
+    width: 100% !important;
+  }
+  
   /* Ensure the full page background (including below content) is the light gray */
   html, body {
     background-color: #F7F7FA !important;
@@ -15,12 +22,14 @@
   .tutor-shell {
     background-color: #F7F7FA;
     padding: 32px 0 64px;
+    width: 100%;
   }
 
   .tutor-container {
-    max-width: 1180px;
+    max-width: 1600px;
     margin: 0 auto;
-    padding: 0 24px;
+    padding: 0 32px;
+    width: 100%;
   }
 
   .tutor-layout {
@@ -271,13 +280,18 @@
 
   .tutor-messages-table-head {
     display: grid;
-    grid-template-columns: 2.3fr 3fr 2fr 2fr;
+    grid-template-columns: 1.5fr 2fr 1fr 1fr;
     gap: 16px;
     font-size: 12px;
     text-transform: uppercase;
     letter-spacing: 0.06em;
     color: #A0A0B0;
     padding: 14px 0 6px;
+    align-items: center;
+  }
+  
+  .tutor-messages-table-head div:nth-child(3) {
+    text-align: center;
   }
 
   .tutor-messages-rows {
@@ -286,12 +300,13 @@
 
   .tutor-message-row {
     display: grid;
-    grid-template-columns: 2.3fr 3fr 2fr 2fr;
+    grid-template-columns: 1.5fr 2fr 1fr 1fr;
     gap: 16px;
     padding: 12px 0;
     border-bottom: 1px solid #F7F7FA;
     font-size: 13px;
     color: #333333;
+    align-items: center;
   }
 
   .tutor-message-from {
@@ -394,10 +409,419 @@
     text-decoration: underline;
   }
 
+  /* ===== NEW IMPROVED STYLES ===== */
+  
+  /* Session Request Cards */
+  .tutor-request-card {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr 1fr auto;
+    align-items: center;
+    gap: 16px;
+    padding: 20px;
+    margin: 12px 0;
+    background: #FAFBFC;
+    border: 1px solid #EEEEF2;
+    border-radius: 16px;
+    transition: box-shadow 0.2s, border-color 0.2s;
+  }
+  
+  .tutor-request-card:hover {
+    box-shadow: 0 4px 16px rgba(46,0,87,0.08);
+    border-color: #E0E0E8;
+  }
+  
+  .tutor-request-left {
+    min-width: 0;
+  }
+  
+  .tutor-request-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: #2E0057;
+  }
+  
+  .tutor-request-course {
+    font-size: 13px;
+    color: #555;
+    margin-top: 4px;
+  }
+  
+  .tutor-request-notes {
+    font-size: 12px;
+    color: #777;
+    margin-top: 6px;
+    padding: 8px 10px;
+    background: #fff;
+    border-radius: 8px;
+    border-left: 3px solid #FACC4A;
+  }
+  
+  .tutor-request-location {
+    font-size: 13px;
+    color: #555;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  
+  .location-icon {
+    font-size: 14px;
+  }
+  
+  .tutor-request-datetime {
+    text-align: left;
+  }
+  
+  .request-date {
+    font-size: 14px;
+    font-weight: 600;
+    color: #2E0057;
+  }
+  
+  .request-time {
+    font-size: 12px;
+    color: #777;
+    margin-top: 2px;
+  }
+  
+  .tutor-request-actions {
+    display: flex;
+    gap: 8px;
+  }
+  
+  .btn-approve {
+    background: #27AE60;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+  }
+  
+  .btn-approve:hover {
+    background: #219150;
+    transform: translateY(-1px);
+  }
+  
+  .btn-deny {
+    background: #fff;
+    color: #C0392B;
+    border: 2px solid #E57373;
+    padding: 8px 20px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+  }
+  
+  .btn-deny:hover {
+    background: #FDE2E2;
+    transform: translateY(-1px);
+  }
+  
+  /* Upcoming Session Cards */
+  .upcoming-session-card {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr auto auto;
+    align-items: center;
+    gap: 16px;
+    padding: 20px;
+    margin: 12px 0;
+    background: #FAFBFC;
+    border: 1px solid #EEEEF2;
+    border-radius: 16px;
+  }
+  
+  .session-course-info {
+    min-width: 0;
+  }
+  
+  .session-course-code {
+    font-size: 15px;
+    font-weight: 600;
+    color: #2E0057;
+  }
+  
+  .session-course-title {
+    font-size: 13px;
+    color: #555;
+    margin-top: 2px;
+  }
+  
+  .session-tags {
+    display: flex;
+    gap: 6px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+  }
+  
+  .session-tag {
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-weight: 500;
+  }
+  
+  .session-tag-online {
+    background: #E8F4FD;
+    color: #1976D2;
+  }
+  
+  .session-tag-inperson {
+    background: #FFF3E0;
+    color: #E65100;
+  }
+  
+  .session-tag-group {
+    background: #EDE7F6;
+    color: #5E35B1;
+  }
+  
+  .session-student-info {
+    min-width: 0;
+  }
+  
+  .session-student-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #2E0057;
+  }
+  
+  .session-student-role {
+    font-size: 12px;
+    color: #777;
+    margin-top: 2px;
+  }
+  
+  .session-location-info {
+    font-size: 13px;
+    color: #555;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  
+  .session-datetime-info {
+    text-align: left;
+  }
+  
+  .session-date {
+    font-size: 14px;
+    font-weight: 600;
+    color: #2E0057;
+  }
+  
+  .session-time {
+    font-size: 12px;
+    color: #777;
+    margin-top: 2px;
+  }
+  
+  .session-status-col {
+    text-align: center;
+    min-width: 100px;
+  }
+  
+  .status-badge {
+    display: inline-block;
+    padding: 5px 14px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+  
+  .status-badge-confirmed {
+    background: #D4F4DD;
+    color: #0F7A2F;
+  }
+  
+  .status-badge-pending {
+    background: #FFEFD7;
+    color: #9A5B00;
+  }
+  
+  .status-badge-cancelled {
+    background: #FDE2E2;
+    color: #C0392B;
+  }
+  
+  /* Your Students Card */
+  .student-list-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid #F0F0F4;
+  }
+  
+  .student-list-item:last-child {
+    border-bottom: none;
+  }
+  
+  .student-avatar-lg {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #EEE7FF 0%, #D4F4DD 100%);
+    color: #5A3BA8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  
+  .student-info {
+    flex: 1;
+    min-width: 0;
+  }
+  
+  .student-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #2E0057;
+  }
+  
+  .student-course {
+    font-size: 12px;
+    color: #777;
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .student-status {
+    flex-shrink: 0;
+  }
+  
+  .status-active {
+    background: #D4F4DD;
+    color: #0F7A2F;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+  
+  .status-recent {
+    background: #EEE7FF;
+    color: #5A3BA8;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+  
+  /* Message List Improvements */
+  .message-list-item {
+    display: grid;
+    grid-template-columns: 1.5fr 2fr 1fr 1fr;
+    gap: 16px;
+    align-items: center;
+    padding: 16px 0;
+    border-bottom: 1px solid #F0F0F4;
+    text-decoration: none;
+    transition: background 0.2s;
+  }
+  
+  .message-list-item:hover {
+    background: #FAFBFC;
+    margin: 0 -12px;
+    padding-left: 12px;
+    padding-right: 12px;
+    border-radius: 12px;
+  }
+  
+  .message-from {
+    min-width: 0;
+  }
+  
+  .message-from-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #2E0057;
+  }
+  
+  .message-from-role {
+    display: inline-block;
+    background: #EEE7FF;
+    color: #5A3BA8;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 500;
+    margin-top: 4px;
+  }
+  
+  .message-subject {
+    font-size: 13px;
+    color: #2E0057;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .message-status {
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .msg-status-awaiting {
+    background: #FFF9E6;
+    border: 1px solid #FACC4A;
+    color: #9A5B00;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+  
+  .msg-status-replied {
+    background: #D4F4DD;
+    color: #0F7A2F;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+  
+  .msg-status-closed {
+    background: #F0F0F4;
+    color: #666;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+  
+  .message-time {
+    font-size: 12px;
+    color: #777;
+  }
+
   /* Responsive */
   @media (max-width: 960px) {
     .tutor-layout {
       grid-template-columns: minmax(0, 1fr);
+    }
+    
+    .tutor-request-card {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    
+    .upcoming-session-card {
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
     }
   }
 
@@ -418,6 +842,16 @@
 
     .tutor-page-header-title {
       font-size: 22px;
+    }
+    
+    .tutor-request-actions {
+      flex-direction: column;
+      width: 100%;
+    }
+    
+    .btn-approve, .btn-deny {
+      width: 100%;
+      text-align: center;
     }
   }
 </style>
@@ -474,47 +908,46 @@
           <div class="tutor-card-body">
             {% if pending_sessions %}
               {% for s in pending_sessions %}
-              <div class="tutor-session-row">
-                <div class="tutor-session-main">
-                  <div class="tutor-student-avatar">
-                    {% if s.student and s.student.name %}
-                      {{ s.student.name.split()[0][0] }}{{ s.student.name.split()[-1][0] if s.student.name.split()|length > 1 else "" }}
-                    {% else %}
-                      ST
-                    {% endif %}
+              <div class="tutor-request-card">
+                <div class="tutor-request-left">
+                  <div class="tutor-request-student">
+                    <span class="tutor-request-name">{{ s.student.name if s.student else "Student" }}</span>
                   </div>
-                  <div style="flex:1 1 auto;min-width:0;">
-                    <div class="tutor-session-title">
-                      {{ s.student.name if s.student else "Student" }}
-                    </div>
-                    <div class="tutor-session-course">
-                      {{ s.course_code }} · {{ s.course_title }}
-                    </div>
-                    <div class="tutor-session-meta">
-                      {{ s.location_label }}
-                      ·
-                      {% if s.start_at %}
-                        {{ s.start_at.strftime("%a, %b %d") }}
-                        ·
-                        {{ s.start_at.strftime("%I:%M %p") }}
-                        – {{ s.end_at.strftime("%I:%M %p") if s.end_at else "" }}
-                      {% endif %}
-                    </div>
+                  <div class="tutor-request-course">
+                    {{ s.course_title if s.course_title else s.course_code }}
                   </div>
+                  {% if s.notes %}
+                  <div class="tutor-request-notes">
+                    <em>"{{ s.notes }}"</em>
+                  </div>
+                  {% endif %}
                 </div>
-
-                <div style="display:flex;gap:8px;flex-shrink:0;">
-                  <form method="post" action="#" data-session-id="{{ s.id }}">
+                
+                <div class="tutor-request-location">
+                  {% if 'zoom' in s.location_type|lower or 'online' in s.location_type|lower %}
+                    <span class="location-icon">💻</span> Online via Zoom
+                  {% elif 'library' in s.location_type|lower %}
+                    <span class="location-icon">📍</span> Library
+                  {% else %}
+                    <span class="location-icon">📍</span> {{ s.location_label }}
+                  {% endif %}
+                </div>
+                
+                <div class="tutor-request-datetime">
+                  {% if s.start_at %}
+                    <div class="request-date">{{ s.start_at.strftime("%a, %b %d") }}</div>
+                    <div class="request-time">{{ s.start_at.strftime("%I:%M%p").lower() }} – {{ s.end_at.strftime("%I:%M%p").lower() if s.end_at else "" }} PT</div>
+                  {% endif %}
+                </div>
+                
+                <div class="tutor-request-actions">
+                  <form method="post" action="{{ url_for('approve_session', session_id=s.id) }}" style="display:inline;">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <button class="tutor-pill-button tutor-pill-button-primary" type="button">
-                      Approve
-                    </button>
+                    <button class="btn-approve" type="submit">Approve</button>
                   </form>
-                  <form method="post" action="#" data-session-id="{{ s.id }}">
+                  <form method="post" action="{{ url_for('deny_session', session_id=s.id) }}" style="display:inline;">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <button class="tutor-pill-button tutor-pill-button-danger" type="button">
-                      Deny
-                    </button>
+                    <button class="btn-deny" type="submit">Deny</button>
                   </form>
                 </div>
               </div>
@@ -550,48 +983,60 @@
           <div class="tutor-card-body">
             {% if upcoming_sessions %}
               {% for s in upcoming_sessions %}
-              <div class="tutor-session-row">
-                <div class="tutor-session-main">
-                  <div style="flex:1 1 auto;min-width:0;">
-                    <div class="tutor-session-title">
-                      {{ s.course_code }} · {{ s.course_title }}
-                    </div>
-                    <div class="tutor-session-course">
-                      {{ s.student.name if s.student else "Student" }}
-                    </div>
-                    <div class="tutor-session-meta">
-                      {{ s.location_label }}
-                      ·
-                      {% if s.start_at %}
-                        {{ s.start_at.strftime("%a, %b %d") }}
-                        ·
-                        {{ s.start_at.strftime("%I:%M %p") }}
-                        – {{ s.end_at.strftime("%I:%M %p") if s.end_at else "" }}
-                      {% endif %}
-                    </div>
+              <div class="upcoming-session-card">
+                <div class="session-course-info">
+                  <div class="session-course-code">{{ s.course_title if s.course_title else s.course_code }}</div>
+                  <div class="session-tags">
+                    {% if 'zoom' in (s.location_type or '')|lower or 'online' in (s.location_type or '')|lower %}
+                      <span class="session-tag session-tag-online">online</span>
+                    {% else %}
+                      <span class="session-tag session-tag-inperson">in-person</span>
+                    {% endif %}
                   </div>
                 </div>
-                <div style="text-align:right;flex-shrink:0;">
-                  {% if s.status in ("confirmed", "approved") %}
-                    <span class="tutor-tag tutor-tag-status-confirmed">Confirmed</span>
-                  {% elif s.status == "pending" %}
-                    <span class="tutor-tag tutor-tag-status-pending">Pending</span>
-                  {% elif s.status in ("cancelled", "denied") %}
-                    <span class="tutor-tag tutor-tag-status-cancelled">Cancelled</span>
-                  {% endif %}
-                  <div style="margin-top:8px;">
-                    <a href="#"
-                       class="tutor-pill-button tutor-pill-button-danger"
-                       style="text-decoration:none;display:inline-block;">
-                      Cancel session
-                    </a>
+                
+                <div class="session-student-info">
+                  <div class="session-student-name">{{ s.student.name if s.student else "Student" }}</div>
+                  <div class="session-student-role">Student</div>
+                  <div class="session-location-info" style="margin-top:6px;">
+                    {% if 'zoom' in (s.location_type or '')|lower or 'online' in (s.location_type or '')|lower %}
+                      💻 Online via Zoom
+                    {% elif 'library' in (s.location_type or '')|lower %}
+                      📍 Library
+                    {% else %}
+                      📍 {{ s.location_label }}
+                    {% endif %}
                   </div>
+                </div>
+                
+                <div class="session-datetime-info">
+                  {% if s.start_at %}
+                    <div class="session-date">{{ s.start_at.strftime("%a, %b %d") }}</div>
+                    <div class="session-time">{{ s.start_at.strftime("%I:%M%p").lower() }} – {{ s.end_at.strftime("%I:%M%p").lower() if s.end_at else "" }} PT</div>
+                  {% endif %}
+                </div>
+                
+                <div class="session-status-col">
+                  {% if s.status in ("confirmed", "approved") %}
+                    <span class="status-badge status-badge-confirmed">Confirmed</span>
+                  {% elif s.status == "pending" %}
+                    <span class="status-badge status-badge-pending">Pending</span>
+                  {% elif s.status in ("cancelled", "denied") %}
+                    <span class="status-badge status-badge-cancelled">Cancelled</span>
+                  {% endif %}
+                </div>
+                
+                <div>
+                  <form method="post" action="{{ url_for('cancel_session', session_id=s.id) }}" style="display:inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn-deny">Cancel session</button>
+                  </form>
                 </div>
               </div>
               {% endfor %}
             {% else %}
               <p style="font-size:13px;color:#999999;margin-top:4px;">
-                You don’t have any upcoming sessions yet.
+                You don't have any upcoming sessions yet.
               </p>
             {% endif %}
           </div>
@@ -606,7 +1051,7 @@
                 Communicate with your students about their sessions.
               </div>
             </div>
-            <a href="#"
+            <a href="{{ url_for('messages_list') }}"
                style="font-size:12px;color:#2E0057;text-decoration:underline;">
               View all
             </a>
@@ -636,36 +1081,41 @@
                 <div>Last updated</div>
               </div>
 
-              {% if message_threads %}
+              {% if inbox_threads %}
                 <div class="tutor-messages-rows">
-                  {% for t in message_threads %}
-                  <div class="tutor-message-row">
-                    <div class="tutor-message-from">
-                      Student
+                  {% for t in inbox_threads %}
+                  <a href="{{ url_for('view_thread', thread_id=t.id) }}" class="message-list-item">
+                    <div class="message-from">
+                      <div class="message-from-name">From: {{ t.student.name if t.student else "Student" }}</div>
+                      <span class="message-from-role">Student</span>
                     </div>
-                    <div class="tutor-message-subject">
+                    <div class="message-subject">
                       {{ t.subject }}
                     </div>
-                    <div>
-                      <span class="tutor-message-status-pill">
-                        —
-                      </span>
+                    <div class="message-status">
+                      {% set last_msg = t.messages|sort(attribute='sent_at')|last if t.messages else none %}
+                      {% if last_msg and last_msg.sender_id != current_user.id %}
+                        <span class="msg-status-awaiting">Awaiting your reply</span>
+                      {% elif last_msg %}
+                        <span class="msg-status-replied">You replied</span>
+                      {% else %}
+                        <span class="msg-status-closed">—</span>
+                      {% endif %}
                     </div>
-                    <div class="tutor-message-updated">
+                    <div class="message-time">
                       {% if t.last_message_at %}
-                        {{ t.last_message_at.strftime("%b %d, %Y") }}
-                        · {{ t.last_message_at.strftime("%I:%M %p") }}
+                        {{ t.last_message_at.strftime("%b %d, %Y") }} · {{ t.last_message_at.strftime("%I:%M%p").lower() }}
                       {% else %}
                         —
                       {% endif %}
                     </div>
-                  </div>
+                  </a>
                   {% endfor %}
                 </div>
                 <div class="tutor-messages-pagination" data-folder="inbox"></div>
               {% else %}
                 <div class="tutor-messages-empty-row">
-                  You don’t have any message threads yet.
+                  No messages from students yet.
                 </div>
               {% endif %}
             </div>
@@ -673,15 +1123,49 @@
             <!-- Sent panel -->
             <div class="tutor-messages-panel" data-folder="sent">
               <div class="tutor-messages-table-head">
-                <div>From / To</div>
+                <div>To</div>
                 <div>Subject</div>
                 <div>Status</div>
                 <div>Last updated</div>
               </div>
 
-              <div class="tutor-messages-empty-row">
-                You don’t have any sent message threads yet.
-              </div>
+              {% if sent_threads %}
+                <div class="tutor-messages-rows">
+                  {% for t in sent_threads %}
+                  <a href="{{ url_for('view_thread', thread_id=t.id) }}" class="message-list-item">
+                    <div class="message-from">
+                      <div class="message-from-name">To: {{ t.student.name if t.student else "Student" }}</div>
+                      <span class="message-from-role">Student</span>
+                    </div>
+                    <div class="message-subject">
+                      {{ t.subject }}
+                    </div>
+                    <div class="message-status">
+                      {% set last_msg = t.messages|sort(attribute='sent_at')|last if t.messages else none %}
+                      {% if last_msg and last_msg.sender_id != current_user.id %}
+                        <span class="msg-status-awaiting">Awaiting your reply</span>
+                      {% elif last_msg %}
+                        <span class="msg-status-replied">Sent</span>
+                      {% else %}
+                        <span class="msg-status-closed">—</span>
+                      {% endif %}
+                    </div>
+                    <div class="message-time">
+                      {% if t.last_message_at %}
+                        {{ t.last_message_at.strftime("%b %d, %Y") }} · {{ t.last_message_at.strftime("%I:%M%p").lower() }}
+                      {% else %}
+                        —
+                      {% endif %}
+                    </div>
+                  </a>
+                  {% endfor %}
+                </div>
+                <div class="tutor-messages-pagination" data-folder="sent"></div>
+              {% else %}
+                <div class="tutor-messages-empty-row">
+                  You haven't sent any messages yet.
+                </div>
+              {% endif %}
             </div>
           </div>
         </section>
@@ -691,37 +1175,57 @@
       <aside class="tutor-side-col">
         <!-- Next Session -->
         <section class="tutor-card">
-          <div class="tutor-card-header">
-            <div class="tutor-card-title">Next Session</div>
-          </div>
-          <div class="tutor-card-body">
+          <div class="tutor-card-body" style="padding:4px 0;">
             {% if next_session %}
-              <p style="font-size:14px;font-weight:600;color:#2E0057;margin-bottom:4px;">
-                {{ next_session.course_code }} · {{ next_session.course_title }}
+              <div style="margin-bottom:12px;">
+                <h3 style="font-size:18px;font-weight:600;color:#2E0057;margin:0 0 6px;">Next Session</h3>
+                {% set days_until = ((next_session.start_at - now).days) if next_session.start_at else 0 %}
+                {% if days_until == 0 %}
+                  <span style="font-size:13px;font-weight:500;color:#0F7A2F;">Today</span>
+                {% elif days_until == 1 %}
+                  <span style="font-size:13px;font-weight:500;color:#0F7A2F;">Tomorrow</span>
+                {% elif days_until > 0 %}
+                  <span style="font-size:13px;font-weight:500;color:#0F7A2F;">In {{ days_until }} days</span>
+                {% else %}
+                  <span style="font-size:13px;font-weight:500;color:#999;">Starting soon</span>
+                {% endif %}
+              </div>
+              
+              <p style="font-size:16px;font-weight:700;color:#2E0057;margin:0 0 8px;">
+                {{ next_session.course_title if next_session.course_title else next_session.course_code }}
               </p>
-              <p style="font-size:13px;color:#555555;margin-bottom:4px;">
-                With {{ next_session.student.name if next_session.student else "Student" }}
+              
+              <p style="font-size:14px;color:#555555;margin:0 0 14px;">
+                With <span style="color:#2E0057;font-weight:500;">{{ next_session.student.name if next_session.student else "Student" }}</span>
               </p>
+              
               {% if next_session.start_at %}
-              <p style="font-size:12px;color:#777777;margin-bottom:4px;">
-                {{ next_session.start_at.strftime("%a, %b %d") }}
-                · {{ next_session.start_at.strftime("%I:%M %p") }}
-                – {{ next_session.end_at.strftime("%I:%M %p") if next_session.end_at else "" }}
-              </p>
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+                <span style="font-size:16px;color:#666;">📅</span>
+                <span style="font-size:14px;color:#333;">
+                  {{ next_session.start_at.strftime("%a, %b %d") }} · {{ next_session.start_at.strftime("%-I:%M%p").lower() }}{% if next_session.end_at %} – {{ next_session.end_at.strftime("%-I:%M%p").lower() }} PT{% endif %}
+                </span>
+              </div>
               {% endif %}
-              <p style="font-size:12px;color:#777777;margin-bottom:8px;">
-                {{ next_session.location_label }}
-              </p>
+              
+              {% if next_session.location_label %}
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+                <span style="font-size:16px;color:#666;">💻</span>
+                <span style="font-size:14px;color:#333;">{{ next_session.location_label }}</span>
+              </div>
+              {% endif %}
+              
               {% if next_session.meeting_url %}
               <a href="{{ next_session.meeting_url }}" target="_blank" rel="noopener"
                  class="tutor-pill-button tutor-pill-button-primary"
-                 style="text-decoration:none;display:inline-block;margin-top:4px;">
-                Join Zoom Meeting
+                 style="text-decoration:none;display:block;margin-top:8px;width:100%;text-align:center;">
+                Join Meeting
               </a>
               {% endif %}
             {% else %}
-              <p style="font-size:13px;color:#999999;">
-                You don’t have any upcoming sessions scheduled.
+              <h3 style="font-size:18px;font-weight:600;color:#2E0057;margin:0 0 12px;">Next Session</h3>
+              <p style="font-size:13px;color:#999999;margin:0;">
+                You don't have any upcoming sessions scheduled.
               </p>
             {% endif %}
           </div>
@@ -762,28 +1266,30 @@
           <div class="tutor-card-body">
             {% if students %}
               {% for s in students %}
-              <div class="tutor-session-row" style="padding:8px 0;">
-                <div class="tutor-session-main">
-                  <div class="tutor-student-avatar">
-                    {% if s.name %}
-                      {{ s.name.split()[0][0] }}{{ s.name.split()[-1][0] if s.name.split()|length > 1 else "" }}
-                    {% else %}
-                      ST
-                    {% endif %}
-                  </div>
-                  <div>
-                    <div class="tutor-session-title">{{ s.name }}</div>
-                    <div class="tutor-session-meta">{{ s.email }}</div>
-                  </div>
+              <div class="student-list-item">
+                <div class="student-avatar-lg">
+                  {% if s.name %}
+                    {{ s.name.split()[0][0] }}{{ s.name.split()[-1][0] if s.name.split()|length > 1 else "" }}
+                  {% else %}
+                    ST
+                  {% endif %}
                 </div>
-                <div style="flex-shrink:0;">
-                  <span class="tutor-tag tutor-tag-status-recent">Recently active</span>
+                <div class="student-info">
+                  <div class="student-name">{{ s.name }}</div>
+                  <div class="student-course">{{ s.email.split('@')[0] if s.email else "" }}</div>
+                </div>
+                <div class="student-status">
+                  {% if loop.index <= 1 %}
+                    <span class="status-active">Active</span>
+                  {% else %}
+                    <span class="status-recent">Recently active</span>
+                  {% endif %}
                 </div>
               </div>
               {% endfor %}
             {% else %}
               <p style="font-size:13px;color:#999999;">
-                You haven’t met with any students yet.
+                You haven't met with any students yet.
               </p>
             {% endif %}
           </div>
@@ -833,7 +1339,74 @@
   </div>
 </div>
 
+<!-- Cancel Confirmation Modal -->
+<div id="cancelModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:24px;padding:32px 40px;max-width:480px;width:90%;text-align:left;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+    <h3 style="font-size:22px;font-weight:600;color:#2E0057;margin:0 0 8px;">Cancel session</h3>
+    <p style="font-size:15px;color:#555;margin:0 0 20px;">Are you sure you want to cancel this session?</p>
+    
+    <div style="margin-bottom:20px;">
+      <label style="display:block;font-size:14px;font-weight:600;color:#2E0057;margin-bottom:8px;">Reason for cancellation <span style="color:#999;font-weight:400;">(optional)</span></label>
+      <textarea id="cancelReason" placeholder="Let the student know why you're cancelling..." style="width:100%;border:2px solid #E8E8EE;border-radius:12px;padding:12px 14px;font-size:14px;font-family:inherit;resize:vertical;min-height:80px;box-sizing:border-box;"></textarea>
+    </div>
+    
+    <div style="display:flex;justify-content:flex-end;gap:12px;">
+      <button id="cancelModalNo" style="background:#fff;color:#333;border:1px solid #E0E0E0;padding:12px 32px;border-radius:999px;font-size:15px;font-weight:500;cursor:pointer;">No</button>
+      <button id="cancelModalYes" style="background:#C0392B;color:#fff;border:none;padding:12px 32px;border-radius:999px;font-size:15px;font-weight:500;cursor:pointer;">Yes, Cancel</button>
+    </div>
+  </div>
+</div>
+
 <script>
+  // Cancel confirmation modal
+  (function() {
+    const modal = document.getElementById('cancelModal');
+    const noBtn = document.getElementById('cancelModalNo');
+    const yesBtn = document.getElementById('cancelModalYes');
+    let pendingForm = null;
+
+    // Intercept all cancel/deny form submissions
+    document.querySelectorAll('.btn-deny').forEach(btn => {
+      if (btn.textContent.toLowerCase().includes('cancel')) {
+        btn.addEventListener('click', function(e) {
+          e.preventDefault();
+          pendingForm = this.closest('form');
+          modal.style.display = 'flex';
+        });
+      }
+    });
+
+    // No button - close modal
+    noBtn.addEventListener('click', function() {
+      modal.style.display = 'none';
+      pendingForm = null;
+    });
+
+    // Yes button - submit the form
+    yesBtn.addEventListener('click', function() {
+      if (pendingForm) {
+        pendingForm.submit();
+      }
+      modal.style.display = 'none';
+    });
+
+    // Close on backdrop click
+    modal.addEventListener('click', function(e) {
+      if (e.target === modal) {
+        modal.style.display = 'none';
+        pendingForm = null;
+      }
+    });
+
+    // Close on Escape key
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && modal.style.display === 'flex') {
+        modal.style.display = 'none';
+        pendingForm = null;
+      }
+    });
+  })();
+
   // Messages card: tab switching + simple client-side pagination (5 rows per page)
   document.addEventListener("DOMContentLoaded", function () {
     const PAGE_SIZE = 5;

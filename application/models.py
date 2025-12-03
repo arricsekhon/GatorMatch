@@ -173,6 +173,7 @@ class Tutor(Base):
     slug = Column(String(140), nullable=False, unique=True, index=True)
     headline = Column(String(80), nullable=False)
     bio = Column(Text, nullable=False)
+    avatar_url = Column(String(500), nullable=True)  # Profile picture path
 
     # Searchable facets (denormalized from the approved application)
     meeting_options = Column(String(120), nullable=False)  # "library,zoom"
@@ -287,6 +288,7 @@ class TutoringSession(Base):
     requested_by = Column(String(16), nullable=False)
 
     meeting_url = Column(String(500), nullable=True)
+    notes = Column(Text, nullable=True)  # Initial message from student
 
     created_at = Column(DateTime, nullable=False, server_default=func.now())
     updated_at = Column(
