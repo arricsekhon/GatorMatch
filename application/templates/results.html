@@ -2,222 +2,973 @@
 {% block title %}Find Tutors{% endblock %}
 {% block content %}
 
-<!-- -------------------- Results: header (search + sort) -------------------- -->
-<section class="results-header">
-  <form method="get" action="{{ url_for('results_page') }}" class="results-header-row">
-    <!-- Preserve current filters when sorting -->
-    {% if request.args.get('subject') %}<input type="hidden" name="subject" value="{{ request.args.get('subject') }}">{% endif %}
-    {% if request.args.get('course') %}<input type="hidden" name="course" value="{{ request.args.get('course') }}">{% endif %}
-    {% if request.args.get('location') %}<input type="hidden" name="location" value="{{ request.args.get('location') }}">{% endif %}
-    
-    <div class="search-wrap" style="position:relative">
-      <span class="search-icon" aria-hidden="true">🔎</span>
-      <input name="q" value="{{ q }}" type="search" placeholder="software engineering" class="search-input" />
-      <div class="muted small" style="margin-top:8px">{{ total }} tutors fit your choices</div>
-    </div>
+<style>
+  /* Override base container for full-width results page */
+  main.container:has(.results-page) {
+    max-width: 100% !important;
+    padding: 0 !important;
+    width: 100% !important;
+  }
 
-    <div class="sort-wrap">
-      <label for="sort" class="small">Sort:</label>
-      <select id="sort" name="sort" class="select" onchange="this.form.submit()">
-        <option value="best" {{ 'selected' if sort=='best' }}>Best Match</option>
-        <option value="highest" {{ 'selected' if sort=='highest' }}>Highest Rated</option>
-        <option value="lowest" {{ 'selected' if sort=='lowest' }}>Lowest Rated</option>
-        <option value="experience" {{ 'selected' if sort=='experience' }}>Most Experience</option>
-      </select>
-    </div>
-  </form>
-</section>
+  /* ========== Results Page - Modern Redesign ========== */
+  .results-page {
+    min-height: 100vh;
+    background: linear-gradient(180deg, #f8f9ff 0%, #ffffff 100%);
+    width: 100%;
+  }
 
-<!-- -------------------- Results: body (filters + list) -------------------- -->
-<section class="results-body">
-  <!-- Filter rail -->
-  <aside class="filters sfsu-card">
-    <header class="filters-head">
-      <h2 class="font-heading" style="margin:0">Filters</h2>
-      <a class="link small" href="{{ url_for('results_page') }}">Clear all</a>
-    </header>
-    <p class="tiny muted" style="margin:8px 0 0">
-      Options auto-populate from active listings. Zero-match options are disabled or hidden.
-    </p>
+  /* Hero Search Header */
+  .results-hero {
+    background: 
+      linear-gradient(135deg, rgba(46, 8, 84, 0.85) 0%, rgba(74, 26, 122, 0.8) 50%, rgba(107, 45, 158, 0.75) 100%),
+      url("/static/images/sfsu-quad.jpg");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    padding: 60px 40px 70px;
+    position: relative;
+    overflow: hidden;
+  }
 
-    <!-- Subject -->
-    <div class="filter-section">
-      <div class="label small">Subject</div>
-      <select name="subject" id="subject-select" form="filters-form" class="select full" onchange="document.getElementById('filters-form').submit()">
-        <option value="">All subjects</option>
-        {% for subj, cnt in facets.subjects.items() %}
-        <option value="{{ subj }}" {{ 'selected' if request.args.get('subject','').upper()==subj }}>
-          {{ subj }} ({{ cnt }})
-        </option>
-        {% endfor %}
-      </select>
-    </div>
+  .results-hero::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: 
+      radial-gradient(circle at 20% 80%, rgba(197, 164, 63, 0.15) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.08) 0%, transparent 40%);
+    pointer-events: none;
+  }
 
-    <div class="divider"></div>
+  .results-hero::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    pointer-events: none;
+  }
 
-    <!-- Course Number -->
-    <div class="filter-section">
-      <div class="label small">Course Number</div>
-      <select name="course" id="course-select" form="filters-form" class="select full" onchange="document.getElementById('filters-form').submit()">
-        <option value="">Select course number</option>
-        {% for c, cnt in facets.courses.items() %}
-        <option value="{{ c }}" data-subject="{{ c.split()[0] }}" {{ 'selected' if request.args.get('course')==c }}>
-          {{ c }} ({{ cnt }})
-        </option>
-        {% endfor %}
-      </select>
-    </div>
+  .results-hero-content {
+    max-width: 100%;
+    padding: 0 40px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
 
-    <div class="divider"></div>
+  .results-hero h1 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 32px;
+    font-weight: 700;
+    color: #fff;
+    margin: 0 0 8px;
+  }
 
-    <!-- Location (wraps the form so all filter selects submit together) -->
-    <div class="filter-section">
-      <div class="label small">Location</div>
+  .results-hero-subtitle {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 16px;
+    margin-bottom: 24px;
+  }
 
-      <form id="filters-form" method="get" action="{{ url_for('results_page') }}">
-        <!-- Preserve current q/sort -->
-        <input type="hidden" name="q" value="{{ q }}">
-        <input type="hidden" name="sort" value="{{ sort }}">
+  .search-form-row {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
 
-        <select name="location" class="select full" onchange="this.form.submit()">
-          <option value="">Any</option>
-          {% for loc, cnt in facets.locations.items() %}
-          <option value="{{ loc }}" {{ 'selected' if request.args.get('location','').lower()==loc.lower() }}>
-            {{ loc }} ({{ cnt }})
-          </option>
-          {% endfor %}
-        </select>
+  .search-input-wrap {
+    flex: 1;
+    min-width: 300px;
+    position: relative;
+  }
 
-        <div style="margin-top:8px">
-          <button class="btn outline" type="submit">Apply Filters</button>
+  .search-input-wrap .search-icon {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 20px;
+    opacity: 0.6;
+  }
+
+  .search-input-wrap input {
+    width: 100%;
+    padding: 16px 16px 16px 50px;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    transition: all 0.2s ease;
+  }
+
+  .search-input-wrap input:focus {
+    outline: none;
+    box-shadow: 0 4px 24px rgba(197, 164, 63, 0.3);
+  }
+
+  .sort-select-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255, 255, 255, 0.15);
+    padding: 8px 16px;
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+  }
+
+  .sort-select-wrap label {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .sort-select-wrap select {
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 4px 8px;
+  }
+
+  .sort-select-wrap select option {
+    color: #333;
+    background: #fff;
+  }
+
+  /* Main Content Area */
+  .results-main {
+    max-width: 100%;
+    margin: 0;
+    padding: 32px 40px 64px;
+    display: flex;
+    gap: 32px;
+    align-items: flex-start;
+  }
+
+  /* Modern Filters Panel */
+  .filters-panel {
+    width: 300px;
+    min-width: 300px;
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+    padding: 24px;
+    position: sticky;
+    top: calc(var(--nav-h) + 20px);
+    height: fit-content;
+    max-height: calc(100vh - var(--nav-h) - 40px);
+    overflow-y: auto;
+  }
+
+  .filters-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid #f0f0f5;
+  }
+
+  .filters-title {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: #2E0854;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .filters-title::before {
+    content: '⚙️';
+    font-size: 18px;
+  }
+
+  .clear-filters {
+    font-size: 13px;
+    color: #C5A43F;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.2s;
+  }
+
+  .clear-filters:hover {
+    color: #2E0854;
+  }
+
+  .filter-group {
+    margin-bottom: 20px;
+  }
+
+  .filter-group:last-child {
+    margin-bottom: 0;
+  }
+
+  .filter-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 10px;
+    display: block;
+  }
+
+  .filter-select {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e8e8f0;
+    border-radius: 10px;
+    font-size: 14px;
+    color: #333;
+    background: #fafafa;
+    cursor: pointer;
+    transition: all 0.2s;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+  }
+
+  .filter-select:focus {
+    outline: none;
+    border-color: #2E0854;
+    background-color: #fff;
+    box-shadow: 0 0 0 3px rgba(46, 8, 84, 0.1);
+  }
+
+  .filter-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #e0e0e8, transparent);
+    margin: 20px 0;
+  }
+
+  .apply-btn {
+    width: 100%;
+    padding: 14px 20px;
+    background: linear-gradient(135deg, #2E0854 0%, #4a1a7a 100%);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 20px;
+  }
+
+  .apply-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(46, 8, 84, 0.3);
+  }
+
+  /* Results Column */
+  .results-column {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .results-stats {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .results-count {
+    font-size: 16px;
+    color: #666;
+  }
+
+  .results-count strong {
+    color: #2E0854;
+    font-weight: 700;
+  }
+
+  .active-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .filter-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    background: linear-gradient(135deg, rgba(46, 8, 84, 0.1) 0%, rgba(106, 45, 158, 0.1) 100%);
+    border: 1px solid rgba(46, 8, 84, 0.2);
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #2E0854;
+  }
+
+  .filter-chip-remove {
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(46, 8, 84, 0.15);
+    border-radius: 50%;
+    text-decoration: none;
+    color: #2E0854;
+    font-size: 14px;
+    transition: all 0.2s;
+  }
+
+  .filter-chip-remove:hover {
+    background: #2E0854;
+    color: #fff;
+  }
+
+  /* Tutor Card - Modern Design */
+  .tutor-result-card {
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+    padding: 24px;
+    margin-bottom: 20px;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .tutor-result-card::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: linear-gradient(180deg, #C5A43F 0%, #2E0854 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .tutor-result-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(46, 8, 84, 0.12);
+  }
+
+  .tutor-result-card:hover::before {
+    opacity: 1;
+  }
+
+  .tutor-card-header {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+  }
+
+  .tutor-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #f0f0f5 0%, #e8e8f0 100%);
+    overflow: hidden;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  .tutor-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .tutor-avatar-fallback {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #2E0854 0%, #4a1a7a 100%);
+    color: #fff;
+    font-size: 28px;
+    font-weight: 700;
+    font-family: 'Montserrat', sans-serif;
+  }
+
+  .tutor-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .tutor-name-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 6px;
+  }
+
+  .tutor-result-name {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin: 0;
+  }
+
+  .verified-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    border-radius: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .tutor-headline-text {
+    font-size: 15px;
+    font-weight: 600;
+    color: #2E0854;
+    margin-bottom: 8px;
+  }
+
+  .tutor-bio {
+    font-size: 14px;
+    color: #666;
+    line-height: 1.6;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin: 0;
+  }
+
+  .tutor-rating-box {
+    min-width: 160px;
+    text-align: right;
+  }
+
+  .rating-display {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+    margin-bottom: 6px;
+  }
+
+  .rating-stars {
+    display: flex;
+    gap: 2px;
+  }
+
+  .rating-star {
+    width: 18px;
+    height: 18px;
+    fill: #e0e0e0;
+  }
+
+  .rating-star.filled {
+    fill: #FFD700;
+    filter: drop-shadow(0 1px 2px rgba(255, 215, 0, 0.4));
+  }
+
+  .rating-number {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1a1a2e;
+  }
+
+  .rating-count {
+    font-size: 13px;
+    color: #888;
+  }
+
+  .tutoring-hours {
+    font-size: 13px;
+    color: #666;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+  }
+
+  .tutoring-hours::before {
+    content: '⏱️';
+    font-size: 14px;
+  }
+
+  /* Tags Section */
+  .tutor-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 16px 0;
+    padding-top: 16px;
+    border-top: 1px solid #f0f0f5;
+  }
+
+  .course-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 14px;
+    background: linear-gradient(135deg, rgba(46, 8, 84, 0.08) 0%, rgba(106, 45, 158, 0.08) 100%);
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #2E0854;
+  }
+
+  .location-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    background: #f8f9ff;
+    border: 1px solid #e8e8f0;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #666;
+  }
+
+  .location-tag::before {
+    content: '📍';
+    font-size: 12px;
+  }
+
+  /* Action Buttons */
+  .tutor-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 16px;
+    justify-content: flex-start;
+  }
+
+  .view-profile-btn {
+    padding: 12px 28px;
+    background: linear-gradient(135deg, #2E0854 0%, #4a1a7a 100%);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    text-align: center;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .view-profile-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(46, 8, 84, 0.3);
+  }
+
+  .contact-btn {
+    padding: 12px 28px;
+    background: #fff;
+    color: #2E0854;
+    border: 2px solid #2E0854;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    text-align: center;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .contact-btn:hover {
+    background: rgba(46, 8, 84, 0.05);
+    transform: translateY(-2px);
+  }
+
+  /* Pagination */
+  .results-pagination {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 32px;
+  }
+
+  .page-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    height: 44px;
+    padding: 0 16px;
+    background: #fff;
+    border: 2px solid #e8e8f0;
+    border-radius: 10px;
+    color: #333;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+
+  .page-link:hover {
+    border-color: #2E0854;
+    color: #2E0854;
+  }
+
+  .page-link.active {
+    background: linear-gradient(135deg, #2E0854 0%, #4a1a7a 100%);
+    border-color: #2E0854;
+    color: #fff;
+  }
+
+  .page-link.disabled {
+    opacity: 0.4;
+    pointer-events: none;
+  }
+
+  /* Empty State */
+  .empty-state {
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+    padding: 60px 40px;
+    text-align: center;
+  }
+
+  .empty-state-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 20px;
+    background: linear-gradient(135deg, #f8f9ff 0%, #f0f0f5 100%);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+  }
+
+  .empty-state h3 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin: 0 0 10px;
+  }
+
+  .empty-state p {
+    color: #666;
+    font-size: 15px;
+    margin: 0 0 20px;
+  }
+
+  .clear-filters-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    background: linear-gradient(135deg, #2E0854 0%, #4a1a7a 100%);
+    color: #fff;
+    border-radius: 10px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+
+  .clear-filters-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(46, 8, 84, 0.3);
+  }
+
+  /* Responsive */
+  @media (max-width: 1024px) {
+    .results-main {
+      flex-direction: column;
+      padding: 24px 20px 48px;
+    }
+
+    .filters-panel {
+      width: 100%;
+      min-width: unset;
+      position: static;
+      max-height: none;
+    }
+
+    .tutor-card-header {
+      flex-wrap: wrap;
+    }
+
+    .tutor-rating-box {
+      width: 100%;
+      text-align: left;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid #f0f0f5;
+    }
+
+    .rating-display, .tutoring-hours {
+      justify-content: flex-start;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .results-hero {
+      padding: 32px 20px 40px;
+    }
+
+    .results-hero h1 {
+      font-size: 24px;
+    }
+
+    .search-input-wrap {
+      min-width: 100%;
+    }
+
+    .tutor-avatar {
+      width: 60px;
+      height: 60px;
+    }
+
+    .tutor-result-name {
+      font-size: 18px;
+    }
+
+    .tutor-actions {
+      flex-wrap: wrap;
+    }
+
+    .view-profile-btn,
+    .contact-btn {
+      flex: 1;
+      min-width: 140px;
+    }
+  }
+</style>
+
+<div class="results-page">
+  <!-- Hero Search Header -->
+  <section class="results-hero">
+    <div class="results-hero-content">
+      <h1>Find Your Perfect Tutor</h1>
+      <p class="results-hero-subtitle">Browse {{ total }} tutors ready to help you succeed</p>
+      
+      <form method="get" action="{{ url_for('results_page') }}" class="search-form-row">
+        {% if request.args.get('subject') %}<input type="hidden" name="subject" value="{{ request.args.get('subject') }}">{% endif %}
+        {% if request.args.get('course') %}<input type="hidden" name="course" value="{{ request.args.get('course') }}">{% endif %}
+        {% if request.args.get('location') %}<input type="hidden" name="location" value="{{ request.args.get('location') }}">{% endif %}
+        
+        <div class="search-input-wrap">
+          <span class="search-icon">🔍</span>
+          <input name="q" value="{{ q }}" type="search" placeholder="Search by subject, course, or tutor name..." />
+        </div>
+
+        <div class="sort-select-wrap">
+          <label for="sort">Sort by:</label>
+          <select id="sort" name="sort" onchange="this.form.submit()">
+            <option value="best" {{ 'selected' if sort=='best' }}>Best Match</option>
+            <option value="highest" {{ 'selected' if sort=='highest' }}>Highest Rated</option>
+            <option value="lowest" {{ 'selected' if sort=='lowest' }}>Lowest Rated</option>
+            <option value="experience" {{ 'selected' if sort=='experience' }}>Most Experience</option>
+          </select>
         </div>
       </form>
     </div>
-  </aside>
+  </section>
 
-  <!-- Results column -->
-  <section class="results-col">
-    <div class="summary-row">
-      <div class="muted">{{ total }} tutors found</div>
+  <!-- Main Content -->
+  <section class="results-main">
+    <!-- Filters Panel -->
+    <aside class="filters-panel">
+      <header class="filters-header">
+        <h2 class="filters-title">Filters</h2>
+        <a class="clear-filters" href="{{ url_for('results_page') }}">Clear all</a>
+      </header>
 
-      <!-- Active filter chips -->
-      <div class="chips">
-        {% set base = request.args.to_dict(flat=True) %}
-        {% set _ = base.pop('page', None) %}
-        {% for chip in chips %}
-        {% set params = base.copy() %}
-        {% set _ = params.pop(chip.key, None) %}
-        {% set qs = params|urlencode %}
+      <form id="filters-form" method="get" action="{{ url_for('results_page') }}">
+        <input type="hidden" name="q" value="{{ q }}">
+        <input type="hidden" name="sort" value="{{ sort }}">
 
-        <span class="chip">
-          {{ chip.label }}
-          <a class="chip-x" href="{{ url_for('results_page') }}{% if qs %}?{{ qs }}{% endif %}"
-            aria-label="Remove {{ chip.label }}">×</a>
-        </span>
-        {% endfor %}
-      </div>
-    </div>
-
-    {% if tutors %}
-    {% for t in tutors %}
-    <article class="tutor-card sfsu-card">
-      <div class="tutor-head">
-        <div class="avatar-64">
-          {% if t.avatar %}
-          <img src="{{ url_for('static', filename=t.avatar) }}" alt="{{ t.name }}">
-          {% else %}
-          <div class="avatar-fallback" aria-hidden="true">
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="#bdbdbd">
-              <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 
-                           1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 
-                           4v2h16v-2c0-2.66-5.33-4-8-4z" />
-            </svg>
-          </div>
-          {% endif %}
-        </div>
-
-        <div class="tutor-text">
-          <h3 class="tutor-name">{{ t.name }}</h3>
-          <div class="tutor-headline">{{ t.headline }}</div>
-          <p class="tutor-desc">{{ t.desc }}</p>
-        </div>
-
-        <div class="tutor-metrics">
-          <div class="stars">
-            {% set full = t.rating|round(0, 'floor')|int %}
-            {% for i in range(1,6) %}
-            <svg class="star {{ 'on' if i<=full else 'off' }}" viewBox="0 0 24 24" aria-hidden="true">
-              <path
-                d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.786 1.402 8.168L12 18.897 4.664 23.164l1.402-8.168L.132 9.21l8.2-1.192z" />
-            </svg>
+        <div class="filter-group">
+          <label class="filter-label">Subject</label>
+          <select name="subject" id="subject-select" class="filter-select" onchange="this.form.submit()">
+            <option value="">All Subjects</option>
+            {% for subj, cnt in facets.subjects.items() %}
+            <option value="{{ subj }}" {{ 'selected' if request.args.get('subject','').upper()==subj }}>
+              {{ subj }} ({{ cnt }})
+            </option>
             {% endfor %}
-            <span class="rating">{{ '%.1f'|format(t.rating) if t.rating else '—' }}</span>
-            <span class="count muted">({{ t.rating_count }})</span>
-          </div>
-          <div class="hours muted">{{ t.hours }} hours tutoring</div>
+          </select>
         </div>
+
+        <div class="filter-divider"></div>
+
+        <div class="filter-group">
+          <label class="filter-label">Course Number</label>
+          <select name="course" id="course-select" class="filter-select" onchange="this.form.submit()">
+            <option value="">All Courses</option>
+            {% for c, cnt in facets.courses.items() %}
+            <option value="{{ c }}" data-subject="{{ c.split()[0] }}" {{ 'selected' if request.args.get('course')==c }}>
+              {{ c }} ({{ cnt }})
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="filter-divider"></div>
+
+        <div class="filter-group">
+          <label class="filter-label">Location</label>
+          <select name="location" class="filter-select" onchange="this.form.submit()">
+            <option value="">Any Location</option>
+            {% for loc, cnt in facets.locations.items() %}
+            <option value="{{ loc }}" {{ 'selected' if request.args.get('location','').lower()==loc.lower() }}>
+              {{ loc }} ({{ cnt }})
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <button type="submit" class="apply-btn">
+          <span>✓</span> Apply Filters
+        </button>
+      </form>
+    </aside>
+
+    <!-- Results Column -->
+    <section class="results-column">
+      <div class="results-stats">
+        <div class="results-count">
+          <strong>{{ total }}</strong> tutors found
+        </div>
+
+        {% if chips and chips|length %}
+        <div class="active-filters">
+          {% set base = request.args.to_dict(flat=True) %}
+          {% set _ = base.pop('page', None) %}
+          {% for chip in chips %}
+          {% set params = base.copy() %}
+          {% set _ = params.pop(chip.key, None) %}
+          {% set qs = params|urlencode %}
+          <span class="filter-chip">
+            {{ chip.label }}
+            <a class="filter-chip-remove" href="{{ url_for('results_page') }}{% if qs %}?{{ qs }}{% endif %}" aria-label="Remove {{ chip.label }}">×</a>
+          </span>
+          {% endfor %}
+        </div>
+        {% endif %}
       </div>
 
-      <div class="tutor-meta">
-        {% for c in t.courses %}
-        <span class="badge">{{ c }}</span>
-        {% endfor %}
-        {% for loc in t.locations %}
-        <span class="badge outline">{{ loc }}</span>
-        {% endfor %}
-      </div>
+      {% if tutors %}
+      {% for t in tutors %}
+      <article class="tutor-result-card">
+        <div class="tutor-card-header">
+          <div class="tutor-avatar">
+            {% if t.avatar %}
+            <img src="{{ url_for('static', filename=t.avatar) }}" alt="{{ t.name }}">
+            {% else %}
+            <div class="tutor-avatar-fallback">{{ t.name[0] }}</div>
+            {% endif %}
+          </div>
 
-      <div class="tutor-cta">
-        <a class="btn" href="{{ url_for('tutor_profile', slug=t.slug) }}">View {{ t.first }}'s Profile</a>
-        <a class="btn outline" href="{{ url_for('tutor_profile', slug=t.slug) }}#contact">Contact Tutor</a>
-      </div>
-    </article>
-    {% endfor %}
+          <div class="tutor-info">
+            <div class="tutor-name-row">
+              <h3 class="tutor-result-name">{{ t.name }}</h3>
+              <span class="verified-badge">✓ Verified</span>
+            </div>
+            <div class="tutor-headline-text">{{ t.headline }}</div>
+            <p class="tutor-bio">{{ t.desc }}</p>
+          </div>
 
-    <!-- Pagination -->
-    {% if pages > 1 %}
-    {% set base = request.args.to_dict(flat=True) %}
-    {% set _ = base.pop('page', None) %}
-    {% set qs = base|urlencode %}
+          <div class="tutor-rating-box">
+            <div class="rating-display">
+              <div class="rating-stars">
+                {% set full = t.rating|round(0, 'floor')|int %}
+                {% for i in range(1, 6) %}
+                <svg class="rating-star {{ 'filled' if i <= full else '' }}" viewBox="0 0 24 24">
+                  <path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.786 1.402 8.168L12 18.897 4.664 23.164l1.402-8.168L.132 9.21l8.2-1.192z"/>
+                </svg>
+                {% endfor %}
+              </div>
+              <span class="rating-number">{{ '%.1f'|format(t.rating) if t.rating else '—' }}</span>
+            </div>
+            <div class="rating-count">({{ t.rating_count }} reviews)</div>
+            <div class="tutoring-hours">{{ t.hours }} hours tutored</div>
+          </div>
+        </div>
 
-    <nav class="pagination" aria-label="pagination">
-      <ul>
-        <li>
-          <a class="page {{ 'disabled' if page==1 }}"
-            href="{% if page>1 %}{{ url_for('results_page') }}{% if qs %}?{{ qs }}&{% else %}?{% endif %}page={{ page-1 }}{% else %}#{% endif %}">Previous</a>
-        </li>
+        <div class="tutor-tags">
+          {% for c in t.courses %}
+          <span class="course-tag">{{ c }}</span>
+          {% endfor %}
+          {% for loc in t.locations %}
+          <span class="location-tag">{{ loc }}</span>
+          {% endfor %}
+        </div>
+
+        <div class="tutor-actions">
+          <a class="view-profile-btn" href="{{ url_for('tutor_profile', slug=t.slug) }}">
+            👤 View {{ t.first }}'s Profile
+          </a>
+          <a class="contact-btn" href="{{ url_for('tutor_profile', slug=t.slug) }}#contact">
+            ✉️ Message
+          </a>
+        </div>
+      </article>
+      {% endfor %}
+
+      <!-- Pagination -->
+      {% if pages > 1 %}
+      {% set base = request.args.to_dict(flat=True) %}
+      {% set _ = base.pop('page', None) %}
+      {% set qs = base|urlencode %}
+      <nav class="results-pagination" aria-label="pagination">
+        <a class="page-link {{ 'disabled' if page==1 }}"
+           href="{% if page>1 %}{{ url_for('results_page') }}{% if qs %}?{{ qs }}&{% else %}?{% endif %}page={{ page-1 }}{% else %}#{% endif %}">
+          ← Previous
+        </a>
 
         {% for p in range(1, pages+1) %}
-        <li>
-          <a class="page {{ 'active' if p==page }}"
-            href="{{ url_for('results_page') }}{% if qs %}?{{ qs }}&{% else %}?{% endif %}page={{ p }}">{{ p }}</a>
-        </li>
+        <a class="page-link {{ 'active' if p==page }}"
+           href="{{ url_for('results_page') }}{% if qs %}?{{ qs }}&{% else %}?{% endif %}page={{ p }}">{{ p }}</a>
         {% endfor %}
 
-        <li>
-          <a class="page {{ 'disabled' if page==pages }}"
-            href="{% if page<pages %}{{ url_for('results_page') }}{% if qs %}?{{ qs }}&{% else %}?{% endif %}page={{ page+1 }}{% else %}#{% endif %}">Next</a>
-        </li>
-      </ul>
-    </nav>
-    {% endif %}
+        <a class="page-link {{ 'disabled' if page==pages }}"
+           href="{% if page<pages %}{{ url_for('results_page') }}{% if qs %}?{{ qs }}&{% else %}?{% endif %}page={{ page+1 }}{% else %}#{% endif %}">
+          Next →
+        </a>
+      </nav>
+      {% endif %}
 
-    {% else %}
-    <!-- Empty state (still shows filters and header) -->
-    <article class="empty sfsu-card">
-      <div class="empty-icon">🔍</div>
-      <h3 class="font-heading" style="margin:8px 0">No tutors match these filters</h3>
-      <p class="muted">Try adjusting your search criteria or clearing some filters to see more results.</p>
-      {% set has_filters = (chips and chips|length) or q %}
-      {% if has_filters %}
-      <div class="empty-actions" style="display:flex;gap:12px;justify-content:center;margin-top:8px">
-        <a class="btn ghost" href="{{ url_for('results_page') }}">Clear filters</a>
+      {% else %}
+      <!-- Empty State -->
+      <div class="empty-state">
+        <div class="empty-state-icon">🔍</div>
+        <h3>No tutors match these filters</h3>
+        <p>Try adjusting your search criteria or clearing some filters to see more results.</p>
+        {% set has_filters = (chips and chips|length) or q %}
+        {% if has_filters %}
+        <a class="clear-filters-btn" href="{{ url_for('results_page') }}">
+          ✕ Clear all filters
+        </a>
+        {% endif %}
       </div>
       {% endif %}
-    </article>
-    {% endif %}
+    </section>
   </section>
-</section>
+</div>
 
 <script>
 (function() {
