@@ -1,72 +1,432 @@
 {% extends "base.html" %}
 {% block title %}Log In{% endblock %}
 {% block content %}
-<section class="hero">
-  <h1>Log In</h1>
-  <h2>Use your SFSU email to sign in.</h2>
-  <p class="muted">Don't have an account?
-    <a class="link" href="{{ url_for('signup') }}">Sign up</a>
-  </p>
-</section>
 
-<section style="display:flex;justify-content:center;padding-bottom:64px;padding-left:16px;padding-right:16px">
-  <article class="sfsu-card" style="width:464px;max-width:100%;padding:28px">
-    {% if error %}
-      <div role="alert" style="background:#FEECEC;border:1px solid #F5C2C2;color:#8A1C1C;padding:12px;border-radius:8px;margin-bottom:16px">
-        {{ error }}
+<style>
+  main.container:has(.auth-page) {
+    max-width: 100% !important;
+    padding: 0 !important;
+    width: 100% !important;
+  }
+
+  .auth-page {
+    min-height: calc(100vh - 120px);
+    display: flex;
+  }
+
+  /* Left Side - Image */
+  .auth-image {
+    flex: 1;
+    background: 
+      linear-gradient(135deg, rgba(46, 8, 84, 0.85) 0%, rgba(74, 26, 122, 0.8) 100%),
+      url("/static/images/sfsu-quad.jpg");
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 60px;
+    position: relative;
+  }
+
+  .auth-image::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    pointer-events: none;
+  }
+
+  .auth-image-content {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    max-width: 400px;
+  }
+
+  .auth-image-logo {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #C5A43F 0%, #d4b44e 100%);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+    font-size: 28px;
+    color: #2E0854;
+    margin: 0 auto 24px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  }
+
+  .auth-image h2 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 32px;
+    font-weight: 700;
+    color: #fff;
+    margin: 0 0 16px;
+  }
+
+  .auth-image p {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 16px;
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  .auth-features {
+    margin-top: 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .auth-feature {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 15px;
+  }
+
+  .auth-feature-icon {
+    width: 36px;
+    height: 36px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+  }
+
+  /* Right Side - Form */
+  .auth-form-side {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 60px 40px;
+    background: #fff;
+  }
+
+  .auth-form-container {
+    width: 100%;
+    max-width: 420px;
+  }
+
+  .auth-form-header {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+
+  .auth-form-header h1 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 32px;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin: 0 0 8px;
+  }
+
+  .auth-form-header p {
+    color: #666;
+    font-size: 15px;
+    margin: 0;
+  }
+
+  .auth-form-header p a {
+    color: #2E0854;
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .auth-form-header p a:hover {
+    text-decoration: underline;
+  }
+
+  /* Form Styles */
+  .auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .form-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+  }
+
+  .form-input {
+    width: 100%;
+    padding: 16px 20px;
+    border: 2px solid #e8e8f0;
+    border-radius: 12px;
+    font-size: 16px;
+    transition: all 0.2s ease;
+    background: #fafafa;
+  }
+
+  .form-input:focus {
+    outline: none;
+    border-color: #2E0854;
+    background: #fff;
+    box-shadow: 0 0 0 4px rgba(46, 8, 84, 0.1);
+  }
+
+  .form-input::placeholder {
+    color: #999;
+  }
+
+  .password-wrapper {
+    position: relative;
+  }
+
+  .password-toggle {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+    padding: 4px;
+  }
+
+  .form-error {
+    color: #dc2626;
+    font-size: 13px;
+    margin-top: 4px;
+  }
+
+  .error-alert {
+    background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+    border: 1px solid #fecaca;
+    color: #991b1b;
+    padding: 14px 18px;
+    border-radius: 12px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .error-alert::before {
+    content: '⚠️';
+  }
+
+  .forgot-link {
+    text-align: right;
+  }
+
+  .forgot-link a {
+    color: #2E0854;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+  }
+
+  .forgot-link a:hover {
+    text-decoration: underline;
+  }
+
+  .auth-submit {
+    width: 100%;
+    padding: 16px 24px;
+    background: linear-gradient(135deg, #2E0854 0%, #4a1a7a 100%);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .auth-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(46, 8, 84, 0.3);
+  }
+
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    color: #999;
+    font-size: 13px;
+  }
+
+  .divider::before,
+  .divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #e8e8f0;
+  }
+
+  .back-home {
+    text-align: center;
+    margin-top: 24px;
+  }
+
+  .back-home a {
+    color: #666;
+    text-decoration: none;
+    font-size: 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: color 0.2s;
+  }
+
+  .back-home a:hover {
+    color: #2E0854;
+  }
+
+  .caps-hint {
+    color: #f59e0b;
+    font-size: 13px;
+    display: none;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .caps-hint::before {
+    content: '⚡';
+  }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .auth-page {
+      flex-direction: column;
+    }
+
+    .auth-image {
+      padding: 40px 24px;
+      min-height: 300px;
+    }
+
+    .auth-image h2 {
+      font-size: 24px;
+    }
+
+    .auth-features {
+      display: none;
+    }
+
+    .auth-form-side {
+      padding: 40px 24px;
+    }
+  }
+</style>
+
+<div class="auth-page">
+  <!-- Left Side - Image & Info -->
+  <div class="auth-image">
+    <div class="auth-image-content">
+      <div class="auth-image-logo">SF</div>
+      <h2>Welcome Back!</h2>
+      <p>Sign in to connect with tutors, schedule sessions, and track your academic progress.</p>
+      
+      <div class="auth-features">
+        <div class="auth-feature">
+          <div class="auth-feature-icon">✓</div>
+          <span>Access your dashboard</span>
+        </div>
+        <div class="auth-feature">
+          <div class="auth-feature-icon">💬</div>
+          <span>Message your tutors</span>
+        </div>
+        <div class="auth-feature">
+          <div class="auth-feature-icon">📅</div>
+          <span>Manage your sessions</span>
+        </div>
       </div>
-    {% endif %}
-    <form method="post" action="{{ url_for('login') }}" novalidate>
-      {{ form.csrf_token }}
+    </div>
+  </div>
 
-      <label class="label" for="email">Email</label>
-      {{ form.email(class_="select full", id="email", placeholder="name@sfsu.edu", style="height:56px;border-radius:12px") }}
-      {% for err in form.email.errors %}<div class="tiny" style="color:#8A1C1C">{{ err }}</div>{% endfor %}
+  <!-- Right Side - Form -->
+  <div class="auth-form-side">
+    <div class="auth-form-container">
+      <div class="auth-form-header">
+        <h1>Log In</h1>
+        <p>Don't have an account? <a href="{{ url_for('signup') }}">Sign up for free</a></p>
+      </div>
 
-      <div style="height:12px"></div>
+      {% if error %}
+      <div class="error-alert">{{ error }}</div>
+      {% endif %}
 
-      <label class="label" for="password">Password</label>
-      <div style="position:relative">
-        {{ form.password(class_="select full", id="password", style="height:56px;border-radius:12px;padding-right:44px") }}
-        <button type="button" id="togglePw" aria-label="Show password"
-                style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:transparent;border:0;cursor:pointer">
-          <span id="eye">👁️</span>
+      <form method="post" action="{{ url_for('login') }}" class="auth-form" novalidate>
+        {{ form.csrf_token }}
+
+        <div class="form-group">
+          <label class="form-label" for="email">Email Address</label>
+          <input type="email" name="email" id="email" class="form-input" placeholder="name@sfsu.edu" value="{{ form.email.data or '' }}" required>
+          {% for err in form.email.errors %}<div class="form-error">{{ err }}</div>{% endfor %}
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="password">Password</label>
+          <div class="password-wrapper">
+            <input type="password" name="password" id="password" class="form-input" placeholder="Enter your password" required>
+            <button type="button" id="togglePw" class="password-toggle" aria-label="Show password">
+              <span id="eye">👁️</span>
+            </button>
+          </div>
+          <div id="capsHint" class="caps-hint">Caps Lock is on</div>
+          {% for err in form.password.errors %}<div class="form-error">{{ err }}</div>{% endfor %}
+        </div>
+
+        <div class="forgot-link">
+          <a href="#">Forgot password?</a>
+        </div>
+
+        <button type="submit" class="auth-submit">
+          <i class="fas fa-sign-in-alt"></i> Log In
         </button>
+      </form>
+
+      <div class="back-home">
+        <a href="{{ url_for('home_page') }}">← Back to Home</a>
       </div>
-      <div id="capsHint" class="tiny muted" style="display:none;margin-top:6px">Caps Lock is on</div>
-      {% for err in form.password.errors %}<div class="tiny" style="color:#8A1C1C">{{ err }}</div>{% endfor %}
-
-      <div style="margin:10px 0 16px">
-        <a class="link" href="#">Forgot username or password?</a>
-      </div>
-
-      {{ form.submit(class_="btn", style="width:100%;height:48px") }}
-    </form>
-  </article>
-</section>
-
-<div class="back">
-  <a href="{{ url_for('home_page') }}">← Back to Home</a>
+    </div>
+  </div>
 </div>
 
 <script>
-  (function(){
-    const pw = document.getElementById('password');
-    const btn = document.getElementById('togglePw');
-    const eye = document.getElementById('eye');
-    const hint = document.getElementById('capsHint');
+(function(){
+  const pw = document.getElementById('password');
+  const btn = document.getElementById('togglePw');
+  const eye = document.getElementById('eye');
+  const hint = document.getElementById('capsHint');
 
-    btn.addEventListener('click', () => {
-      const show = pw.type === 'password';
-      pw.type = show ? 'text' : 'password';
-      eye.textContent = show ? '🙈' : '👁️';
-      btn.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
-    });
+  btn.addEventListener('click', () => {
+    const show = pw.type === 'password';
+    pw.type = show ? 'text' : 'password';
+    eye.textContent = show ? '🙈' : '👁️';
+    btn.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+  });
 
-    pw.addEventListener('keyup', (e) => {
-      const caps = e.getModifierState && e.getModifierState('CapsLock');
-      hint.style.display = caps ? 'block' : 'none';
-    });
-  })();
+  pw.addEventListener('keyup', (e) => {
+    const caps = e.getModifierState && e.getModifierState('CapsLock');
+    hint.style.display = caps ? 'flex' : 'none';
+  });
+})();
 </script>
+
 {% endblock %}
