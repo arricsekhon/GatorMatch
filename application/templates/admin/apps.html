@@ -1,70 +1,533 @@
 {% extends "base.html" %}
-{% block title %}Admin · Applications{% endblock %}
+{% block title %}Tutor Applications · Admin{% endblock %}
 {% block content %}
-<section class="hero">
-    <h1>Tutor Applications</h1>
-    <p class="muted">
-        Filter:
-        <a class="link" href="{{ url_for('admin.list_apps') }}">All</a> ·
-        <a class="link" href="{{ url_for('admin.list_apps', status='pending') }}">Pending</a> ·
-        <a class="link" href="{{ url_for('admin.list_apps', status='approved') }}">Approved</a> ·
-        <a class="link" href="{{ url_for('admin.list_apps', status='rejected') }}">Rejected</a>
-    </p>
-</section>
+<style>
+  main.container {
+    max-width: 100% !important;
+    padding: 0 !important;
+    width: 100% !important;
+  }
 
-<section class="member-body">
+  .admin-shell {
+    background: linear-gradient(180deg, #F7F7FA 0%, #EEEEF5 100%);
+    min-height: calc(100vh - 80px);
+  }
+
+  .admin-header {
+    background: 
+      linear-gradient(135deg, rgba(15, 12, 41, 0.85) 0%, rgba(48, 43, 99, 0.8) 50%, rgba(36, 36, 62, 0.85) 100%),
+      url("/static/images/quad.jpg");
+    background-size: cover;
+    background-position: center;
+    padding: 40px 40px 60px;
+    color: #fff;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .admin-header::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: 
+      radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.2) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.1) 0%, transparent 40%);
+    pointer-events: none;
+  }
+
+  .admin-header::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    pointer-events: none;
+  }
+
+  .admin-header-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    position: relative;
+  }
+
+  .admin-back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: rgba(255,255,255,0.7);
+    text-decoration: none;
+    margin-bottom: 16px;
+    transition: color 0.2s;
+  }
+
+  .admin-back-link:hover {
+    color: #fff;
+  }
+
+  .admin-title {
+    font-size: 36px;
+    font-weight: 700;
+    margin: 0 0 8px;
+  }
+
+  .admin-container {
+    max-width: 1200px;
+    margin: -30px auto 0;
+    padding: 0 40px 40px;
+    position: relative;
+    z-index: 2;
+  }
+
+  /* Filters */
+  .admin-filters {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+
+  .admin-filter-btn {
+    padding: 10px 20px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    background: #fff;
+    color: #666;
+    border: 2px solid #E8E8EE;
+    transition: all 0.2s;
+  }
+
+  .admin-filter-btn:hover {
+    border-color: #1a1a2e;
+    color: #1a1a2e;
+  }
+
+  .admin-filter-btn.active {
+    background: #1a1a2e;
+    border-color: #1a1a2e;
+    color: #fff;
+  }
+
+  /* Flash Messages */
+  .admin-flash {
+    padding: 14px 20px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .admin-flash.success {
+    background: #E8F5E9;
+    color: #2E7D32;
+    border: 1px solid #A5D6A7;
+  }
+
+  .admin-flash.info {
+    background: #E3F2FD;
+    color: #1565C0;
+    border: 1px solid #90CAF9;
+  }
+
+  /* Application Cards */
+  .admin-app-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    margin-bottom: 16px;
+    border-left: 4px solid #E8E8EE;
+  }
+
+  .admin-app-card.pending {
+    border-left-color: #FF9800;
+  }
+
+  .admin-app-card.approved {
+    border-left-color: #4CAF50;
+  }
+
+  .admin-app-card.rejected {
+    border-left-color: #F44336;
+  }
+
+  .admin-app-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+  }
+
+  .admin-app-user {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .admin-app-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 18px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .admin-app-name {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin: 0;
+  }
+
+  .admin-app-email {
+    font-size: 13px;
+    color: #888;
+    margin: 2px 0 0;
+  }
+
+  .admin-app-meta {
+    font-size: 12px;
+    color: #999;
+    margin: 4px 0 0;
+  }
+
+  .admin-app-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .admin-btn {
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .admin-btn-approve {
+    background: linear-gradient(135deg, #2E7D32 0%, #388E3C 100%);
+    color: #fff;
+  }
+
+  .admin-btn-approve:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(46,125,50,0.3);
+  }
+
+  .admin-btn-reject {
+    background: #fff;
+    color: #C62828;
+    border: 2px solid #FFCDD2;
+  }
+
+  .admin-btn-reject:hover {
+    background: #FFEBEE;
+    border-color: #EF9A9A;
+  }
+
+  .admin-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .admin-status-badge.pending {
+    background: #FFF3E0;
+    color: #E65100;
+  }
+
+  .admin-status-badge.approved {
+    background: #E8F5E9;
+    color: #2E7D32;
+  }
+
+  .admin-status-badge.rejected {
+    background: #FFEBEE;
+    color: #C62828;
+  }
+
+  /* Application Details */
+  .admin-app-body {
+    border-top: 1px solid #F0F0F5;
+    padding-top: 16px;
+  }
+
+  .admin-app-section {
+    margin-bottom: 16px;
+  }
+
+  .admin-app-section:last-child {
+    margin-bottom: 0;
+  }
+
+  .admin-app-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #999;
+    margin-bottom: 4px;
+  }
+
+  .admin-app-value {
+    font-size: 14px;
+    color: #333;
+    line-height: 1.5;
+  }
+
+  .admin-app-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .admin-app-tag {
+    padding: 6px 12px;
+    background: #F0F0F5;
+    border-radius: 6px;
+    font-size: 12px;
+    color: #555;
+  }
+
+  .admin-app-docs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .admin-doc-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    background: #E3F2FD;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #1565C0;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+
+  .admin-doc-link:hover {
+    background: #BBDEFB;
+  }
+
+  /* Empty State */
+  .admin-empty {
+    background: #fff;
+    border-radius: 16px;
+    padding: 48px 24px;
+    text-align: center;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  }
+
+  .admin-empty svg {
+    fill: #E0E0E0;
+    margin-bottom: 16px;
+  }
+
+  .admin-empty h3 {
+    font-size: 18px;
+    color: #666;
+    margin: 0 0 8px;
+  }
+
+  .admin-empty p {
+    font-size: 14px;
+    color: #999;
+    margin: 0;
+  }
+
+  @media (max-width: 768px) {
+    .admin-header {
+      padding: 30px 20px 50px;
+    }
+    .admin-container {
+      padding: 0 16px 32px;
+    }
+    .admin-title {
+      font-size: 28px;
+    }
+    .admin-app-header {
+      flex-direction: column;
+      gap: 16px;
+    }
+    .admin-app-actions {
+      width: 100%;
+    }
+    .admin-btn {
+      flex: 1;
+      justify-content: center;
+    }
+  }
+</style>
+
+<div class="admin-shell">
+  <header class="admin-header">
+    <div class="admin-header-content">
+      <a href="{{ url_for('admin.dashboard') }}" class="admin-back-link">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+        </svg>
+        Back to Dashboard
+      </a>
+      <h1 class="admin-title">Tutor Applications</h1>
+    </div>
+  </header>
+
+  <div class="admin-container">
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="admin-flash {{ category }}">
+            {% if category == 'success' %}
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+            {% else %}
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+            {% endif %}
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <!-- Filters -->
+    <div class="admin-filters">
+      <a href="{{ url_for('admin.list_apps') }}" class="admin-filter-btn {% if not request.args.get('status') %}active{% endif %}">
+        All
+      </a>
+      <a href="{{ url_for('admin.list_apps', status='pending') }}" class="admin-filter-btn {% if request.args.get('status') == 'pending' %}active{% endif %}">
+        ⏳ Pending
+      </a>
+      <a href="{{ url_for('admin.list_apps', status='approved') }}" class="admin-filter-btn {% if request.args.get('status') == 'approved' %}active{% endif %}">
+        ✓ Approved
+      </a>
+      <a href="{{ url_for('admin.list_apps', status='rejected') }}" class="admin-filter-btn {% if request.args.get('status') == 'rejected' %}active{% endif %}">
+        ✗ Rejected
+      </a>
+    </div>
+
+    <!-- Applications List -->
     {% if not apps %}
-    <!-- Full-width row spanning both grid columns -->
-    <div style="grid-column: 1 / -1; display:flex; justify-content:center; padding:24px 0;">
-        <article class="sfsu-card" style="padding:16px; text-align:center; max-width:520px; width:100%;">
-            No applications.
-        </article>
+    <div class="admin-empty">
+      <svg width="64" height="64" viewBox="0 0 24 24">
+        <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+      </svg>
+      <h3>No applications found</h3>
+      <p>{% if request.args.get('status') %}No {{ request.args.get('status') }} applications at this time{% else %}No tutor applications have been submitted yet{% endif %}</p>
     </div>
     {% else %}
-    <div class="results-col">
-        {% for a in apps %}
-        <article class="sfsu-card" style="padding:16px;margin-bottom:12px">
-            <div style="display:flex;justify-content:space-between;align-items:center;">
-                <div>
-                    <h3 style="margin:0">{{ a.name }} <span class="muted">({{ a.email }})</span></h3>
-                    <div class="tiny muted">Status: {{ a.status }} · Submitted: {{ a.created_at }}</div>
-                </div>
-                {% if a.status == 'pending' %}
-                <div style="display:flex;gap:8px">
-                    <form method="post" action="{{ url_for('admin.approve_app', app_id=a.id) }}">
-                        {{ form.csrf_token }}
-                        <button class="btn" type="submit">Approve</button>
-                    </form>
-                    <form method="post" action="{{ url_for('admin.reject_app', app_id=a.id) }}">
-                        {{ form.csrf_token }}
-                        <button class="btn outline" type="submit">Reject</button>
-                    </form>
-                </div>
+      {% for a in apps %}
+      <div class="admin-app-card {{ a.status }}">
+        <div class="admin-app-header">
+          <div class="admin-app-user">
+            <div class="admin-app-avatar">{{ a.name[0].upper() if a.name else 'T' }}</div>
+            <div>
+              <h3 class="admin-app-name">{{ a.name }}</h3>
+              <p class="admin-app-email">{{ a.email }}</p>
+              <p class="admin-app-meta">Submitted {{ a.created_at.strftime('%b %d, %Y at %I:%M %p') if a.created_at else 'Unknown' }}</p>
+            </div>
+          </div>
+          
+          <div class="admin-app-actions">
+            {% if a.status == 'pending' %}
+              <form method="post" action="{{ url_for('admin.approve_app', app_id=a.id) }}" style="display:inline;">
+                {{ form.csrf_token }}
+                <button type="submit" class="admin-btn admin-btn-approve">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                  Approve
+                </button>
+              </form>
+              <form method="post" action="{{ url_for('admin.reject_app', app_id=a.id) }}" style="display:inline;">
+                {{ form.csrf_token }}
+                <button type="submit" class="admin-btn admin-btn-reject">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                  Reject
+                </button>
+              </form>
+            {% else %}
+              <span class="admin-status-badge {{ a.status }}">
+                {% if a.status == 'approved' %}
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                {% elif a.status == 'rejected' %}
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
                 {% endif %}
-            </div>
-
-            <hr class="divider">
-            <div class="small"><strong>Headline:</strong> {{ a.headline }}</div>
-            <div class="small"><strong>Bio:</strong> {{ a.bio }}</div>
-            <div class="small">
-                <strong>Meeting:</strong> {{ a.meeting_options or '—' }}
-                &nbsp;|&nbsp;
-                <strong>Courses:</strong> {{ a.courses_csv }}
-            </div>
-            {% if a.documents_csv %}
-            <div class="small" style="margin-top:6px">
-                <strong>Documents:</strong>
-                {% for path in (a.documents_csv.split(',') if a.documents_csv else []) %}
-                <a class="link" href="{{ url_for('static', filename=path) }}" target="_blank" rel="noopener">
-                    {{ path.rsplit('/',1)[-1] }}
-                </a>{% if not loop.last %} · {% endif %}
-                {% endfor %}
-            </div>
+                {{ a.status|capitalize }}
+              </span>
             {% endif %}
-        </article>
-        {% endfor %}
-    </div>
-    {% endif %}
-</section>
+          </div>
+        </div>
 
+        <div class="admin-app-body">
+          <div class="admin-app-section">
+            <div class="admin-app-label">Headline</div>
+            <div class="admin-app-value">{{ a.headline or '—' }}</div>
+          </div>
+
+          <div class="admin-app-section">
+            <div class="admin-app-label">Bio</div>
+            <div class="admin-app-value">{{ a.bio or '—' }}</div>
+          </div>
+
+          <div class="admin-app-section">
+            <div class="admin-app-label">Meeting Options</div>
+            <div class="admin-app-tags">
+              {% for opt in (a.meeting_options or '').split(',') if opt.strip() %}
+                <span class="admin-app-tag">{{ opt.strip() }}</span>
+              {% else %}
+                <span class="admin-app-value">—</span>
+              {% endfor %}
+            </div>
+          </div>
+
+          <div class="admin-app-section">
+            <div class="admin-app-label">Courses</div>
+            <div class="admin-app-tags">
+              {% for course in (a.courses_csv or '').split(';') if course.strip() %}
+                <span class="admin-app-tag">{{ course.split('|')[0].strip() }}</span>
+              {% else %}
+                <span class="admin-app-value">—</span>
+              {% endfor %}
+            </div>
+          </div>
+
+          {% if a.documents_csv %}
+          <div class="admin-app-section">
+            <div class="admin-app-label">Uploaded Documents</div>
+            <div class="admin-app-docs">
+              {% for path in a.documents_csv.split(',') if path.strip() %}
+                <a href="{{ url_for('static', filename=path.strip()) }}" target="_blank" rel="noopener" class="admin-doc-link">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+                  {{ path.rsplit('/',1)[-1] }}
+                </a>
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    {% endif %}
+  </div>
+</div>
 {% endblock %}
