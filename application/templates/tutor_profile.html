@@ -8,37 +8,61 @@
 <section class="tutor-profile-hero">
   <div class="tutor-hero-content">
     <div class="tutor-avatar-large">
-      <svg width="120" height="120" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M12 12c2.21 0 4-1.79 4-4S14.21 4 12 4 8 5.79 8 8s1.79 4 4 4zm0 2c-2.67 
-                 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-      </svg>
-    </div>
-
-    <h1 class="tutor-profile-name">{{ tutor.user.name }}</h1>
-    <p class="tutor-profile-headline">{{ tutor.headline }}</p>
-
-    <!-- Rating Display -->
-    <div class="tutor-rating-section">
-      <div class="stars">
-        {% set rating_display = (tutor.rating_avg / 10) if tutor.rating_avg else 0 %}
-        {% set full = rating_display|round(0, 'floor')|int %}
-        {% for i in range(1,6) %}
-        <svg class="star {{ 'on' if i<=full else 'off' }}" viewBox="0 0 24 24">
-          <path
-            d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.786 1.402 8.168L12 18.897 4.664 23.164l1.402-8.168L.132 9.21l8.2-1.192z" />
+      {% if tutor.avatar_url %}
+        <img src="{{ url_for('static', filename=tutor.avatar_url) }}" alt="{{ tutor.user.name }}'s photo">
+      {% else %}
+        <svg width="80" height="80" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 12c2.21 0 4-1.79 4-4S14.21 4 12 4 8 5.79 8 8s1.79 4 4 4zm0 2c-2.67 
+                   0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
         </svg>
-        {% endfor %}
-      </div>
-      <span class="rating-text">{{ '%.1f'|format(rating_display) if tutor.rating_avg else 'No ratings yet' }}</span>
-      <span class="rating-count">({{ tutor.rating_count }} reviews)</span>
+      {% endif %}
     </div>
 
-    <div class="tutor-experience">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-        <path
-          d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z" />
-      </svg>
-      <span>{{ tutor.hours_total_min }} hours of tutoring experience</span>
+    <div class="tutor-hero-info">
+      <h1 class="tutor-profile-name">{{ tutor.user.name }}</h1>
+      <p class="tutor-profile-headline">{{ tutor.headline }}</p>
+
+      <!-- Rating Display -->
+      <div class="tutor-rating-section">
+        <div class="stars">
+          {% set rating_display = (tutor.rating_avg / 10) if tutor.rating_avg else 0 %}
+          {% set full = rating_display|round(0, 'floor')|int %}
+          {% for i in range(1,6) %}
+          <svg class="star {{ 'on' if i<=full else 'off' }}" viewBox="0 0 24 24">
+            <path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.786 1.402 8.168L12 18.897 4.664 23.164l1.402-8.168L.132 9.21l8.2-1.192z" />
+          </svg>
+          {% endfor %}
+        </div>
+        <span class="rating-text">{{ '%.1f'|format(rating_display) if tutor.rating_avg else 'New' }}</span>
+        <span class="rating-count">({{ tutor.rating_count }} review{{ 's' if tutor.rating_count != 1 else '' }})</span>
+      </div>
+
+      <div class="tutor-experience">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z" />
+        </svg>
+        <span>{{ tutor.hours_total_min }} hours of tutoring experience</span>
+      </div>
+
+      <!-- Quick Stats -->
+      <div class="tutor-quick-stats">
+        {% if courses %}
+        <div class="tutor-stat-badge">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 4h5v8l-2.5-1.5L6 12V4z"/>
+          </svg>
+          {{ courses|length }} Course{{ 's' if courses|length != 1 else '' }}
+        </div>
+        {% endif %}
+        {% if meeting_options %}
+        <div class="tutor-stat-badge">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+          </svg>
+          {{ meeting_options|length }} Location{{ 's' if meeting_options|length != 1 else '' }}
+        </div>
+        {% endif %}
+      </div>
     </div>
   </div>
 </section>
@@ -50,16 +74,38 @@
     <!-- About Section -->
     <div class="tutor-card">
       <h2 class="tutor-section-title">About Me</h2>
-      <p class="tutor-bio">{{ tutor.bio }}</p>
+      <p class="tutor-bio">{{ tutor.bio or "This tutor hasn't added a bio yet." }}</p>
     </div>
 
     <!-- Courses Section -->
     {% if courses and courses|length %}
     <div class="tutor-card">
-      <h2 class="tutor-section-title">Courses Offered</h2>
+      <h2 class="tutor-section-title">Courses</h2>
       <div class="tutor-tags">
         {% for course in courses %}
-        <span class="tutor-tag course-tag">{{ course }}</span>
+        <span class="tutor-tag course-tag">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="opacity:0.7;">
+            <path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 4h5v8l-2.5-1.5L6 12V4z"/>
+          </svg>
+          {{ course }}
+        </span>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Meeting Options -->
+    {% if meeting_options and meeting_options|length %}
+    <div class="tutor-card">
+      <h2 class="tutor-section-title">Meeting Options</h2>
+      <div class="tutor-tags">
+        {% for option in meeting_options %}
+        <span class="tutor-tag location-tag">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
+          </svg>
+          {{ option }}
+        </span>
         {% endfor %}
       </div>
     </div>
@@ -68,53 +114,267 @@
 
   <!-- Right Column -->
   <aside class="tutor-right-column">
-    <!-- Meeting Options -->
-    {% if meeting_options and meeting_options|length %}
-    <div class="tutor-card">
-      <h3 class="tutor-sidebar-title">Meeting Options</h3>
-      <div class="tutor-tags">
-        {% for option in meeting_options %}
-        <span class="tutor-tag location-tag">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-            <path
-              d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
-          </svg>
-          {{ option }}
-        </span>
-        {% endfor %}
-      </div>
-    </div>
-    {% endif %}
-
-    <!-- Contact Section -->
+    <!-- Request Session Section -->
     <div class="tutor-card" id="contact">
-      <h2 class="tutor-section-title">Contact</h2>
+      <h2 class="tutor-section-title">Request a Session</h2>
 
-      {% if request.args.get('sent') %}
+      {% if request.args.get('requested') %}
       <div class="alert-success">
-        ✓ Message sent successfully! The tutor will receive your message.
+        ✓ Session request sent! {{ tutor.user.name.split()[0] }} will review and respond to your request.
       </div>
       {% endif %}
 
       {% if current_user.is_authenticated %}
       <p class="tutor-contact-desc">
-        Ready to start your tutoring session? Click the button below to begin chatting.
+        Fill out the form below to request a tutoring session with {{ tutor.user.name.split()[0] }}.
       </p>
-      <a href="#contact" class="btn btn-primary btn-large">Start Chat</a>
+      
+      <style>
+        .form-step {
+          max-height: 0;
+          overflow: hidden;
+          opacity: 0;
+          transform: translateY(-10px);
+          transition: max-height 0.4s ease, opacity 0.3s ease, transform 0.3s ease, margin 0.3s ease;
+          margin-bottom: 0;
+        }
+        .form-step.visible {
+          max-height: 200px;
+          opacity: 1;
+          transform: translateY(0);
+          margin-bottom: 16px;
+        }
+        .form-step.visible-large {
+          max-height: 300px;
+          opacity: 1;
+          transform: translateY(0);
+          margin-bottom: 16px;
+        }
+        .form-step-always {
+          margin-bottom: 16px;
+        }
+        .step-indicator {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin-bottom: 20px;
+        }
+        .step-dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          background: #E0E0E0;
+          transition: all 0.3s ease;
+        }
+        .step-dot.active {
+          background: #2E0057;
+          transform: scale(1.2);
+        }
+        .step-dot.completed {
+          background: #4CAF50;
+        }
+      </style>
+      
+      <form method="post" action="{{ url_for('request_session', tutor_slug=tutor.slug) }}" class="session-request-form" id="sessionForm">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        
+        <!-- Progress Indicator -->
+        <div class="step-indicator">
+          <div class="step-dot active" id="dot1"></div>
+          <div class="step-dot" id="dot2"></div>
+          <div class="step-dot" id="dot3"></div>
+          <div class="step-dot" id="dot4"></div>
+          <div class="step-dot" id="dot5"></div>
+        </div>
+        
+        <!-- Step 1: Course Selection (Always visible) -->
+        <div class="form-step-always">
+          <label class="form-label">Course *</label>
+          <select name="course" required class="form-control" id="courseSelect">
+            <option value="">Select a course</option>
+            {% for course in courses %}
+            <option value="{{ course }}">{{ course }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- Step 2: Date Selection -->
+        <div class="form-step" id="step2">
+          <label class="form-label">Preferred Date *</label>
+          <input type="date" name="date" class="form-control" min="{{ today }}" id="dateInput">
+        </div>
+
+        <!-- Step 3: Time Selection -->
+        <div class="form-step" id="step3">
+          <label class="form-label">Preferred Time *</label>
+          <div style="display:flex;gap:10px;align-items:center;">
+            <input type="time" name="start_time" class="form-control" style="flex:1;" id="startTime">
+            <span style="color:#666;font-size:14px;">to</span>
+            <input type="time" name="end_time" class="form-control" style="flex:1;" id="endTime">
+          </div>
+        </div>
+
+        <!-- Step 4: Location Selection -->
+        <div class="form-step" id="step4">
+          <label class="form-label">Location *</label>
+          <select name="location" class="form-control" id="locationSelect">
+            <option value="">Select location</option>
+            {% for option in meeting_options %}
+            <option value="{{ option }}">{{ option }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- Step 5: Message (Optional) -->
+        <div class="form-step" id="step5">
+          <label class="form-label">Message <span style="color:#999;font-weight:400;">(optional)</span></label>
+          <textarea name="message" rows="3" class="form-control" placeholder="Any specific topics you'd like to cover?"></textarea>
+        </div>
+
+        <!-- Submit Button (hidden until form is complete) -->
+        <div class="form-step" id="submitStep">
+          <button type="submit" class="btn btn-primary btn-large btn-block">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="margin-right:8px;">
+              <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20a2 2 0 002 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11zM9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm-8 4H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2z"/>
+            </svg>
+            Send Request
+          </button>
+        </div>
+      </form>
+      
+      <script>
+        (function() {
+          const courseSelect = document.getElementById('courseSelect');
+          const dateInput = document.getElementById('dateInput');
+          const startTime = document.getElementById('startTime');
+          const endTime = document.getElementById('endTime');
+          const locationSelect = document.getElementById('locationSelect');
+          
+          const step2 = document.getElementById('step2');
+          const step3 = document.getElementById('step3');
+          const step4 = document.getElementById('step4');
+          const step5 = document.getElementById('step5');
+          const submitStep = document.getElementById('submitStep');
+          
+          const dots = [
+            document.getElementById('dot1'),
+            document.getElementById('dot2'),
+            document.getElementById('dot3'),
+            document.getElementById('dot4'),
+            document.getElementById('dot5')
+          ];
+          
+          function updateDots(currentStep) {
+            dots.forEach((dot, index) => {
+              dot.classList.remove('active', 'completed');
+              if (index < currentStep - 1) {
+                dot.classList.add('completed');
+              } else if (index === currentStep - 1) {
+                dot.classList.add('active');
+              }
+            });
+          }
+          
+          // Step 1 -> Step 2: Course selected
+          courseSelect.addEventListener('change', function() {
+            if (this.value) {
+              step2.classList.add('visible');
+              dateInput.required = true;
+              updateDots(2);
+              setTimeout(() => dateInput.focus(), 300);
+            } else {
+              step2.classList.remove('visible');
+              step3.classList.remove('visible');
+              step4.classList.remove('visible');
+              step5.classList.remove('visible', 'visible-large');
+              submitStep.classList.remove('visible');
+              updateDots(1);
+            }
+          });
+          
+          // Step 2 -> Step 3: Date selected
+          dateInput.addEventListener('change', function() {
+            if (this.value) {
+              step3.classList.add('visible');
+              startTime.required = true;
+              endTime.required = true;
+              updateDots(3);
+              setTimeout(() => startTime.focus(), 300);
+            }
+          });
+          
+          // Step 3 -> Step 4: Time selected
+          function checkTimeComplete() {
+            if (startTime.value && endTime.value) {
+              step4.classList.add('visible');
+              locationSelect.required = true;
+              updateDots(4);
+              setTimeout(() => locationSelect.focus(), 300);
+            }
+          }
+          startTime.addEventListener('change', checkTimeComplete);
+          endTime.addEventListener('change', checkTimeComplete);
+          
+          // Step 4 -> Step 5: Location selected
+          locationSelect.addEventListener('change', function() {
+            if (this.value) {
+              step5.classList.add('visible-large');
+              submitStep.classList.add('visible');
+              updateDots(5);
+            }
+          });
+        })();
+      </script>
+      
+      <div style="display:flex;align-items:center;gap:16px;margin:20px 0;">
+        <div style="flex:1;height:1px;background:#E0E0E0;"></div>
+        <span style="font-size:13px;color:#999;">or</span>
+        <div style="flex:1;height:1px;background:#E0E0E0;"></div>
+      </div>
+      
+      <a href="{{ url_for('new_message', tutor_id=tutor.id) }}" class="btn btn-outline btn-large btn-block">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="margin-right:8px;">
+          <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
+        </svg>
+        Send a Message
+      </a>
       {% else %}
       <div class="alert-info">
-        Please <a href="{{ url_for('login', next=request.path) }}">log in</a> to contact this tutor.
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="margin-right:8px;vertical-align:middle;">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+        </svg>
+        Please <a href="{{ url_for('login', next=request.path) }}">log in</a> to request a session with this tutor.
       </div>
       {% endif %}
     </div>
+
+    <!-- Edit Profile (if viewing own profile) -->
+    {% if current_user.is_authenticated and current_user.id == tutor.user_id %}
+    <a href="{{ url_for('edit_tutor_profile') }}" class="btn btn-outline btn-block" style="margin-top:0;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="margin-right:8px;">
+        <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+      </svg>
+      Edit My Profile
+    </a>
+    {% endif %}
   </aside>
 </section>
 
-<!-- Bottom Actions (Centered) -->
+<!-- Bottom Actions -->
 <section class="tutor-bottom-actions">
   <div class="tutor-actions-centered">
-    <a href="{{ url_for('results_page') }}" class="btn btn-outline btn-action">← Back to Search</a>
-    <a href="#contact" class="btn btn-primary btn-action">Chat Now</a>
+    <a href="{{ url_for('results_page') }}" class="btn btn-outline btn-action">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="margin-right:8px;">
+        <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+      </svg>
+      Back to Search
+    </a>
+    <a href="#contact" class="btn btn-primary btn-action">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="margin-right:8px;">
+        <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20a2 2 0 002 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11zM9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2z"/>
+      </svg>
+      Request Session
+    </a>
   </div>
 </section>
 

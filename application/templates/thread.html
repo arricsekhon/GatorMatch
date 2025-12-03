@@ -1,0 +1,380 @@
+{% extends "base.html" %}
+{% block title %}{{ thread.subject }} · Messages · SFSU Tutors{% endblock %}
+
+{% block content %}
+<style>
+  /* Override parent container */
+  main.container {
+    max-width: 100% !important;
+    padding: 0 !important;
+    width: 100% !important;
+  }
+  
+  .messages-page {
+    background: #F7F7FA;
+    min-height: calc(100vh - 80px);
+    padding: 24px 40px;
+  }
+  
+  .messages-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    color: #2E0057;
+    text-decoration: none;
+    margin-bottom: 16px;
+  }
+  
+  .messages-back:hover {
+    text-decoration: underline;
+  }
+  
+  .messages-page-title {
+    font-size: 32px;
+    font-weight: 700;
+    color: #2E0057;
+    margin: 0 0 24px;
+  }
+  
+  .messages-layout {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 24px;
+    align-items: start;
+  }
+  
+  /* Left sidebar - Conversations list */
+  .conversations-panel {
+    background: #fff;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 2px 12px rgba(46,0,87,0.06);
+    position: sticky;
+    top: 100px;
+  }
+  
+  .conversations-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #2E0057;
+    margin: 0 0 16px;
+  }
+  
+  .conversations-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    max-height: calc(100vh - 320px);
+    overflow-y: auto;
+  }
+  
+  .conversation-item {
+    display: block;
+    padding: 12px 14px;
+    border-radius: 12px;
+    text-decoration: none;
+    transition: background 0.2s;
+    border-left: 3px solid transparent;
+  }
+  
+  .conversation-item:hover {
+    background: #F7F7FA;
+  }
+  
+  .conversation-item.active {
+    background: #F7F3FB;
+    border-left-color: #2E0057;
+  }
+  
+  .conversation-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #2E0057;
+    margin-bottom: 4px;
+  }
+  
+  .conversation-subject {
+    font-size: 13px;
+    color: #666;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  /* Right panel - Chat area */
+  .chat-panel {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 2px 12px rgba(46,0,87,0.06);
+    display: flex;
+    flex-direction: column;
+    min-height: calc(100vh - 200px);
+  }
+  
+  .chat-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid #F0F0F4;
+  }
+  
+  .chat-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #2E0057;
+    margin: 0 0 4px;
+  }
+  
+  .chat-with {
+    font-size: 13px;
+    color: #666;
+    margin: 0;
+  }
+  
+  .chat-messages {
+    flex: 1;
+    padding: 20px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    overflow-y: auto;
+  }
+  
+  .message-item {
+    padding: 14px 18px;
+    border-radius: 12px;
+    max-width: 70%;
+  }
+  
+  .message-item.received {
+    background: #F7F7FA;
+    align-self: flex-start;
+    border-bottom-left-radius: 4px;
+  }
+  
+  .message-item.sent {
+    background: linear-gradient(135deg, #EEE7FF 0%, #E0D6F6 100%);
+    align-self: flex-end;
+    border-bottom-right-radius: 4px;
+  }
+  
+  .message-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+    gap: 16px;
+  }
+  
+  .message-sender {
+    font-size: 13px;
+    font-weight: 600;
+    color: #2E0057;
+  }
+  
+  .message-time {
+    font-size: 11px;
+    color: #999;
+    white-space: nowrap;
+  }
+  
+  .message-body {
+    font-size: 14px;
+    line-height: 1.6;
+    color: #333;
+  }
+  
+  .chat-input-area {
+    padding: 20px 24px;
+    border-top: 1px solid #F0F0F4;
+  }
+  
+  .chat-textarea {
+    width: 100%;
+    border: 1px solid #E0E0E0;
+    border-radius: 12px;
+    padding: 14px 16px;
+    font-size: 14px;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 80px;
+    box-sizing: border-box;
+  }
+  
+  .chat-textarea:focus {
+    outline: none;
+    border-color: #2E0057;
+    box-shadow: 0 0 0 3px rgba(46,0,87,0.08);
+  }
+  
+  .chat-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 12px;
+  }
+  
+  .btn-send {
+    background: #2E0057;
+    color: #fff;
+    border: none;
+    padding: 12px 28px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+  }
+  
+  .btn-send:hover {
+    background: #4A1A7A;
+    transform: translateY(-1px);
+  }
+  
+  .empty-messages {
+    text-align: center;
+    padding: 32px;
+    color: #999;
+  }
+  
+  /* Mobile responsive */
+  @media (max-width: 900px) {
+    .messages-page {
+      padding: 16px;
+    }
+    
+    .messages-layout {
+      grid-template-columns: 1fr;
+    }
+    
+    .conversations-panel {
+      position: static;
+      display: none;
+    }
+    
+    .chat-panel {
+      min-height: calc(100vh - 160px);
+    }
+    
+    .mobile-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 14px;
+      color: #2E0057;
+      text-decoration: none;
+      margin-bottom: 12px;
+    }
+  }
+  
+  @media (min-width: 901px) {
+    .mobile-back {
+      display: none;
+    }
+  }
+  
+  @media (max-width: 640px) {
+    .messages-page-title {
+      font-size: 24px;
+    }
+    
+    .chat-header {
+      padding: 16px;
+    }
+    
+    .chat-messages {
+      padding: 16px;
+    }
+    
+    .chat-input-area {
+      padding: 16px;
+    }
+    
+    .message-item {
+      max-width: 90%;
+      padding: 12px 14px;
+    }
+  }
+</style>
+
+<div class="messages-page">
+  <a href="{% if is_tutor %}{{ url_for('tutor_dashboard') }}{% else %}{{ url_for('student_dashboard') }}{% endif %}" class="messages-back">
+    ← Back to Dashboard
+  </a>
+  
+  <h1 class="messages-page-title">Messages</h1>
+  
+  <div class="messages-layout">
+    <!-- Left: Conversations List -->
+    <div class="conversations-panel">
+      <h2 class="conversations-title">Conversations</h2>
+      
+      <div class="conversations-list">
+        {% for t in all_threads %}
+        <a href="{{ url_for('view_thread', thread_id=t.id) }}" class="conversation-item {{ 'active' if t.id == thread.id else '' }}">
+          <div class="conversation-name">
+            {% if is_tutor %}
+              {{ t.student.name if t.student else "Student" }}
+            {% else %}
+              {{ t.tutor.user.name if t.tutor and t.tutor.user else "Tutor" }}
+            {% endif %}
+          </div>
+          <div class="conversation-subject">{{ t.subject }}</div>
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+    
+    <!-- Right: Chat Panel -->
+    <div class="chat-panel">
+      <a href="{{ url_for('messages_list') }}" class="mobile-back" style="padding:16px 16px 0;">
+        ← All Conversations
+      </a>
+      
+      <div class="chat-header">
+        <h2 class="chat-title">{{ thread.subject }}</h2>
+        <p class="chat-with">
+          Conversation with 
+          {% if is_tutor %}
+            {{ thread.student.name if thread.student else "Student" }}
+          {% else %}
+            {{ thread.tutor.user.name if thread.tutor and thread.tutor.user else "Tutor" }}
+          {% endif %}
+        </p>
+      </div>
+      
+      <div class="chat-messages">
+        {% for msg in thread.messages|sort(attribute='sent_at') %}
+        <div class="message-item {{ 'sent' if msg.sender_id == current_user.id else 'received' }}">
+          <div class="message-header">
+            <span class="message-sender">
+              {% if msg.sender_id == current_user.id %}
+                You
+              {% else %}
+                {{ msg.sender.name if msg.sender else "Unknown" }}
+              {% endif %}
+            </span>
+            <span class="message-time">
+              {{ msg.sent_at.strftime("%b %d, %Y · %I:%M%p").replace('AM','am').replace('PM','pm') if msg.sent_at else "" }}
+            </span>
+          </div>
+          <div class="message-body">{{ msg.body }}</div>
+        </div>
+        {% else %}
+        <div class="empty-messages">
+          <p>No messages yet. Start the conversation!</p>
+        </div>
+        {% endfor %}
+      </div>
+      
+      <div class="chat-input-area">
+        <form method="post" action="{{ url_for('reply_to_thread', thread_id=thread.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <textarea name="body" class="chat-textarea" placeholder="Type your message..." required></textarea>
+          <div class="chat-actions">
+            <button type="submit" class="btn-send">Send Message</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

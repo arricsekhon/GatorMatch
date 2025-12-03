@@ -61,6 +61,15 @@
             </a>
           </li>
 
+          {% if current_user.is_authenticated %}
+          <li>
+            <a href="{{ url_for('student_dashboard') }}"
+              class="{% if request.path.startswith('/student') %}active{% endif %}">
+              Dashboard
+            </a>
+          </li>
+          {% endif %}
+
           {% if current_user.is_authenticated and (current_user.is_tutor or current_user.role == 'tutor') %}
           <li>
             <a href="{{ url_for('tutor_dashboard') }}"

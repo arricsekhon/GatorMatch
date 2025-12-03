@@ -123,20 +123,24 @@
         <h2 style="margin-top:28px">Verification Documents</h2>
         <hr class="divider">
 
-        <div class="dropzone" id="dropzone">
-          <div class="dz-icon">⬆︎</div>
-          <p class="small">Click to choose up to 3 files</p>
-          <p class="tiny muted">PDF, PNG, JPG. Max 10 MB each.</p>
+        <p class="tiny muted" style="margin-bottom:12px;">Upload at least one verification document (transcript, grade report, etc). PDF, PNG, JPG. Max 10 MB each.</p>
+
+        <div class="doc-upload-row" style="display:flex;flex-direction:column;gap:12px;">
+          <div class="doc-upload-item">
+            <label class="label small" style="margin-bottom:4px;">Document 1 <span style="color:#8A1C1C">*</span></label>
+            {{ form.doc1(class_="form-control", accept=".pdf,.png,.jpg,.jpeg", style="padding:8px;border:1px solid #ccc;border-radius:8px;width:100%;") }}
+          </div>
+          <div class="doc-upload-item">
+            <label class="label small" style="margin-bottom:4px;">Document 2 (optional)</label>
+            {{ form.doc2(class_="form-control", accept=".pdf,.png,.jpg,.jpeg", style="padding:8px;border:1px solid #ccc;border-radius:8px;width:100%;") }}
+          </div>
+          <div class="doc-upload-item">
+            <label class="label small" style="margin-bottom:4px;">Document 3 (optional)</label>
+            {{ form.doc3(class_="form-control", accept=".pdf,.png,.jpg,.jpeg", style="padding:8px;border:1px solid #ccc;border-radius:8px;width:100%;") }}
+          </div>
         </div>
 
-        <div style="display:none">
-          {{ form.doc1(class_="select") }}
-          {{ form.doc2(class_="select") }}
-          {{ form.doc3(class_="select") }}
-        </div>
-
-        <div id="file-list" style="margin-top:10px"></div>
-        {% if form.doc1.errors %}<div class="tiny" style="color:#8A1C1C">{{ form.doc1.errors[0] }}</div>{% endif %}
+        {% if form.doc1.errors %}<div class="tiny" style="color:#8A1C1C;margin-top:8px;">{{ form.doc1.errors[0] }}</div>{% endif %}
 
         <!-- Policies & Submit -->
         <h2 style="margin-top:28px">Policies & Submit</h2>
@@ -200,26 +204,6 @@
     background: var(--purple);
     color: #fff;
     border-color: var(--purple)
-  }
-
-  .dropzone {
-    border: 2px dashed var(--divider);
-    border-radius: 12px;
-    text-align: center;
-    padding: 28px 16px;
-    background: #fff;
-    cursor: pointer
-  }
-
-  .dropzone.drag {
-    border-color: var(--purple);
-    background: #F7F3FB
-  }
-
-  .dz-icon {
-    font-size: 28px;
-    color: var(--muted);
-    margin-bottom: 8px
   }
 
   .hero .btn.outline.gold {
@@ -496,50 +480,26 @@
     DAYS.forEach(addHourRow);
     updateAvail();
 
-    // --- File picker maps to hidden inputs
-    const dz = document.getElementById('dropzone');
-    const listFiles = document.getElementById('file-list');
-    const fileInputs = [
-      document.querySelector('input[name="doc1"]'),
-      document.querySelector('input[name="doc2"]'),
-      document.querySelector('input[name="doc3"]'),
-    ];
-    function showRow(name, sizeText) {
-      const row = document.createElement('div');
-      row.className = 'sfsu-card';
-      row.style.cssText = 'padding:10px;display:flex;align-items:center;gap:10px';
-      row.innerHTML = `<div class="badge">File</div>
-      <div style="flex:1 1 auto;min-width:0">
-        <div class="small" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${name}</div>
-        <div class="tiny muted">${sizeText}</div>
-      </div>`;
-      listFiles.appendChild(row);
-    }
-    function formatSize(b) { return b < 1024 ? `${b} B` : b < 1048576 ? `${(b / 1024).toFixed(1)} KB` : `${(b / 1048576).toFixed(1)} MB`; }
-    function pickFiles() {
-      const picker = document.createElement('input');
-      picker.type = 'file'; picker.accept = '.pdf,.png,.jpg,.jpeg'; picker.multiple = true;
-      picker.onchange = () => {
-        const files = Array.from(picker.files || []);
-        let slot = 0;
-        for (const f of files) {
-          while (slot < fileInputs.length && fileInputs[slot].files?.length) slot++;
-          if (slot >= fileInputs.length) break;
-          try {
-            const dt = new DataTransfer();
-            dt.items.add(f);
-            fileInputs[slot].files = dt.files;
-            showRow(f.name, formatSize(f.size));
-          } catch (_e) { /* ignore */ }
-          slot++;
+    // --- File upload visual feedback
+    const fileInputs = document.querySelectorAll('input[type="file"]');
+    fileInputs.forEach(input => {
+      input.addEventListener('change', function() {
+        if (this.files && this.files[0]) {
+          const fileName = this.files[0].name;
+          const fileSize = this.files[0].size;
+          const sizeText = fileSize < 1024 ? `${fileSize} B` : fileSize < 1048576 ? `${(fileSize / 1024).toFixed(1)} KB` : `${(fileSize / 1048576).toFixed(1)} MB`;
+          // Add visual confirmation next to the input
+          let feedback = this.nextElementSibling;
+          if (!feedback || !feedback.classList.contains('file-feedback')) {
+            feedback = document.createElement('div');
+            feedback.className = 'file-feedback tiny';
+            feedback.style.cssText = 'color:#155724;margin-top:4px;';
+            this.parentNode.appendChild(feedback);
+          }
+          feedback.textContent = `✓ ${fileName} (${sizeText})`;
         }
-      };
-      picker.click();
-    }
-    dz.addEventListener('click', pickFiles);
-    ['dragenter', 'dragover'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.add('drag'); }));
-    ['dragleave', 'drop'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.remove('drag'); }));
-    dz.addEventListener('drop', e => { /* use click-based picker for compatibility */ });
+      });
+    });
 
     // --- Draft save / clear
     document.getElementById('btn-draft')?.addEventListener('click', () => {
