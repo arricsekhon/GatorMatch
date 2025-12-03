@@ -1366,7 +1366,6 @@ def student_dashboard():
 
 # -------------------- Edit Student Profile --------------------
 
-
 @app.route("/profile/edit", methods=["GET", "POST"])
 @login_required
 def edit_profile():
@@ -1374,29 +1373,23 @@ def edit_profile():
     Allow any logged-in user to edit their basic profile (name).
     """
     with SessionLocal() as db:
-
-        user = db.get(User, current_user.id)
-        if user is None:
+        user = db.query(User).filter(User.id == current_user.id).first()
+        if not user:
             abort(404)
 
         if request.method == "POST":
             name = (request.form.get("name") or "").strip()
 
-            if not name:
-                flash("Name cannot be empty.", "danger")
-                return redirect(url_for("edit_profile"))
-
-            if name != user.name:
+            if name:
                 user.name = name
                 db.commit()
                 flash("Your profile has been updated.", "success")
             else:
-                flash("No changes were made to your profile.", "info")
+                flash("Name cannot be empty.", "danger")
 
             return redirect(url_for("edit_profile"))
 
         return render_template("edit_profile.html", user=user)
-
 
 
 # -------------------- Edit Tutor Profile (from Dashboard) --------------------
