@@ -2,11 +2,13 @@
 {% block title %}{{ user.name }} - Student Profile{% endblock %}
 {% block content %}
 
-<!-- Student Profile Hero (reuses tutor profile styles) -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/tutor_profile.css') }}">
+
+<!-- Student Profile Hero -->
 <section class="tutor-profile-hero">
   <div class="tutor-hero-content">
     <div class="tutor-avatar-large">
-      {# later can be swapped #}
+      <!-- Placeholder avatar -->
       <svg width="80" height="80" viewBox="0 0 24 24" fill="currentColor">
         <path d="M12 12c2.21 0 4-1.79 4-4S14.21 4 12 4 8 5.79 8 8s1.79 4 4 4zm0 2c-2.67 
                  0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
@@ -21,39 +23,32 @@
 
       <div class="tutor-rating-section">
         <span class="rating-text">Welcome back!</span>
-        <span class="rating-count">
-          Manage your account and tutoring preferences here.
-        </span>
+        <span class="rating-count">Manage your account and tutoring preferences here.</span>
       </div>
 
-      <!-- Quick links row -->
-      <div class="tutor-experience">
-        <a href="{{ url_for('student_dashboard') }}"
-           class="btn btn-outline btn-action">
+      <!-- Quick links -->
+      <div class="tutor-experience" style="margin-top:12px;">
+        <a href="{{ url_for('student_dashboard') }}" class="btn btn-outline btn-action">
           Dashboard
         </a>
-        <a href="{{ url_for('results_page') }}"
-           class="btn btn-outline btn-action">
+        <a href="{{ url_for('results_page') }}" class="btn btn-outline btn-action">
           Find Tutors
-        </a>
-        <a href="{{ url_for('edit_profile') }}"
-           class="btn btn-outline btn-action">
-          Edit Basic Info
         </a>
       </div>
     </div>
   </div>
 </section>
 
-<!-- Main Content Grid -->
+<!-- Main Content -->
 <section class="tutor-profile-body">
   <!-- Left Column -->
   <div class="tutor-left-column">
+
     <!-- Account Details -->
     <div class="tutor-card">
       <h2 class="tutor-section-title">Account Details</h2>
       <p class="tutor-bio">
-        should be bio
+        This information is linked to your SFSU account. Edit your details here.
       </p>
 
       <p><strong>Full Name</strong><br>{{ user.name }}</p>
@@ -62,32 +57,29 @@
 
       <div style="margin-top:16px; display:flex; flex-wrap:wrap; gap:12px;">
         <button class="btn btn-outline btn-large" disabled>
-          Edit profile (placeholder for now)
+          Edit Profile (TBD)
         </button>
         <button class="btn btn-outline btn-large" disabled>
-          Change password (placeholder for now)
+          Change Password (TBD)
         </button>
       </div>
     </div>
 
     <!-- About Me -->
-    <div class="tutor-card">
+    <div class="tutor-card"> 
       <h2 class="tutor-section-title">About Me</h2>
       <p class="tutor-bio">
-        Share a short description about your major, year, and what you’re
-        looking for in a tutor. to be shown to tutors later with requests
+        Share a short description about your major, year, and what you’re looking for in a tutor. This will eventually be visible to tutors when you send session requests.
       </p>
 
       <form>
         <div class="form-group">
           <label for="about_me">Short bio / study notes</label>
-          <textarea id="about_me"
-                    class="form-control"
-                    rows="4"
-                    placeholder="Example: CS major in my 3rd year. I’m looking for help with algorithms and data structures, especially CSC 340."></textarea>
+          <textarea id="about_me" class="form-control" rows="4"
+            placeholder="Example: CS major in my 3rd year. I’m looking for help with algorithms and data structures, especially CSC 340."></textarea>
         </div>
         <button class="btn btn-primary btn-large" disabled>
-          Save About Me (need to be connected)
+          Save About Me (TBD)
         </button>
       </form>
     </div>
@@ -95,27 +87,30 @@
 
   <!-- Right Column -->
   <aside class="tutor-right-column">
-    <!-- Tutoring Snapshot (placeholder stats for now) -->
+    <!-- Tutoring Snapshot -->
     <div class="tutor-card">
       <h2 class="tutor-section-title">My Tutoring Snapshot</h2>
-      <p class="tutor-bio">
-        stats will later be connected to DB
-      </p>
-      <p><strong>Pending requests:</strong> 0</p>
-      <p><strong>Upcoming sessions:</strong> 0</p>
-      <p><strong>Total sessions completed:</strong> 0</p>
+      <p class="tutor-bio">These stats will later connect to your tutoring activity data.</p>
+
+      <div style="margin-top:8px;">
+        <p><strong>Pending Requests:</strong> 0</p>
+        <p><strong>Upcoming Sessions:</strong> 0</p>
+        <p><strong>Total Sessions Completed:</strong> 0</p>
+      </div>
     </div>
 
-    <!-- Preferences -->
+    <!-- Tutoring Preferences -->
     <div class="tutor-card">
       <h2 class="tutor-section-title">My Tutoring Preferences</h2>
       <p class="tutor-bio">
-        use space to summarize preferences of meeting with tutors
-        later we can integrate with search filters 
+        Use this space to summarize how you prefer to meet with tutors. Later, these preferences will connect to the “Find Tutors” search filters.
       </p>
-      <p><strong>Preferred subjects:</strong> CSC, MATH</p>
-      <p><strong>Meeting:</strong> Zoom &amp; Library</p>
-      <p><strong>Times:</strong> Evenings &amp; Weekends</p>
+
+      <div style="margin-top:8px;">
+        <p><strong>Preferred Subjects:</strong> CSC, MATH</p>
+        <p><strong>Meeting Type:</strong> Zoom &amp; Library</p>
+        <p><strong>Available Times:</strong> Evenings &amp; Weekends</p>
+      </div>
     </div>
   </aside>
 </section>
