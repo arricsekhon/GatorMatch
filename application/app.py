@@ -1363,6 +1363,14 @@ def student_dashboard():
         now=now,
     )
 
+# -------------------- Student Profile -------------------------
+
+@app.route("/student/profile")
+@login_required
+def student_profile():
+    return render_template("student_profile.html", user=current_user)
+
+
 
 # -------------------- Edit Student Profile --------------------
 
