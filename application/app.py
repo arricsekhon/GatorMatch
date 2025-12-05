@@ -546,6 +546,418 @@ def cancel_session(session_id: int):
         return redirect(url_for("student_dashboard"))
 
 
+# -------------------- Messaging --------------------
+
+@app.route("/messages")
+@login_required
+def messages_list():
+    """View all message threads for the current user."""
+    with SessionLocal() as db:
+        # Check if user is a tutor
+        tutor = db.query(Tutor).filter(Tutor.user_id == current_user.id).first()
+        
+        if tutor:
+            # Tutor sees threads where they're the tutor
+            threads = (
+                db.query(MessageThread)
+                .options(
+                    joinedload(MessageThread.messages),
+                    joinedload(MessageThread.student),
+                )
+                .filter(MessageThread.tutor_id == tutor.id)
+                .order_by(MessageThread.last_message_at.desc())
+                .all()
+            )
+        else:
+            # Student sees threads where they're the student
+            threads = (
+                db.query(MessageThread)
+                .options(
+                    joinedload(MessageThread.messages),
+                    joinedload(MessageThread.tutor).joinedload(Tutor.user),
+                )
+                .filter(MessageThread.student_id == current_user.id)
+                .order_by(MessageThread.last_message_at.desc())
+                .all()
+            )
+        
+        return render_template("messages.html", threads=threads, is_tutor=bool(tutor))
+
+
+@app.route("/messages/<int:thread_id>")
+@login_required  
+def view_thread(thread_id: int):
+    """View a specific message thread."""
+    with SessionLocal() as db:
+        thread = (
+            db.query(MessageThread)
+            .options(
+                joinedload(MessageThread.messages).joinedload(Message.sender),
+                joinedload(MessageThread.tutor).joinedload(Tutor.user),
+                joinedload(MessageThread.student),
+            )
+            .filter(MessageThread.id == thread_id)
+            .first()
+        )
+        
+        if not thread:
+            abort(404)
+        
+        # Check permission - must be tutor or student in thread
+        tutor = db.query(Tutor).filter(Tutor.user_id == current_user.id).first()
+        is_tutor = tutor and thread.tutor_id == tutor.id
+        is_student = thread.student_id == current_user.id
+        
+        if not is_tutor and not is_student:
+            abort(403)
+        
+        # Fetch all threads for sidebar
+        if is_tutor:
+            all_threads = (
+                db.query(MessageThread)
+                .options(
+                    joinedload(MessageThread.student),
+                )
+                .filter(MessageThread.tutor_id == tutor.id)
+                .order_by(MessageThread.last_message_at.desc())
+                .all()
+            )
+        else:
+            all_threads = (
+                db.query(MessageThread)
+                .options(
+                    joinedload(MessageThread.tutor).joinedload(Tutor.user),
+                )
+                .filter(MessageThread.student_id == current_user.id)
+                .order_by(MessageThread.last_message_at.desc())
+                .all()
+            )
+        
+        return render_template("thread.html", thread=thread, is_tutor=is_tutor, all_threads=all_threads)
+
+
+@app.route("/messages/<int:thread_id>/reply", methods=["POST"])
+@login_required
+def reply_to_thread(thread_id: int):
+    """Reply to a message thread."""
+    with SessionLocal() as db:
+        thread = db.query(MessageThread).filter(MessageThread.id == thread_id).first()
+        
+        if not thread:
+            flash("Thread not found.", "danger")
+            return redirect(url_for("messages_list"))
+        
+        # Check permission
+        tutor = db.query(Tutor).filter(Tutor.user_id == current_user.id).first()
+        is_tutor = tutor and thread.tutor_id == tutor.id
+        is_student = thread.student_id == current_user.id
+        
+        if not is_tutor and not is_student:
+            flash("You don't have permission to reply to this thread.", "danger")
+            return redirect(url_for("messages_list"))
+        
+        body = (request.form.get("body") or "").strip()
+        if not body:
+            flash("Message cannot be empty.", "danger")
+            return redirect(url_for("view_thread", thread_id=thread_id))
+        
+        # Create the message
+        msg = Message(
+            thread_id=thread_id,
+            sender_id=current_user.id,
+            body=body,
+        )
+        db.add(msg)
+        
+        # Update thread's last_message_at
+        thread.last_message_at = datetime.utcnow()
+        
+        db.commit()
+        
+        flash("Message sent!", "success")
+        return redirect(url_for("view_thread", thread_id=thread_id))
+
+
+@app.route("/messages/new/<int:tutor_id>", methods=["GET", "POST"])
+@login_required
+def new_message(tutor_id: int):
+    """Start a new message thread with a tutor (student initiates)."""
+    with SessionLocal() as db:
+        tutor = (
+            db.query(Tutor)
+            .options(joinedload(Tutor.user))
+            .filter(Tutor.id == tutor_id)
+            .first()
+        )
+        
+        if not tutor:
+            abort(404)
+        
+        if request.method == "POST":
+            subject = (request.form.get("subject") or "").strip()
+            body = (request.form.get("body") or "").strip()
+            
+            if not subject or not body:
+                flash("Subject and message are required.", "danger")
+                return render_template("new_message.html", tutor=tutor)
+            
+            # Create thread
+            thread = MessageThread(
+                tutor_id=tutor.id,
+                student_id=current_user.id,
+                subject=subject,
+                started_by="student",
+                last_message_at=datetime.utcnow(),
+            )
+            db.add(thread)
+            db.flush()  # Get the thread ID
+            
+            # Create first message
+            msg = Message(
+                thread_id=thread.id,
+                sender_id=current_user.id,
+                body=body,
+            )
+            db.add(msg)
+            db.commit()
+            
+            flash("Message sent!", "success")
+            return redirect(url_for("view_thread", thread_id=thread.id))
+        
+        return render_template("new_message.html", tutor=tutor)
+
+
+@app.route("/messages/new/student/<int:student_id>", methods=["GET", "POST"])
+@login_required
+def new_message_to_student(student_id: int):
+    """Start a new message thread with a student (tutor initiates)."""
+    with SessionLocal() as db:
+        # Verify current user is a tutor
+        tutor = db.query(Tutor).filter(Tutor.user_id == current_user.id).first()
+        if not tutor:
+            flash("Only tutors can initiate messages to students.", "danger")
+            return redirect(url_for("tutor_dashboard"))
+        
+        student = db.query(User).filter(User.id == student_id).first()
+        
+        if not student:
+            abort(404)
+        
+        if request.method == "POST":
+            subject = (request.form.get("subject") or "").strip()
+            body = (request.form.get("body") or "").strip()
+            
+            if not subject or not body:
+                flash("Subject and message are required.", "danger")
+                return render_template("new_message_to_student.html", student=student)
+            
+            # Create thread
+            thread = MessageThread(
+                tutor_id=tutor.id,
+                student_id=student.id,
+                subject=subject,
+                started_by="tutor",
+                last_message_at=datetime.utcnow(),
+            )
+            db.add(thread)
+            db.flush()  # Get the thread ID
+            
+            # Create first message
+            msg = Message(
+                thread_id=thread.id,
+                sender_id=current_user.id,
+                body=body,
+            )
+            db.add(msg)
+            db.commit()
+            
+            flash("Message sent!", "success")
+            return redirect(url_for("view_thread", thread_id=thread.id))
+        
+        return render_template("new_message_to_student.html", student=student)
+
+
+@app.route("/results")
+def results_page():
+    q = (request.args.get("q") or "").strip().casefold()
+    subject = (request.args.get("subject") or "").strip().upper()  # "CSC"
+    course = (request.args.get("course") or "").strip().upper()  # "CSC 340"
+    location = (request.args.get("location") or "").strip().casefold()
+    sort = (request.args.get("sort") or "best").strip()
+
+    with SessionLocal() as db:
+        rows = (
+            db.query(Tutor)
+            .options(joinedload(Tutor.user))
+            .filter(Tutor.is_active == 1)
+            .filter(Tutor.published_at.isnot(None))
+            .order_by(Tutor.created_at.desc())
+            .all()
+        )
+
+    def matches(t: Tutor) -> bool:
+        blob = (
+            f"{t.slug} {t.headline} {t.bio} {t.courses_csv} {t.meeting_options}"
+        ).casefold()
+        if q and q not in blob:
+            return False
+        if subject:
+            # subject matches prefix of a course code
+            course_subjects = [
+                c.split()[0]
+                for c in (t.courses_csv or "").split(";")
+                if c.strip()
+            ]
+            if subject not in " ".join(course_subjects).upper():
+                return False
+        if course and course not in (t.courses_csv or ""):
+            return False
+        if location and location not in (t.meeting_options or "").casefold():
+            return False
+        return True
+
+    tutors = [t for t in rows if matches(t)]
+
+    # sort options
+    if sort == "highest":
+        tutors.sort(
+            key=lambda t: (t.rating_avg, t.rating_count),
+            reverse=True,
+        )
+    elif sort == "lowest":
+        tutors.sort(key=lambda t: (t.rating_avg, -t.rating_count))
+    elif sort == "experience":
+        tutors.sort(key=lambda t: t.hours_total_min, reverse=True)
+    else:
+
+        def score(t: Tutor):
+            name_hit = 1 if (q and q in (t.slug or "").casefold()) else 0
+            return (name_hit, t.rating_avg, t.rating_count, t.hours_total_min)
+
+        tutors.sort(key=score, reverse=True)
+
+    try:
+        page = int(request.args.get("page", 1) or 1)
+    except ValueError:
+        page = 1
+    page = max(page, 1)
+    per_page = 5
+    total = len(tutors)
+    pages = max(ceil(total / per_page), 1)
+    page = min(page, pages)
+    start = (page - 1) * per_page
+    page_items = tutors[start : start + per_page]
+
+    subject_counts = Counter(
+        c.split()[0]
+        for t in tutors
+        for c in (t.courses_csv or "").split(";")
+        if c.strip()
+    )
+    # Filter courses by selected subject (if any)
+    course_counts = Counter(
+        c.strip()
+        for t in tutors
+        for c in (t.courses_csv or "").split(";")
+        if c.strip() and (not subject or c.strip().upper().startswith(subject))
+    )
+    
+    # Filter locations: only show locations from tutors who match current subject AND course filters
+    def tutor_matches_filters(t, subj, crs):
+        tutor_courses = [c.strip().upper() for c in (t.courses_csv or "").split(";") if c.strip()]
+        # If course is selected, tutor must teach that exact course
+        if crs and crs not in tutor_courses:
+            return False
+        # If only subject is selected, tutor must teach at least one course in that subject
+        if subj and not crs:
+            if not any(c.startswith(subj) for c in tutor_courses):
+                return False
+        return True
+    
+    location_counts = Counter(
+        m
+        for t in tutors
+        for m in (t.meeting_options or "").split(",")
+        if m and tutor_matches_filters(t, subject, course)
+    )
+
+    facets = {
+        "subjects": OrderedDict(sorted(subject_counts.items())),
+        "courses": OrderedDict(sorted(course_counts.items())),
+        "locations": OrderedDict(sorted(location_counts.items())),
+    }
+
+    chips = []
+    if subject:
+        chips.append({"key": "subject", "label": subject})
+    if course:
+        chips.append({"key": "course", "label": course})
+    if location:
+        chips.append({"key": "location", "label": location.title()})
+
+    def adapt(t: Tutor):
+        return {
+            "slug": t.slug,
+            "name": t.user.name if t.user else t.slug,
+            "first": (
+                t.user.name.split()[0]
+                if t.user and t.user.name
+                else "Tutor"
+            ),
+            "avatar": "",
+            "headline": t.headline,
+            "desc": t.bio,
+            "rating": (t.rating_avg or 0) / 10.0,
+            "rating_count": t.rating_count,
+            "hours": t.hours_total_min,
+            "courses": [
+                c.strip()
+                for c in (t.courses_csv or "").split(";")
+                if c.strip()
+            ],
+            "locations": [
+                m for m in (t.meeting_options or "").split(",") if m
+            ],
+        }
+
+    view_items = [adapt(t) for t in page_items]
+
+    return render_template(
+        "results.html",
+        q=(request.args.get("q") or ""),
+        sort=sort,
+        tutors=view_items,
+        total=total,
+        page=page,
+        pages=pages,
+        facets=facets,
+        chips=chips,
+    )
+
+
+@app.get("/api/search")
+def api_search():
+    q = (request.args.get("q") or "").strip()
+    if not q or len(q) > 200:
+        return jsonify([])
+    q_lower = q.casefold()
+    log.info("Search query: %s", q)
+    members = load_team_data()
+    results = [
+        m
+        for m in members
+        if q_lower in f"{m.get('name', '')} {m.get('role', '')}".casefold()
+    ]
+    return jsonify(
+        [
+            {
+                "name": m.get("name", ""),
+                "role": m.get("role", ""),
+                "slug": m.get("slug", ""),
+            }
+            for m in results
+        ]
+    )
 
 
 # -------------------- In-site messaging (legacy contact form) --------------------
