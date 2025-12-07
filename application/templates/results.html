@@ -952,20 +952,20 @@
         <div class="search-input-wrap">
           <span class="search-icon">🔍</span>
           <input name="q" value="{{ q }}" type="search" placeholder="Search by subject, course, or tutor name..." />
-    </div>
+        </div>
 
         <div class="sort-select-wrap">
           <label for="sort">Sort by:</label>
           <select id="sort" name="sort" onchange="this.form.submit()">
-        <option value="best" {{ 'selected' if sort=='best' }}>Best Match</option>
-        <option value="highest" {{ 'selected' if sort=='highest' }}>Highest Rated</option>
-        <option value="lowest" {{ 'selected' if sort=='lowest' }}>Lowest Rated</option>
-        <option value="experience" {{ 'selected' if sort=='experience' }}>Most Experience</option>
-      </select>
+            <option value="best" {{ 'selected' if sort=='best' }}>Best Match</option>
+            <option value="highest" {{ 'selected' if sort=='highest' }}>Highest Rated</option>
+            <option value="lowest" {{ 'selected' if sort=='lowest' }}>Lowest Rated</option>
+            <option value="experience" {{ 'selected' if sort=='experience' }}>Most Experience</option>
+          </select>
+        </div>
+      </form>
     </div>
-  </form>
-    </div>
-</section>
+  </section>
 
   <!-- Main Content -->
   <section class="results-main">
