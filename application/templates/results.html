@@ -952,20 +952,20 @@
         <div class="search-input-wrap">
           <span class="search-icon">🔍</span>
           <input name="q" value="{{ q }}" type="search" placeholder="Search by subject, course, or tutor name..." />
-        </div>
+    </div>
 
         <div class="sort-select-wrap">
           <label for="sort">Sort by:</label>
           <select id="sort" name="sort" onchange="this.form.submit()">
-            <option value="best" {{ 'selected' if sort=='best' }}>Best Match</option>
-            <option value="highest" {{ 'selected' if sort=='highest' }}>Highest Rated</option>
-            <option value="lowest" {{ 'selected' if sort=='lowest' }}>Lowest Rated</option>
-            <option value="experience" {{ 'selected' if sort=='experience' }}>Most Experience</option>
-          </select>
-        </div>
-      </form>
+        <option value="best" {{ 'selected' if sort=='best' }}>Best Match</option>
+        <option value="highest" {{ 'selected' if sort=='highest' }}>Highest Rated</option>
+        <option value="lowest" {{ 'selected' if sort=='lowest' }}>Lowest Rated</option>
+        <option value="experience" {{ 'selected' if sort=='experience' }}>Most Experience</option>
+      </select>
     </div>
-  </section>
+  </form>
+    </div>
+</section>
 
   <!-- Main Content -->
   <section class="results-main">
@@ -974,7 +974,7 @@
       <header class="filters-header">
         <h2 class="filters-title">Filters</h2>
         <a class="clear-filters" href="{{ url_for('results_page') }}">Clear all</a>
-      </header>
+    </header>
 
       <form id="filters-form" method="get" action="{{ url_for('results_page') }}">
         <input type="hidden" name="q" value="{{ q }}">
@@ -984,13 +984,13 @@
           <label class="filter-label">Subject</label>
           <select name="subject" id="subject-select" class="filter-select" onchange="this.form.submit()">
             <option value="">All Subjects</option>
-            {% for subj, cnt in facets.subjects.items() %}
-            <option value="{{ subj }}" {{ 'selected' if request.args.get('subject','').upper()==subj }}>
-              {{ subj }} ({{ cnt }})
-            </option>
-            {% endfor %}
-          </select>
-        </div>
+        {% for subj, cnt in facets.subjects.items() %}
+        <option value="{{ subj }}" {{ 'selected' if request.args.get('subject','').upper()==subj }}>
+          {{ subj }} ({{ cnt }})
+        </option>
+        {% endfor %}
+      </select>
+    </div>
 
         <div class="filter-divider"></div>
 
@@ -998,13 +998,13 @@
           <label class="filter-label">Course Number</label>
           <select name="course" id="course-select" class="filter-select" onchange="this.form.submit()">
             <option value="">All Courses</option>
-            {% for c, cnt in facets.courses.items() %}
+        {% for c, cnt in facets.courses.items() %}
             <option value="{{ c }}" data-subject="{{ c.split()[0] }}" {{ 'selected' if request.args.get('course')==c }}>
-              {{ c }} ({{ cnt }})
-            </option>
-            {% endfor %}
-          </select>
-        </div>
+          {{ c }} ({{ cnt }})
+        </option>
+        {% endfor %}
+      </select>
+    </div>
 
         <div class="filter-divider"></div>
 
@@ -1012,19 +1012,19 @@
           <label class="filter-label">Location</label>
           <select name="location" class="filter-select" onchange="this.form.submit()">
             <option value="">Any Location</option>
-            {% for loc, cnt in facets.locations.items() %}
-            <option value="{{ loc }}" {{ 'selected' if request.args.get('location','').lower()==loc.lower() }}>
-              {{ loc }} ({{ cnt }})
-            </option>
-            {% endfor %}
-          </select>
+          {% for loc, cnt in facets.locations.items() %}
+          <option value="{{ loc }}" {{ 'selected' if request.args.get('location','').lower()==loc.lower() }}>
+            {{ loc }} ({{ cnt }})
+          </option>
+          {% endfor %}
+        </select>
         </div>
 
         <button type="submit" class="apply-btn">
           <span>✓</span> Apply Filters
         </button>
       </form>
-    </aside>
+  </aside>
 
     <!-- Results Column -->
     <section class="results-column">
@@ -1035,29 +1035,29 @@
 
         {% if chips and chips|length %}
         <div class="active-filters">
-          {% set base = request.args.to_dict(flat=True) %}
-          {% set _ = base.pop('page', None) %}
-          {% for chip in chips %}
-          {% set params = base.copy() %}
-          {% set _ = params.pop(chip.key, None) %}
-          {% set qs = params|urlencode %}
+        {% set base = request.args.to_dict(flat=True) %}
+        {% set _ = base.pop('page', None) %}
+        {% for chip in chips %}
+        {% set params = base.copy() %}
+        {% set _ = params.pop(chip.key, None) %}
+        {% set qs = params|urlencode %}
           <span class="filter-chip">
-            {{ chip.label }}
+          {{ chip.label }}
             <a class="filter-chip-remove" href="{{ url_for('results_page') }}{% if qs %}?{{ qs }}{% endif %}" aria-label="Remove {{ chip.label }}">×</a>
-          </span>
-          {% endfor %}
-        </div>
-        {% endif %}
+        </span>
+        {% endfor %}
       </div>
+        {% endif %}
+    </div>
 
-      {% if tutors %}
-      {% for t in tutors %}
+    {% if tutors %}
+    {% for t in tutors %}
       <article class="tutor-result-card">
         <div class="tutor-card-header">
           <div class="tutor-avatar">
-            {% if t.avatar %}
-            <img src="{{ url_for('static', filename=t.avatar) }}" alt="{{ t.name }}">
-            {% else %}
+          {% if t.avatar %}
+          <img src="{{ url_for('static', filename=t.avatar) }}" alt="{{ t.name }}">
+          {% else %}
             <div class="tutor-avatar-fallback">{{ t.name[0] }}</div>
             {% endif %}
           </div>
@@ -1066,36 +1066,36 @@
             <div class="tutor-name-row">
               <h3 class="tutor-result-name">{{ t.name }}</h3>
               <span class="verified-badge">✓ Verified</span>
-            </div>
+        </div>
             <div class="tutor-headline-text">{{ t.headline }}</div>
             <p class="tutor-bio">{{ t.desc }}</p>
-          </div>
+        </div>
 
           <div class="tutor-rating-box">
             <div class="rating-display">
               <div class="rating-stars">
-                {% set full = t.rating|round(0, 'floor')|int %}
+            {% set full = t.rating|round(0, 'floor')|int %}
                 {% for i in range(1, 6) %}
                 <svg class="rating-star {{ 'filled' if i <= full else '' }}" viewBox="0 0 24 24">
                   <path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.786 1.402 8.168L12 18.897 4.664 23.164l1.402-8.168L.132 9.21l8.2-1.192z"/>
-                </svg>
-                {% endfor %}
+            </svg>
+            {% endfor %}
               </div>
               <span class="rating-number">{{ '%.1f'|format(t.rating) if t.rating else '—' }}</span>
             </div>
             <div class="rating-count">({{ t.rating_count }} reviews)</div>
             <div class="tutoring-hours">{{ t.hours }} hours tutored</div>
-          </div>
         </div>
+      </div>
 
         <div class="tutor-tags">
-          {% for c in t.courses %}
+        {% for c in t.courses %}
           <span class="course-tag">{{ c }}</span>
-          {% endfor %}
-          {% for loc in t.locations %}
+        {% endfor %}
+        {% for loc in t.locations %}
           <span class="location-tag">{{ loc }}</span>
-          {% endfor %}
-        </div>
+        {% endfor %}
+      </div>
 
         <div class="tutor-actions">
           <a class="view-profile-btn" href="{{ url_for('tutor_profile', slug=t.slug) }}">
@@ -1104,15 +1104,15 @@
           <a class="contact-btn" href="{{ url_for('tutor_profile', slug=t.slug) }}#contact">
             ✉️ Message
           </a>
-        </div>
-      </article>
-      {% endfor %}
+      </div>
+    </article>
+    {% endfor %}
 
-      <!-- Pagination -->
-      {% if pages > 1 %}
-      {% set base = request.args.to_dict(flat=True) %}
-      {% set _ = base.pop('page', None) %}
-      {% set qs = base|urlencode %}
+    <!-- Pagination -->
+    {% if pages > 1 %}
+    {% set base = request.args.to_dict(flat=True) %}
+    {% set _ = base.pop('page', None) %}
+    {% set qs = base|urlencode %}
       <nav class="results-pagination" aria-label="pagination">
         <a class="page-link page-arrow {{ 'disabled' if page==1 }}"
            href="{% if page>1 %}{{ url_for('results_page') }}{% if qs %}?{{ qs }}&{% else %}?{% endif %}page={{ page-1 }}{% else %}#{% endif %}">
@@ -1121,10 +1121,10 @@
 
         <!-- Desktop: show all page numbers -->
         <div class="page-numbers-desktop">
-          {% for p in range(1, pages+1) %}
+        {% for p in range(1, pages+1) %}
           <a class="page-link {{ 'active' if p==page }}"
-             href="{{ url_for('results_page') }}{% if qs %}?{{ qs }}&{% else %}?{% endif %}page={{ p }}">{{ p }}</a>
-          {% endfor %}
+            href="{{ url_for('results_page') }}{% if qs %}?{{ qs }}&{% else %}?{% endif %}page={{ p }}">{{ p }}</a>
+        {% endfor %}
         </div>
 
         <!-- Mobile: show current/total -->
@@ -1136,17 +1136,17 @@
            href="{% if page<pages %}{{ url_for('results_page') }}{% if qs %}?{{ qs }}&{% else %}?{% endif %}page={{ page+1 }}{% else %}#{% endif %}">
           →
         </a>
-      </nav>
-      {% endif %}
+    </nav>
+    {% endif %}
 
-      {% else %}
+    {% else %}
       <!-- Empty State -->
       <div class="empty-state">
         <div class="empty-state-icon">🔍</div>
         <h3>No tutors match these filters</h3>
         <p>Try adjusting your search criteria or clearing some filters to see more results.</p>
-        {% set has_filters = (chips and chips|length) or q %}
-        {% if has_filters %}
+      {% set has_filters = (chips and chips|length) or q %}
+      {% if has_filters %}
         <a class="clear-filters-btn" href="{{ url_for('results_page') }}">
           ✕ Clear all filters
         </a>
