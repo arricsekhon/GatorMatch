@@ -47,6 +47,8 @@ from application.models import (
 Session = TutoringSession
 from application.db import Base, engine, SessionLocal
 from application.admin import bp as admin_bp
+# --- IMPORT THE NEW JITSI HELPER ---
+from application.jitshi_helper import create_jitsi_link 
 
 load_dotenv()
 
@@ -479,11 +481,23 @@ def approve_session(session_id: int):
             flash("You don't have permission to approve this session.", "danger")
             return redirect(url_for("tutor_dashboard"))
         
+        # --- JITSI INTEGRATION ---
+        # If location is 'jitsi' (or similar), generate link
+        loc = (session_obj.location_type or "").lower()
+        if "jitsi" in loc:
+            # Generate the link using the course title as the topic
+            link = create_jitsi_link(session_obj.course_title)
+            session_obj.meeting_url = link
+            flash(f"Session approved and Jitsi meeting room created!", "success")
+        else:
+            flash("Session approved! The student will be notified.", "success")
+        
         # Approve the session
         session_obj.status = "approved"
+        # If you have an approved_at column in your model, you can set it:
+        session_obj.approved_at = datetime.utcnow()
         db.commit()
         
-        flash("Session approved! The student will be notified.", "success")
         return redirect(url_for("tutor_dashboard"))
 
 
@@ -507,6 +521,7 @@ def deny_session(session_id: int):
         
         # Deny the session
         session_obj.status = "denied"
+        session_obj.denied_at = datetime.utcnow()
         db.commit()
         
         flash("Session request denied.", "info")
@@ -536,6 +551,7 @@ def cancel_session(session_id: int):
         
         # Cancel the session
         session_obj.status = "cancelled"
+        session_obj.cancelled_at = datetime.utcnow()
         db.commit()
         
         flash("Session cancelled successfully.", "info")
@@ -1195,7 +1211,7 @@ def tutor_dashboard():
                 .filter(MessageThread.tutor_id == tutor.id)
                 .filter(MessageThread.started_by == "student")
                 .order_by(MessageThread.last_message_at.desc())
-                .limit(50)
+                .limit(5)
                 .all()
             )
             
@@ -1363,16 +1379,9 @@ def student_dashboard():
         now=now,
     )
 
-# -------------------- Student Profile -------------------------
-
-@app.route("/student/profile")
-@login_required
-def student_profile():
-    return render_template("student_profile.html", user=current_user)
-
-
 
 # -------------------- Edit Student Profile --------------------
+
 
 @app.route("/profile/edit", methods=["GET", "POST"])
 @login_required
@@ -1397,7 +1406,6 @@ def edit_profile():
 
             return redirect(url_for("edit_profile"))
 
-        # show edit page
         return render_template("edit_profile.html", user=user)
 
 
