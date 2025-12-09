@@ -64,6 +64,7 @@ class TutorApplicationForm(FlaskForm):
             ("library", "In-person — SFSU Library"),
             ("mashouf", "In-person — Mashouf"),
             ("zoom", "Zoom (remote)"),
+            ("jitsi", "Jitsi Meet (Free/No Account)"),
         ],
         validators=[Optional()],  # custom check below enforces >=1
         coerce=str,
