@@ -442,7 +442,8 @@ def request_session(tutor_slug: str):
             flash("End time must be after start time.", "danger")
             return redirect(url_for("tutor_profile", slug=tutor_slug) + "#contact")
 
-        # Create the session request
+        now = datetime.now()
+
         session_request = Session(
             tutor_id=tutor.id,
             student_id=current_user.id,
@@ -455,6 +456,8 @@ def request_session(tutor_slug: str):
             status="pending",
             requested_by="student",
             notes=message if message else None,
+            created_at=now,
+            updated_at=now,
         )
         db.add(session_request)
         db.commit()
@@ -1143,6 +1146,7 @@ def tutor_dashboard():
     Shows:
       - pending_sessions: session requests to approve/deny
       - upcoming_sessions: future confirmed/approved sessions
+      - past_sessions: recent past sessions (for history)
       - next_session: the soonest upcoming session
       - message_threads: recent message threads (with latest message)
       - students: distinct students this tutor has met with
@@ -1152,11 +1156,12 @@ def tutor_dashboard():
     if not getattr(current_user, "is_tutor", False):
         abort(403)
 
-    now = datetime.utcnow()
+    now = datetime.now()
 
     # Default empty values so the page still renders even if there is no Tutor row
     pending_sessions = []
     upcoming_sessions = []
+    past_sessions = []      # <--- NEW
     next_session = None
     inbox_threads = []
     sent_threads = []
@@ -1193,6 +1198,25 @@ def tutor_dashboard():
                 .filter(Session.status.in_(["approved", "confirmed"]))
                 .filter(Session.start_at >= now)
                 .order_by(Session.start_at.asc())
+                .limit(5)
+                .all()
+            )
+
+            # --- Recent past sessions (History card on dashboard) ---
+            past_sessions = (
+                db.query(Session)
+                .options(joinedload(Session.student))
+                .filter(Session.tutor_id == tutor.id)
+                .filter(Session.start_at < now)
+                .filter(Session.status.in_([
+                    "completed",
+                    "cancelled",
+                    "no_show",
+                    "denied",
+                    "approved",   # include approved/confirmed so you actually see past sessions
+                    "confirmed",
+                ]))
+                .order_by(Session.start_at.desc())
                 .limit(5)
                 .all()
             )
@@ -1257,13 +1281,11 @@ def tutor_dashboard():
                 .all()
             )
 
-        # If there is no Tutor row (e.g. admin without a tutor_profile),
-        # we just render the dashboard with the default empty data above.
-
     return render_template(
         "tutor_dashboard.html",
         pending_sessions=pending_sessions,
         upcoming_sessions=upcoming_sessions,
+        past_sessions=past_sessions,        # <--- NEW
         next_session=next_session,
         inbox_threads=inbox_threads,
         sent_threads=sent_threads,
@@ -1284,14 +1306,16 @@ def student_dashboard():
     Shows:
       - pending_requests: session requests waiting for tutor approval
       - upcoming_sessions: future confirmed/approved sessions
+      - past_sessions: recent past sessions with tutors
       - next_session: the soonest upcoming session
       - message_threads: recent message threads with tutors
       - my_tutors: distinct tutors this student has worked with
     """
-    now = datetime.utcnow()
+    now = datetime.now()
 
     pending_requests = []
     upcoming_sessions = []
+    past_sessions = []   # <--- NEW
     next_session = None
     inbox_threads = []
     sent_threads = []
@@ -1317,6 +1341,25 @@ def student_dashboard():
             .filter(Session.status.in_(["approved", "confirmed"]))
             .filter(Session.start_at >= now)
             .order_by(Session.start_at.asc())
+            .limit(5)
+            .all()
+        )
+
+        # --- Recent past sessions (History on dashboard) ---
+        past_sessions = (
+            db.query(Session)
+            .options(joinedload(Session.tutor).joinedload(Tutor.user))
+            .filter(Session.student_id == current_user.id)
+            .filter(Session.start_at < now)
+            .filter(Session.status.in_([
+                "completed",
+                "cancelled",
+                "no_show",
+                "denied",
+                "approved",   # again include approved/confirmed
+                "confirmed",
+            ]))
+            .order_by(Session.start_at.desc())
             .limit(5)
             .all()
         )
@@ -1372,12 +1415,120 @@ def student_dashboard():
         "student_dashboard.html",
         pending_requests=pending_requests,
         upcoming_sessions=upcoming_sessions,
+        past_sessions=past_sessions,     # <--- NEW
         next_session=next_session,
         inbox_threads=inbox_threads,
         sent_threads=sent_threads,
         my_tutors=my_tutors,
         now=now,
     )
+
+
+# -------------------- Session History (Tutor) --------------------
+
+@app.route("/tutor/session-history")
+@login_required
+def tutor_session_history():
+    """
+    Session history for tutors: past sessions with students.
+    """
+    # Only tutors/admins
+    if not getattr(current_user, "is_tutor", False):
+        abort(403)
+
+    now = datetime.now()
+
+    # Simple pagination
+    page = request.args.get("page", 1, type=int)
+    per_page = 20
+
+    with SessionLocal() as db:
+        # Find Tutor row for this user
+        tutor = (
+            db.query(Tutor)
+            .filter(Tutor.user_id == current_user.id)
+            .first()
+        )
+        if not tutor:
+            abort(403)
+
+        base_query = (
+            db.query(Session)
+            .options(joinedload(Session.student))
+            .filter(Session.tutor_id == tutor.id)
+            .filter(Session.start_at < now)
+            .filter(Session.status.in_([
+                "completed",
+                "cancelled",
+                "no_show",
+                "denied",
+            ]))
+            .order_by(Session.start_at.desc())
+        )
+
+        total = base_query.count()
+        sessions = (
+            base_query
+            .offset((page - 1) * per_page)
+            .limit(per_page)
+            .all()
+        )
+
+    return render_template(
+        "tutor_session_history.html",
+        sessions=sessions,
+        page=page,
+        per_page=per_page,
+        total=total,
+        now=now,
+    )
+
+
+# -------------------- Session History (Student) --------------------
+
+@app.route("/student/session-history")
+@login_required
+def student_session_history():
+    """
+    Session history for students: past sessions with tutors.
+    """
+    now = datetime.now()
+
+    page = request.args.get("page", 1, type=int)
+    per_page = 20
+
+    with SessionLocal() as db:
+        base_query = (
+            db.query(Session)
+            .options(joinedload(Session.tutor).joinedload(Tutor.user))
+            .filter(Session.student_id == current_user.id)
+            .filter(Session.start_at < now)
+            .filter(Session.status.in_([
+                "completed",
+                "cancelled",
+                "no_show",
+                "denied",
+            ]))
+            .order_by(Session.start_at.desc())
+        )
+
+        total = base_query.count()
+        sessions = (
+            base_query
+            .offset((page - 1) * per_page)
+            .limit(per_page)
+            .all()
+        )
+
+    return render_template(
+        "student_session_history.html",
+        sessions=sessions,
+        page=page,
+        per_page=per_page,
+        total=total,
+        now=now,
+    )
+
 
 
 # -------------------- Edit Student Profile --------------------

@@ -155,9 +155,10 @@
 </style>
 
 <div class="messages-page">
-  <a href="{% if is_tutor %}{{ url_for('tutor_dashboard') }}{% else %}{{ url_for('student_dashboard') }}{% endif %}" class="messages-back">
-    ← Back to Dashboard
-  </a>
+  <a href="{% if current_user.is_tutor %}{{ url_for('tutor_dashboard') }}{% else %}{{ url_for('student_dashboard') }}{% endif %}" class="messages-back">
+  ← Back to Dashboard
+</a>
+
   
   <h1 class="messages-page-title">Messages</h1>
   

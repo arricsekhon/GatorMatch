@@ -658,6 +658,12 @@
       width: 100%;
       text-align: center;
     }
+
+      /* Hide extra past session cards when collapsed */
+  .student-past-session-card.is-collapsed {
+    display: none;
+  }
+
   }
 </style>
 
@@ -821,6 +827,97 @@
             {% endif %}
           </div>
         </section>
+
+                <!-- Recent Sessions (History preview) -->
+        <section class="student-card">
+          <div class="student-card-header">
+            <div>
+              <div class="student-card-title">Recent Sessions</div>
+              <div class="student-card-subtitle">
+                Your latest past sessions with tutors.
+              </div>
+            </div>
+
+            {% if past_sessions|length > 5 %}
+              <button type="button"
+                      id="student-past-toggle"
+                      class="student-pill-button">
+                Show all
+              </button>
+            {% endif %}
+          </div>
+
+          <div class="student-card-body"
+               id="student-past-sessions"
+               data-collapse-after="5">
+            {% if past_sessions %}
+              {% for s in past_sessions %}
+              <div class="upcoming-session-card student-past-session-card {% if loop.index > 5 %}is-collapsed{% endif %}">
+                <div class="session-course-info">
+                  <div class="session-course-code">
+                    {{ s.course_title if s.course_title else s.course_code }}
+                  </div>
+                  <div class="session-tags">
+                    {% if 'zoom' in (s.location_type or '')|lower or 'online' in (s.location_type or '')|lower %}
+                      <span class="session-tag session-tag-online">online</span>
+                    {% else %}
+                      <span class="session-tag session-tag-inperson">in-person</span>
+                    {% endif %}
+                  </div>
+                </div>
+
+                <div class="session-tutor-info">
+                  <div class="session-tutor-name">
+                    {{ s.tutor.user.name if s.tutor and s.tutor.user else "Tutor" }}
+                  </div>
+                  <div class="session-tutor-role">Tutor</div>
+                  <div class="session-location-info">
+                    {% if 'zoom' in (s.location_type or '')|lower or 'online' in (s.location_type or '')|lower %}
+                      💻 Online via Zoom
+                    {% elif 'library' in (s.location_type or '')|lower %}
+                      📍 Library
+                    {% else %}
+                      📍 {{ s.location_label }}
+                    {% endif %}
+                  </div>
+                </div>
+
+                <div class="session-datetime-info">
+                  {% if s.start_at %}
+                    <div class="session-date">{{ s.start_at.strftime("%a, %b %d") }}</div>
+                    <div class="session-time">
+                      {{ s.start_at.strftime("%I:%M%p").lower() }}
+                      {% if s.end_at %} – {{ s.end_at.strftime("%I:%M%p").lower() }}{% endif %} PT
+                    </div>
+                  {% endif %}
+                </div>
+
+                <div class="session-status-col">
+                  {% if s.status == "completed" %}
+                    <span class="status-badge status-badge-confirmed">Completed</span>
+                  {% elif s.status == "cancelled" %}
+                    <span class="status-badge status-badge-cancelled">Cancelled</span>
+                  {% elif s.status == "no_show" %}
+                    <span class="status-badge status-badge-cancelled">No-show</span>
+                  {% elif s.status == "denied" %}
+                    <span class="status-badge status-badge-cancelled">Denied</span>
+                  {% else %}
+                    <span class="status-badge status-badge-pending">Past</span>
+                  {% endif %}
+                </div>
+
+          
+              </div>
+              {% endfor %}
+            {% else %}
+              <p style="font-size:13px;color:#999999;margin-top:4px;">
+                You don't have any past sessions yet.
+              </p>
+            {% endif %}
+          </div>
+        </section>
+
+
 
         <!-- Messages -->
         <section class="student-card student-messages-card">
@@ -1027,11 +1124,8 @@
                 Find a Tutor
               </a>
             </li>
-            <li class="student-quick-links-item">
-              <i class="fa-regular fa-clock"></i>
-              <a href="#" class="student-quick-links-link">
-                Session History
-              </a>
+    
+
             </li>
             <li class="student-quick-links-item">
               <i class="fa-regular fa-user"></i>

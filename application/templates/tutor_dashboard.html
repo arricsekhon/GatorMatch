@@ -854,6 +854,12 @@
       text-align: center;
     }
   }
+
+    /* Hide extra past session cards when collapsed */
+  .past-session-card.is-collapsed {
+    display: none;
+  }
+
 </style>
 
 <div class="tutor-shell">
@@ -980,6 +986,10 @@
             </div>
           </div>
 
+          
+
+          
+
           <div class="tutor-card-body">
             {% if upcoming_sessions %}
               {% for s in upcoming_sessions %}
@@ -1041,6 +1051,112 @@
             {% endif %}
           </div>
         </section>
+
+                <!-- Recent Sessions (History preview) -->
+        <section class="tutor-card">
+          <div class="tutor-card-header">
+            <div>
+              <div class="tutor-card-title">Recent Sessions</div>
+              <div class="tutor-card-subtitle">
+                Your latest past sessions with students.
+              </div>
+            </div>
+
+            {% if past_sessions|length > 5 %}
+              <button type="button"
+                      id="tutor-past-toggle"
+                      class="tutor-pill-button">
+                Show all
+              </button>
+            {% endif %}
+          </div>
+
+          <div class="tutor-card-body"
+               id="tutor-past-sessions"
+               data-collapse-after="5">
+            {% if past_sessions %}
+              {% for s in past_sessions %}
+              <div class="upcoming-session-card past-session-card {% if loop.index > 5 %}is-collapsed{% endif %}">
+                <div class="session-course-info">
+                  <div class="session-course-code">
+                    {{ s.course_title if s.course_title else s.course_code }}
+                  </div>
+                  <div class="session-tags">
+                    {% if 'zoom' in (s.location_type or '')|lower or 'online' in (s.location_type or '')|lower %}
+                      <span class="session-tag session-tag-online">online</span>
+                    {% else %}
+                      <span class="session-tag session-tag-inperson">in-person</span>
+                    {% endif %}
+                    <span class="session-tag session-tag-group">
+                      {% if s.status == 'completed' %}
+                        completed
+                      {% elif s.status == 'cancelled' %}
+                        cancelled
+                      {% elif s.status == 'no_show' %}
+                        no-show
+                      {% elif s.status == 'denied' %}
+                        denied
+                      {% else %}
+                        past
+                      {% endif %}
+                    </span>
+                  </div>
+                </div>
+
+                <div class="session-student-info">
+                  <div class="session-student-name">
+                    {{ s.student.name if s.student else "Student" }}
+                  </div>
+                  <div class="session-student-role">Student</div>
+                  <div class="session-location-info" style="margin-top:6px;">
+                    {% if 'zoom' in (s.location_type or '')|lower or 'online' in (s.location_type or '')|lower %}
+                      💻 Online via Zoom
+                    {% elif 'library' in (s.location_type or '')|lower %}
+                      📍 Library
+                    {% else %}
+                      📍 {{ s.location_label }}
+                    {% endif %}
+                  </div>
+                </div>
+
+                <div class="session-datetime-info">
+                  {% if s.start_at %}
+                    <div class="session-date">{{ s.start_at.strftime("%a, %b %d") }}</div>
+                    <div class="session-time">
+                      {{ s.start_at.strftime("%I:%M%p").lower() }}
+                      {% if s.end_at %} – {{ s.end_at.strftime("%I:%M%p").lower() }}{% endif %} PT
+                    </div>
+                  {% endif %}
+                </div>
+
+                <div class="session-status-col">
+                  {% if s.status == "completed" %}
+                    <span class="status-badge status-badge-confirmed">Completed</span>
+                  {% elif s.status == "cancelled" %}
+                    <span class="status-badge status-badge-cancelled">Cancelled</span>
+                  {% elif s.status == "no_show" %}
+                    <span class="status-badge status-badge-cancelled">No-show</span>
+                  {% elif s.status == "denied" %}
+                    <span class="status-badge status-badge-cancelled">Denied</span>
+                  {% else %}
+                    <span class="status-badge status-badge-pending">Past</span>
+                  {% endif %}
+                </div>
+
+                
+              </div>
+              {% endfor %}
+            {% else %}
+              <p style="font-size:13px;color:#999999;margin-top:4px;">
+                You don't have any past sessions yet.
+              </p>
+            {% endif %}
+          </div>
+        </section>
+
+
+
+        
 
         <!-- Messages -->
         <section class="tutor-card tutor-messages-card">
@@ -1243,12 +1359,7 @@
                 Manage Availability
               </a>
             </li>
-            <li class="tutor-quick-links-item">
-              <i class="fa-regular fa-clock"></i>
-              <a href="#" class="tutor-quick-links-link">
-                Session History
-              </a>
-            </li>
+            
             <li class="tutor-quick-links-item">
               <i class="fa-regular fa-user"></i>
               <a href="{{ url_for('edit_tutor_profile') }}" class="tutor-quick-links-link">
@@ -1483,5 +1594,49 @@
       renderPage(1);
     });
   });
+
+    // Expand / collapse tutor recent sessions
+  document.addEventListener("DOMContentLoaded", function () {
+    const container = document.getElementById("tutor-past-sessions");
+    const toggle = document.getElementById("tutor-past-toggle");
+    if (!container || !toggle) return;
+
+    const collapseAfter = parseInt(
+      container.getAttribute("data-collapse-after") || "5",
+      10
+    );
+
+    function collapse() {
+      const cards = container.querySelectorAll(".past-session-card");
+      cards.forEach((card, idx) => {
+        if (idx >= collapseAfter) {
+          card.classList.add("is-collapsed");
+        } else {
+          card.classList.remove("is-collapsed");
+        }
+      });
+      toggle.textContent = "Show all";
+      toggle.dataset.expanded = "false";
+    }
+
+    function expand() {
+      const cards = container.querySelectorAll(".past-session-card");
+      cards.forEach(card => card.classList.remove("is-collapsed"));
+      toggle.textContent = "Show less";
+      toggle.dataset.expanded = "true";
+    }
+
+    // Start in collapsed state (template already applied classes; this is just defensive)
+    collapse();
+
+    toggle.addEventListener("click", function () {
+      if (toggle.dataset.expanded === "true") {
+        collapse();
+      } else {
+        expand();
+      }
+    });
+  });
+
 </script>
 {% endblock %}
