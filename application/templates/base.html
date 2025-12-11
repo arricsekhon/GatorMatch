@@ -302,15 +302,17 @@
     .banner, .nav { display: none !important; }
   </style>
 
-  {% if GA_ID %}
-  <script async src="https://www.googletagmanager.com/gtag/js?id={{ GA_ID }}"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag() { dataLayer.push(arguments); }
-    gtag('js', new Date());
-    gtag('config', '{{ GA_ID }}');
-  </script>
-  {% endif %}
+
+  <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-DVTJ9KY692"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-DVTJ9KY692');
+</script>
+
+
 </head>
 
 <body>
