@@ -192,13 +192,18 @@
   }
   
   .status-badge {
-    display: inline-flex;
-    align-items: center;
-    padding: 6px 14px;
-    border-radius: 999px;
-    font-size: 12px;
-    font-weight: 600;
-  }
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;   /* prevent “Completed” from wrapping */
+  min-width: 90px;       /* pick a width that fits “Completed” */
+  box-sizing: border-box;
+}
+
   
   .status-badge-pending {
     background-color: #FFF8E6;
@@ -617,6 +622,13 @@
   .student-past-session-card.is-collapsed {
     display: none;
   }
+
+  .session-status-col {
+  display: flex;
+  justify-content: flex-end;  /* keep badge anchored on the right */
+  align-items: center;
+}
+
 
   /* Responsive */
   @media (max-width: 960px) {

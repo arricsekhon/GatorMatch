@@ -627,12 +627,18 @@
   }
   
   .status-badge {
-    display: inline-block;
-    padding: 5px 14px;
-    border-radius: 999px;
-    font-size: 12px;
-    font-weight: 500;
-  }
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;   /* prevent “Completed” from wrapping */
+  min-width: 90px;       /* pick a width that fits “Completed” */
+  box-sizing: border-box;
+}
+
   
   .status-badge-confirmed {
     background: #D4F4DD;
@@ -859,6 +865,13 @@
   .past-session-card.is-collapsed {
     display: none;
   }
+
+  .session-status-col {
+  display: flex;
+  justify-content: flex-end;  /* keep badge anchored on the right */
+  align-items: center;
+}
+
 
 </style>
 
