@@ -613,6 +613,11 @@
     border-color: #D0D0D8;
   }
 
+   /* Hide extra past session cards when collapsed */
+  .student-past-session-card.is-collapsed {
+    display: none;
+  }
+
   /* Responsive */
   @media (max-width: 960px) {
     .student-layout {
@@ -658,11 +663,6 @@
       width: 100%;
       text-align: center;
     }
-
-      /* Hide extra past session cards when collapsed */
-  .student-past-session-card.is-collapsed {
-    display: none;
-  }
 
   }
 </style>
@@ -1328,5 +1328,42 @@
       renderPage(1);
     });
   });
+
+  // Expand / collapse "Recent Sessions" list
+  document.addEventListener("DOMContentLoaded", function () {
+    const toggleBtn = document.getElementById("student-past-toggle");
+    const container = document.getElementById("student-past-sessions");
+
+    if (!toggleBtn || !container) return;
+
+    const collapseAfter = parseInt(container.dataset.collapseAfter || "5", 10);
+    const cards = Array.from(
+      container.querySelectorAll(".student-past-session-card")
+    );
+
+    function setExpanded(isExpanded) {
+      cards.forEach((card, idx) => {
+        if (idx >= collapseAfter) {
+          if (isExpanded) {
+            card.classList.remove("is-collapsed");
+          } else {
+            card.classList.add("is-collapsed");
+          }
+        }
+      });
+      toggleBtn.textContent = isExpanded ? "Show less" : "Show all";
+      toggleBtn.dataset.expanded = isExpanded ? "1" : "0";
+    }
+
+    // Initial state: collapsed (extra items hidden)
+    setExpanded(false);
+
+    toggleBtn.addEventListener("click", function () {
+      const currentlyExpanded = toggleBtn.dataset.expanded === "1";
+      setExpanded(!currentlyExpanded);
+    });
+  });
+
+
 </script>
 {% endblock %}

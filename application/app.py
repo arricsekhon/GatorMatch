@@ -1217,7 +1217,7 @@ def tutor_dashboard():
                     "confirmed",
                 ]))
                 .order_by(Session.start_at.desc())
-                .limit(5)
+                .limit(20)
                 .all()
             )
 
@@ -1360,7 +1360,7 @@ def student_dashboard():
                 "confirmed",
             ]))
             .order_by(Session.start_at.desc())
-            .limit(5)
+            .limit(20)
             .all()
         )
 
