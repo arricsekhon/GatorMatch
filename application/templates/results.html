@@ -74,7 +74,7 @@
   .search-form-row {
     display: flex;
     gap: 16px;
-    align-items: flex-start;
+    align-items: stretch;
     flex-wrap: wrap;
   }
 
@@ -109,36 +109,76 @@
     box-shadow: 0 4px 24px rgba(197, 164, 63, 0.3);
   }
 
+  .filters-header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .sort-card {
+    margin-bottom: 20px;
+  }
+
+  .sort-card .sort-select-wrap {
+    width: 100%;
+    justify-content: space-between;
+  }
+
   .sort-select-wrap {
     display: flex;
     align-items: center;
-    gap: 10px;
-    background: rgba(255, 255, 255, 0.15);
-    padding: 8px 16px;
-    border-radius: 12px;
-    backdrop-filter: blur(10px);
+    gap: 8px;
+    background: #f8f9ff;
+    padding: 8px 12px;
+    border-radius: 10px;
+    border: 1px solid #e0e0e8;
   }
 
   .sort-select-wrap label {
-    color: rgba(255, 255, 255, 0.9);
-    font-size: 14px;
+    color: #444;
+    font-size: 13px;
     font-weight: 600;
   }
 
   .sort-select-wrap select {
     background: transparent;
     border: none;
-    color: #fff;
-    font-size: 14px;
+    color: #2E0854;
+    font-size: 13px;
     font-weight: 600;
     cursor: pointer;
-    padding: 4px 8px;
+    padding: 2px 4px;
   }
 
   .sort-select-wrap select option {
     color: #333;
     background: #fff;
   }
+
+  .search-hero-btn {
+    padding: 0px 28px;
+    min-height: 54px;
+    background: linear-gradient(135deg, #2E0854 0%, #4a1a7a 100%);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
+    transition: all 0.2s ease;
+    white-space: nowrap;
+  }
+
+  .search-hero-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+  }
+
 
   /* Main Content Area */
   .results-main {
@@ -954,15 +994,9 @@
           <input name="q" value="{{ q }}" type="search" placeholder="Search by subject, course, or tutor name..." />
         </div>
 
-        <div class="sort-select-wrap">
-          <label for="sort">Sort by:</label>
-          <select id="sort" name="sort" onchange="this.form.submit()">
-            <option value="best" {{ 'selected' if sort=='best' }}>Best Match</option>
-            <option value="highest" {{ 'selected' if sort=='highest' }}>Highest Rated</option>
-            <option value="lowest" {{ 'selected' if sort=='lowest' }}>Lowest Rated</option>
-            <option value="experience" {{ 'selected' if sort=='experience' }}>Most Experience</option>
-          </select>
-        </div>
+        <button type="submit" class="search-hero-btn">
+          🔍 <span>Search</span>
+        </button>
       </form>
     </div>
   </section>
@@ -974,7 +1008,20 @@
       <header class="filters-header">
         <h2 class="filters-title">Filters</h2>
         <a class="clear-filters" href="{{ url_for('results_page') }}">Clear all</a>
-    </header>
+      </header>
+
+      <div class="sort-card">
+        <div class="sort-select-wrap">
+          <label for="sort">Sort by:</label>
+          <select id="sort" name="sort" form="filters-form" onchange="this.form.submit()">
+            <option value="best" {{ 'selected' if sort=='best' }}>Best Match</option>
+            <option value="highest" {{ 'selected' if sort=='highest' }}>Highest Rated</option>
+            <option value="lowest" {{ 'selected' if sort=='lowest' }}>Lowest Rated</option>
+            <option value="experience" {{ 'selected' if sort=='experience' }}>Most Experience</option>
+          </select>
+        </div>
+      </div>
+    
 
       <form id="filters-form" method="get" action="{{ url_for('results_page') }}">
         <input type="hidden" name="q" value="{{ q }}">
