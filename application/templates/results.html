@@ -1145,13 +1145,16 @@
         {% endfor %}
       </div>
 
-        <div class="tutor-actions">
-          <a class="view-profile-btn" href="{{ url_for('tutor_profile', slug=t.slug) }}">
-            👤 View {{ t.first }}'s Profile
-          </a>
-          <a class="contact-btn" href="{{ url_for('tutor_profile', slug=t.slug) }}#contact">
-            ✉️ Message
-          </a>
+      <div class="tutor-actions">
+        <!-- Secondary: View Profile (outlined) -->
+        <a class="contact-btn" href="{{ url_for('tutor_profile', slug=t.slug) }}">
+          👤 View {{ t.first }}'s Profile
+        </a>
+
+        <!-- Primary: Request Session (filled) -->
+        <a class="view-profile-btn" href="{{ url_for('tutor_profile', slug=t.slug) }}#contact">
+          ✉️ Request Session
+        </a>
       </div>
     </article>
     {% endfor %}
