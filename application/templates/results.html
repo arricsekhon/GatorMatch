@@ -991,7 +991,8 @@
         
         <div class="search-input-wrap">
           <span class="search-icon">🔍</span>
-          <input name="q" value="{{ q }}" type="search" placeholder="Search by subject, course, or tutor name..." />
+          {% set display_q = q or request.args.get('subject','') %}
+          <input name="q" value="{{ display_q }}" type="search" placeholder="Search by subject, course, or tutor name..." />
         </div>
 
         <button type="submit" class="search-hero-btn">
@@ -1061,7 +1062,7 @@
             <option value="">Any Location</option>
           {% for loc, cnt in facets.locations.items() %}
           <option value="{{ loc }}" {{ 'selected' if request.args.get('location','').lower()==loc.lower() }}>
-            {{ loc }} ({{ cnt }})
+            {{ loc|title }} ({{ cnt }})
           </option>
           {% endfor %}
         </select>
@@ -1140,7 +1141,7 @@
           <span class="course-tag">{{ c }}</span>
         {% endfor %}
         {% for loc in t.locations %}
-          <span class="location-tag">{{ loc }}</span>
+          <span class="location-tag">{{ loc|title }}</span>
         {% endfor %}
       </div>
 
