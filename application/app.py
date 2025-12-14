@@ -10,7 +10,7 @@ from functools import lru_cache, wraps
 from collections import Counter, OrderedDict
 from math import ceil
 from typing import Iterable
-from datetime import datetime, time
+from datetime import datetime, time, timedelta
 
 from dotenv import load_dotenv
 from flask import (
@@ -51,6 +51,10 @@ from application.admin import bp as admin_bp
 from application.jitshi_helper import create_jitsi_link 
 
 load_dotenv()
+
+# Online location keywords that should trigger a meeting link
+ONLINE_LOCATION_TERMS = ("jitsi", "zoom", "online", "virtual", "remote")
+UPCOMING_GRACE_MINUTES = 30
 
 # --- Paths ---
 BASE_DIR = Path(__file__).resolve().parent
@@ -99,6 +103,19 @@ def load_user(user_id: str) -> User | None:
             return db.get(User, int(user_id))
         except Exception:
             return None
+
+
+def ensure_meeting_link(session_obj: Session, db_session) -> bool:
+    """Create a Jitsi meeting link for online sessions if one is missing."""
+    if session_obj.meeting_url:
+        return False
+
+    loc = (session_obj.location_type or "").lower()
+    if not any(term in loc for term in ONLINE_LOCATION_TERMS):
+        return False
+
+    session_obj.meeting_url = create_jitsi_link(session_obj.course_title)
+    return True
 
 
 # -------------------- Data loading & caching --------------------
@@ -1157,6 +1174,8 @@ def tutor_dashboard():
         abort(403)
 
     now = datetime.now()
+    grace_threshold = now - timedelta(minutes=UPCOMING_GRACE_MINUTES)
+    grace_threshold = now - timedelta(minutes=UPCOMING_GRACE_MINUTES)
 
     # Default empty values so the page still renders even if there is no Tutor row
     pending_sessions = []
@@ -1196,11 +1215,19 @@ def tutor_dashboard():
                 .options(joinedload(Session.student))
                 .filter(Session.tutor_id == tutor.id)
                 .filter(Session.status.in_(["approved", "confirmed"]))
-                .filter(Session.start_at >= now)
+                .filter(Session.start_at >= grace_threshold)
                 .order_by(Session.start_at.asc())
                 .limit(5)
                 .all()
             )
+
+            # Ensure online sessions have a join link
+            updated_links = False
+            for sess in upcoming_sessions:
+                if ensure_meeting_link(sess, db):
+                    updated_links = True
+            if updated_links:
+                db.commit()
 
             # --- Recent past sessions (History card on dashboard) ---
             past_sessions = (
@@ -1312,6 +1339,7 @@ def student_dashboard():
       - my_tutors: distinct tutors this student has worked with
     """
     now = datetime.now()
+    grace_threshold = now - timedelta(minutes=UPCOMING_GRACE_MINUTES)
 
     pending_requests = []
     upcoming_sessions = []
@@ -1339,11 +1367,19 @@ def student_dashboard():
             .options(joinedload(Session.tutor).joinedload(Tutor.user))
             .filter(Session.student_id == current_user.id)
             .filter(Session.status.in_(["approved", "confirmed"]))
-            .filter(Session.start_at >= now)
+            .filter(Session.start_at >= grace_threshold)
             .order_by(Session.start_at.asc())
             .limit(5)
             .all()
         )
+
+        # Ensure online sessions have a join link
+        updated_links = False
+        for sess in upcoming_sessions:
+            if ensure_meeting_link(sess, db):
+                updated_links = True
+        if updated_links:
+            db.commit()
 
         # --- Recent past sessions (History on dashboard) ---
         past_sessions = (
