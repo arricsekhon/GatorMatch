@@ -11,6 +11,7 @@ from collections import Counter, OrderedDict
 from math import ceil
 from typing import Iterable
 from datetime import datetime, time, timedelta
+from zoneinfo import ZoneInfo
 
 from dotenv import load_dotenv
 from flask import (
@@ -55,6 +56,8 @@ load_dotenv()
 # Online location keywords that should trigger a meeting link
 ONLINE_LOCATION_TERMS = ("jitsi", "zoom", "online", "virtual", "remote")
 UPCOMING_GRACE_MINUTES = 30
+APP_TIMEZONE = os.getenv("APP_TIMEZONE", "America/Los_Angeles")
+_TZ = ZoneInfo(APP_TIMEZONE)
 
 # --- Paths ---
 BASE_DIR = Path(__file__).resolve().parent
@@ -87,6 +90,12 @@ app.logger.setLevel(logging.INFO)
 log = app.logger
 
 csrf = CSRFProtect(app)
+
+# -------------------- Time helpers --------------------
+
+def local_now() -> datetime:
+    """Return naive datetime representing current time in APP_TIMEZONE."""
+    return datetime.now(_TZ).replace(tzinfo=None)
 
 # -------------------- DB wiring --------------------
 
@@ -400,7 +409,7 @@ def tutor_profile(slug: str):
         )
 
         # Get today's date for the form
-        today = datetime.now().strftime("%Y-%m-%d")
+        today = local_now().strftime("%Y-%m-%d")
 
         return render_template(
             "tutor_profile.html",
@@ -459,7 +468,7 @@ def request_session(tutor_slug: str):
             flash("End time must be after start time.", "danger")
             return redirect(url_for("tutor_profile", slug=tutor_slug) + "#contact")
 
-        now = datetime.now()
+        now = local_now()
 
         session_request = Session(
             tutor_id=tutor.id,
@@ -1173,8 +1182,7 @@ def tutor_dashboard():
     if not getattr(current_user, "is_tutor", False):
         abort(403)
 
-    now = datetime.now()
-    grace_threshold = now - timedelta(minutes=UPCOMING_GRACE_MINUTES)
+    now = local_now()
     grace_threshold = now - timedelta(minutes=UPCOMING_GRACE_MINUTES)
 
     # Default empty values so the page still renders even if there is no Tutor row
@@ -1338,7 +1346,7 @@ def student_dashboard():
       - message_threads: recent message threads with tutors
       - my_tutors: distinct tutors this student has worked with
     """
-    now = datetime.now()
+    now = local_now()
     grace_threshold = now - timedelta(minutes=UPCOMING_GRACE_MINUTES)
 
     pending_requests = []
@@ -1472,7 +1480,7 @@ def tutor_session_history():
     if not getattr(current_user, "is_tutor", False):
         abort(403)
 
-    now = datetime.now()
+    now = local_now()
 
     # Simple pagination
     page = request.args.get("page", 1, type=int)
@@ -1528,7 +1536,7 @@ def student_session_history():
     """
     Session history for students: past sessions with tutors.
     """
-    now = datetime.now()
+    now = local_now()
 
     page = request.args.get("page", 1, type=int)
     per_page = 20
