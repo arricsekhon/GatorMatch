@@ -484,14 +484,14 @@ def approve_session(session_id: int):
             flash("You don't have permission to approve this session.", "danger")
             return redirect(url_for("tutor_dashboard"))
         
-        # --- JITSI INTEGRATION ---
-        # If location is 'jitsi' (or similar), generate link
+        # --- MEETING LINK GENERATION ---
+        # If location is online (zoom, jitsi, online, etc.), generate a Jitsi link
         loc = (session_obj.location_type or "").lower()
-        if "jitsi" in loc:
+        if any(term in loc for term in ["jitsi", "zoom", "online", "virtual", "remote"]):
             # Generate the link using the course title as the topic
             link = create_jitsi_link(session_obj.course_title)
             session_obj.meeting_url = link
-            flash(f"Session approved and Jitsi meeting room created!", "success")
+            flash(f"Session approved! Meeting link has been created.", "success")
         else:
             flash("Session approved! The student will be notified.", "success")
         
