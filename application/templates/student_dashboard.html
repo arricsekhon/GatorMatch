@@ -993,7 +993,7 @@
                     </div>
                     <div class="message-time">
                       {% if t.last_message_at %}
-                        {{ t.last_message_at.strftime("%b %d, %Y") }} · {{ t.last_message_at.strftime("%I:%M%p").lower() }}
+                        {{ t.last_message_at | format_message_time }}
                       {% else %}
                         —
                       {% endif %}
@@ -1041,7 +1041,7 @@
                     </div>
                     <div class="message-time">
                       {% if t.last_message_at %}
-                        {{ t.last_message_at.strftime("%b %d, %Y") }} · {{ t.last_message_at.strftime("%I:%M%p").lower() }}
+                        {{ t.last_message_at | format_message_time }}
                       {% else %}
                         —
                       {% endif %}
