@@ -59,6 +59,10 @@ UPCOMING_GRACE_MINUTES = 30
 APP_TIMEZONE = os.getenv("APP_TIMEZONE", "America/Los_Angeles")
 _TZ = ZoneInfo(APP_TIMEZONE)
 
+UTC_TZ = ZoneInfo("UTC")
+
+
+
 # --- Paths ---
 BASE_DIR = Path(__file__).resolve().parent
 TEMPLATE_DIR = BASE_DIR / "templates"
@@ -88,6 +92,18 @@ ALLOWED_EXTS = {".pdf", ".png", ".jpg", ".jpeg"}
 
 app.logger.setLevel(logging.INFO)
 log = app.logger
+
+#should fix the message time issue
+@app.template_filter("format_message_time")
+def format_message_time(dt):
+    #Render message timestamps in app local time aka LA TImezone
+    if not dt:
+        return ""
+    # DB times are naive and effectively UTC (server time), so attach UTC
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=UTC_TZ)
+    local_dt = dt.astimezone(_TZ)
+    return local_dt.strftime("%b %d, %Y · %I:%M%p").replace("AM", "am").replace("PM", "pm")
 
 csrf = CSRFProtect(app)
 

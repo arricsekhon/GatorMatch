@@ -353,7 +353,7 @@
               {% endif %}
             </span>
             <span class="message-time">
-              {{ msg.sent_at.strftime("%b %d, %Y · %I:%M%p").replace('AM','am').replace('PM','pm') if msg.sent_at else "" }}
+              {{ msg.sent_at|format_message_time }} 
             </span>
           </div>
           <div class="message-body">{{ msg.body }}</div>
