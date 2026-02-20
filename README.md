@@ -1,26 +1,47 @@
-# csc648 Repository
+# GatorMatch — Peer Tutoring Platform
 
-## Please when ready add your teams application URL or IP to the repository description. This will help with grading. Teams are expected to keep this value up to date.
+> A full-stack web application connecting SFSU students with peer tutors for
+> in-person and online tutoring sessions.
 
-## Please do the following steps before completing Milestone 0.
-1. Change the name of the repository. All that needs to change is the NN to your respective team number. Team numbers whose value is less than 10, please pad with a 0. Ex team 1 is Team01 team 11 is Team11. Please make sure to also remove the username from the repository as well. Teams with incorrectly name repository will have points deducted from their milestone 0 grades.
-      - Please follow the naming convention assigned by your instructor.
+Built for **CSC 648 – Software Engineering** at San Francisco State University,
+Fall 2025. Developed by a 7-person Agile team across 5 milestones.
 
-1. PLEASE REMOVE THE USERNAME FROM THE REPOSITORY NAME!!!
+---
 
-2. Add ALL members of your team to this repository. For it to count, they must ACCEPT the invite.
+## Features
 
-3. Fill out the table below
+- **Tutor Discovery** — Search and filter tutors by course, subject, and
+  location with 4 sort modes (best match, highest rated, most experienced)
+- **Session Booking** — Students request sessions with tutors; tutors
+  approve, deny, or cancel with full status tracking
+- **Video Meetings** — Automatic Jitsi Meet link generation for online sessions
+- **Messaging** — Threaded inbox/sent messaging between students and tutors
+- **Role-Based Access** — Three user roles: Student, Tutor, and Admin
+- **Tutor Applications** — Students apply to become tutors; admins review
+  and approve/reject through a dedicated dashboard
+- **Availability Scheduling** — Tutors set weekly availability blocks that
+  appear on their booking form
+- **Dashboards** — Separate dashboards for tutors and students showing
+  pending requests, upcoming sessions, session history, and messages
+- **Profile Management** — Users edit their profile; tutors upload avatars
+  and update bio/headline
+- **Google Analytics** — Integrated for usage tracking
 
+---
 
-| Student Name      | School Email         | GitHub Username |
-|    :---:          |     :---:            |     :---:       |
-| Derek Ye          | dye3@sfsu.edu        | derekyeeyee     |
-| Arric Sekhon      | asekhon@sfsu.edu     | arricsekhon     |
-| Rishika Bharodiya | rbharodiya@sfsu.edu  |   RishikaBB     |
-| Alonzo Manosca    | amanosca1@sfsu.edu   | AJSFSU          |
-| Amer Music        | amusic@mail.sfsu.edu | Amusic514       |
-| Daniel Castillo   | dcastillo8@sfsu.edu  | dacastillo516   |
-| Stanley Wang      | hwang26@sfsu.edu     | stanleywang419  |
+## Tech Stack
 
-## NO code needs to be stored in the root of your repository. You may rename the application folder if you like to your team's application name. But all source code related to your team's application should be stored inside the application folder.
+| Layer | Technology |
+|---|---|
+| Backend | Python 3, Flask |
+| ORM | SQLAlchemy 2.0 |
+| Database | SQLite (dev) / MySQL (production) |
+| Auth | Flask-Login, Werkzeug password hashing |
+| Forms & CSRF | Flask-WTF |
+| Templates | Jinja2 |
+| Production Server | Gunicorn |
+| Video | Jitsi Meet API |
+| Analytics | Google Analytics |
+| Frontend | HTML5, CSS3, vanilla JS |
+
+---
